@@ -1,0 +1,14 @@
+{
+  "name": "@servora/payment-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/payment.ts",
+  "scripts": {
+    "test": "node --experimental-strip-types tests/payment.test.ts"
+  },
+  "dependencies": {
+    "@servora/shared-types": "*",
+    "@servora/utils": "*"
+  }
+}

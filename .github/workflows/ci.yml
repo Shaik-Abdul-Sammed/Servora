@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint, Typecheck & Secrets Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Check for Uncommitted Secrets
+        run: |
+          echo "Scanning for accidental secret commits..."
+          if grep -rnE "BEGIN (RSA|EC|OPENSSH) PRIVATE KEY|sk_live_[0-9a-zA-Z]{24}" . --exclude-dir=".git" --exclude-dir="node_modules"; then
+            echo "Potential secret detected!"
+            exit 1
+          fi
+
+      - name: Validate .gitignore Integrity
+        run: |
+          echo "Verifying .env and credential patterns are ignored..."
+          grep -qx "\.env" .gitignore
+          grep -qx "\*\.pem" .gitignore
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Run Workspace Typecheck
+        run: npm run typecheck --if-present
+
+      - name: Run Tests
+        run: npm run test --if-present

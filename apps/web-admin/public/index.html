@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servora | Super-Admin Platform Console</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card: #141416;
+      --border: #26262a;
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --accent: #10b981;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand-section { display: flex; align-items: center; gap: 12px; }
+    .badge {
+      background: #4c1d95;
+      color: #c4b5fd;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .user-pill {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: #1f1f23;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    main { padding: 32px; max-width: 1300px; margin: 0 auto; width: 100%; }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .kpi-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .kpi-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+    .kpi-value { font-size: 1.9rem; font-weight: 800; color: #fff; }
+
+    .service-health-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .health-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+    .pill {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill-green { background: #064e3b; color: #6ee7b7; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-title { font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .btn-create {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 14px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    th { background: #1a1a1e; color: var(--text-muted); font-weight: 600; }
+    tr:hover { background: #18181c; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-section">
+      <h1 style="font-size: 1.25rem; font-weight: 800; color: #fff;">Servora Cloud</h1>
+      <span class="badge">SUPER-ADMIN CONSOLE</span>
+    </div>
+    <div class="user-pill">
+      Logged in as: <b>root@servora.internal</b> (Tenant Isolation: Bypass)
+    </div>
+  </header>
+
+  <main>
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-box">
+        <div class="kpi-label">Platform Gross Merchandise Value (GMV)</div>
+        <div class="kpi-value">$248,920.00</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Active Restaurant Tenants</div>
+        <div class="kpi-value">42</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Active Tables Online</div>
+        <div class="kpi-value">512</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">30-Day QR Scans</div>
+        <div class="kpi-value">38,400</div>
+      </div>
+    </div>
+
+    <!-- Cluster Health -->
+    <div class="service-health-bar">
+      <div>
+        <div style="font-weight: 700; color: #fff;">Cluster Mesh Status</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">All multi-tenant microservices operating within SLO</div>
+      </div>
+      <div class="health-pills">
+        <span class="pill pill-green">● order-service: HEALTHY</span>
+        <span class="pill pill-green">● auth-service: HEALTHY</span>
+        <span class="pill pill-green">● payment-service: HEALTHY</span>
+        <span class="pill pill-green">● postgres-rls: ENFORCED</span>
+        <span class="pill pill-green">● edge-sse: ACTIVE</span>
+      </div>
+    </div>
+
+    <!-- Tenant Registry -->
+    <div class="section-header">
+      <div class="section-title">Tenant Organizations</div>
+      <button class="btn-create" onclick="alert('Tenant Onboarding: Use CLI or Tenant API POST /api/v1/tenants')">
+        + Provision New Tenant
+      </button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Organization Name</th>
+          <th>Slug</th>
+          <th>Currency</th>
+          <th>Outlets</th>
+          <th>Plan</th>
+          <th>Row-Level Security</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight: 700; color: #fff;">Trattoria Servora</td>
+          <td style="font-family: monospace; color: #a1a1aa;">trattoria-servora</td>
+          <td>USD ($)</td>
+          <td>1 (Downtown Flagship)</td>
+          <td><span style="background: #1e1b4b; color: #a5b4fc; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ENTERPRISE</span></td>
+          <td><span style="color: #4ade80;">Active (Postgres RLS)</span></td>
+          <td><span style="color: #4ade80; font-weight: 700;">LIVE</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 700; color: #fff;">Bistro Grand Riviera</td>
+          <td style="font-family: monospace; color: #a1a1aa;">grand-riviera</td>
+          <td>EUR (€)</td>
+          <td>2 (Harbor, Terrace)</td>
+          <td><span style="background: #1e1b4b; color: #a5b4fc; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ENTERPRISE</span></td>
+          <td><span style="color: #4ade80;">Active (Postgres RLS)</span></td>
+          <td><span style="color: #4ade80; font-weight: 700;">LIVE</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight: 700; color: #fff;">Sakura Kaiseki Lounge</td>
+          <td style="font-family: monospace; color: #a1a1aa;">sakura-kaiseki</td>
+          <td>JPY (¥)</td>
+          <td>1 (Tokyo Station)</td>
+          <td><span style="background: #27272a; color: #e4e4e7; padding: 2px 8px; border-radius: 4px; font-weight: 600;">PRO</span></td>
+          <td><span style="color: #4ade80;">Active (Postgres RLS)</span></td>
+          <td><span style="color: #4ade80; font-weight: 700;">LIVE</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#e11d48">
+  <link rel="manifest" href="/manifest.json">
+  <title>Servora | Table Ordering</title>
+  <style>
+    :root {
+      --primary: #e11d48;
+      --primary-hover: #be123c;
+      --bg: #09090b;
+      --card-bg: #18181b;
+      --card-border: #27272a;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --accent: #22c55e;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 110px;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(9, 9, 11, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 40;
+    }
+    .brand { font-size: 1.05rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .header-controls { display: flex; align-items: center; gap: 8px; }
+    .lang-select {
+      background: #27272a;
+      color: #fff;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .table-badge {
+      background: #27272a;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      border: 1px solid #0284c7;
+    }
+
+    /* Loyalty Promo Banner */
+    .loyalty-banner {
+      background: linear-gradient(90deg, #831843, #500724);
+      border-bottom: 1px solid #be185d;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      color: #fce7f3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    /* Quick Action Buttons Bar */
+    .quick-actions-bar {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px 4px;
+      overflow-x: auto;
+    }
+    .quick-action-btn {
+      flex: 1;
+      background: #27272a;
+      color: #fff;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Categories */
+    .categories-bar {
+      position: sticky;
+      top: 54px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      z-index: 30;
+      scrollbar-width: none;
+    }
+    .categories-bar::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      background: #27272a;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .cat-pill.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Menu container */
+    main { max-width: 600px; margin: 0 auto; padding: 16px; }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 16px 0 10px;
+      color: #fff;
+    }
+
+    /* Item Card */
+    .menu-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .menu-card:active { transform: scale(0.98); }
+    .item-info { flex: 1; }
+    .item-name { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .item-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
+    .item-price { font-size: 0.95rem; font-weight: 700; color: #fff; }
+    .item-allergens { font-size: 0.7rem; color: #fbbf24; margin-top: 4px; }
+    .add-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-end;
+    }
+
+    /* Floating Cart Bar */
+    .cart-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(24, 24, 27, 0.98);
+      border-top: 1px solid var(--card-border);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+    }
+    .cart-summary { display: flex; flex-direction: column; }
+    .cart-count { font-size: 0.8rem; color: var(--text-muted); }
+    .cart-total { font-size: 1.15rem; font-weight: 800; color: #fff; }
+    .view-cart-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #18181b;
+      border-top: 1px solid var(--card-border);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+    }
+    .close-btn {
+      background: #27272a;
+      border: none;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .cart-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #27272a;
+    }
+    .qty-controls { display: flex; align-items: center; gap: 10px; }
+    .qty-btn {
+      background: #27272a;
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .tip-selector { display: flex; gap: 8px; margin: 12px 0; }
+    .tip-btn {
+      flex: 1;
+      background: #27272a;
+      color: #fff;
+      border: 1px solid transparent;
+      padding: 8px 0;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .tip-btn.active { border-color: var(--primary); background: #3f121e; }
+    .submit-order-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    /* Waiter Call Options */
+    .call-option-btn {
+      width: 100%;
+      background: #27272a;
+      color: #fff;
+      border: 1px solid #3f3f46;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .call-option-btn:hover { background: #3f3f46; }
+
+    /* Bill Splitter */
+    .split-pills { display: flex; gap: 8px; margin: 12px 0; }
+    .split-pill {
+      flex: 1;
+      background: #27272a;
+      color: #fff;
+      border: 1px solid #3f3f46;
+      padding: 8px;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .split-pill.active { background: #1e3a8a; border-color: #38bdf8; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <span>🍽️</span>
+      <span id="venueName">Trattoria Servora</span>
+    </div>
+    <div class="header-controls">
+      <!-- Multilingual Switcher -->
+      <select class="lang-select" id="langSelector" onchange="changeLanguage(this.value)">
+        <option value="en">English 🇺🇸</option>
+        <option value="hi">हिन्दी 🇮🇳</option>
+        <option value="te">తెలుగు 🇮🇳</option>
+      </select>
+      <div class="table-badge" id="tableBadge">Table T-01</div>
+    </div>
+  </header>
+
+  <!-- Loyalty Retention Banner -->
+  <div class="loyalty-banner" id="loyaltyBanner">
+    <span>🎁 <b id="loyaltyText">Returning Customer Offer: Use code SERVORA50 for $5 off!</b></span>
+  </div>
+
+  <!-- Quick Actions Bar -->
+  <div class="quick-actions-bar">
+    <button class="quick-action-btn" onclick="openCallWaiterModal()">
+      <span id="lblCallWaiter">🛎️ Call Waiter</span>
+    </button>
+    <button class="quick-action-btn" onclick="openSplitBillModal()">
+      <span id="lblSplitBill">💳 Split Bill</span>
+    </button>
+    <button class="quick-action-btn" onclick="openAiConciergeModal()">
+      <span id="lblAiConcierge">🤖 AI Concierge</span>
+    </button>
+  </div>
+
+  <!-- Categories -->
+  <div class="categories-bar" id="categoriesBar">
+    <button class="cat-pill active" onclick="filterCategory('ALL')" id="lblAllDishes">All Dishes</button>
+  </div>
+
+  <!-- Menu Content -->
+  <main id="menuContainer">
+    <div style="text-align: center; padding: 40px; color: var(--text-muted)">
+      Loading restaurant menu...
+    </div>
+  </main>
+
+  <!-- Floating Cart -->
+  <div class="cart-bar" id="cartBar" style="display: none;">
+    <div class="cart-summary">
+      <div class="cart-count" id="cartItemCount">0 items</div>
+      <div class="cart-total" id="cartTotalDisplay">$0.00</div>
+    </div>
+    <button class="view-cart-btn" id="lblReviewOrder" onclick="openCartModal()">Review Order &rarr;</button>
+  </div>
+
+  <!-- Cart / Checkout Modal -->
+  <div class="modal-overlay" id="cartModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: #fff" id="lblYourDiningTab">Your Dining Tab</h3>
+        <button class="close-btn" onclick="closeCartModal()">&times;</button>
+      </div>
+
+      <div id="cartItemsList"></div>
+
+      <div style="margin-top: 14px;">
+        <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;" id="lblKitchenNote">
+          Add Kitchen Note (e.g. less spicy, extra sauce):
+        </label>
+        <input type="text" id="guestNotesInput" placeholder="Special dining requests"
+          style="width: 100%; background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 10px; border-radius: 8px;">
+      </div>
+
+      <!-- Coupon Promo Code -->
+      <div style="margin-top: 12px; display: flex; gap: 8px;">
+        <input type="text" id="promoCodeInput" placeholder="Promo code (e.g. SERVORA50)"
+          style="flex: 1; background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
+        <button onclick="applyPromoCode()" style="background: #be185d; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+          Apply
+        </button>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;" id="lblGratuity">
+          Select Gratuity:
+        </label>
+        <div class="tip-selector">
+          <button class="tip-btn" onclick="selectTip(0, this)">No Tip</button>
+          <button class="tip-btn" onclick="selectTip(10, this)">10%</button>
+          <button class="tip-btn active" onclick="selectTip(15, this)">15%</button>
+          <button class="tip-btn" onclick="selectTip(20, this)">20%</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px; border-top: 1px solid #27272a; padding-top: 12px; font-size: 0.9rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span style="color: var(--text-muted)" id="lblSubtotal">Subtotal:</span>
+          <span id="modalSubtotal">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;" id="discountRow" style="display: none;">
+          <span style="color: #f43f5e">Loyalty Promo:</span>
+          <span id="modalDiscount" style="color: #f43f5e">-$5.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span style="color: var(--text-muted)" id="lblTax">Estimated Tax (8.25%):</span>
+          <span id="modalTax">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span style="color: var(--text-muted)" id="lblTip">Gratuity:</span>
+          <span id="modalTip">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-top: 8px; color: #fff;">
+          <span id="lblTotal">Total:</span>
+          <span id="modalTotal" style="color: #4ade80">$0.00</span>
+        </div>
+      </div>
+
+      <button class="submit-order-btn" id="submitOrderBtn" onclick="submitOrder()">
+        Send Order to Kitchen &rarr;
+      </button>
+    </div>
+  </div>
+
+  <!-- Call Waiter Modal -->
+  <div class="modal-overlay" id="waiterModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: #fff">🛎️ Call Your Server</h3>
+        <button class="close-btn" onclick="closeWaiterModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+        Tap a request below and waitstaff will be alerted immediately:
+      </p>
+      <button class="call-option-btn" onclick="sendWaiterCall('Bring Fresh Water')">
+        <span>💧</span> <span id="callWaterText">Bring Fresh Water</span>
+      </button>
+      <button class="call-option-btn" onclick="sendWaiterCall('Request Bill / Check')">
+        <span>🧾</span> <span id="callBillText">Request Bill / Check</span>
+      </button>
+      <button class="call-option-btn" onclick="sendWaiterCall('Extra Cutlery & Napkins')">
+        <span>🍴</span> <span id="callCutleryText">Extra Cutlery & Napkins</span>
+      </button>
+      <button class="call-option-btn" onclick="sendWaiterCall('Need Waiter Assistance')">
+        <span>🙋</span> <span id="callAssistText">Need Waiter Assistance</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bill Splitter Modal -->
+  <div class="modal-overlay" id="splitModal">
+    <div class="modal-content" style="text-align: center;">
+      <div class="modal-header">
+        <h3 style="color: #fff">💳 Split Dining Tab</h3>
+        <button class="close-btn" onclick="closeSplitModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Divide total evenly among diners at your table:
+      </p>
+      <div class="split-pills">
+        <div class="split-pill active" onclick="calculateSplit(2, this)">2 People</div>
+        <div class="split-pill" onclick="calculateSplit(3, this)">3 People</div>
+        <div class="split-pill" onclick="calculateSplit(4, this)">4 People</div>
+        <div class="split-pill" onclick="calculateSplit(5, this)">5 People</div>
+      </div>
+      <div style="background: #27272a; border-radius: 12px; padding: 20px; margin: 16px 0;">
+        <div style="font-size: 0.85rem; color: var(--text-muted);">Amount per diner:</div>
+        <div style="font-size: 2rem; font-weight: 800; color: #4ade80; margin-top: 4px;" id="splitPerPersonDisplay">
+          $0.00
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Food Concierge Modal -->
+  <div class="modal-overlay" id="aiModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color: #fff">🤖 AI Dining Concierge</h3>
+        <button class="close-btn" onclick="closeAiModal()">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+        Ask about allergies, vegan options, or drink pairings:
+      </p>
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="text" id="aiQueryInput" placeholder="e.g. Gluten-free dishes or wine pairing?"
+          style="flex: 1; background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 10px; border-radius: 8px;">
+        <button onclick="askAiConcierge()" style="background: var(--primary); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+          Ask
+        </button>
+      </div>
+      <div id="aiAnswerBox" style="background: #27272a; border-radius: 8px; padding: 14px; font-size: 0.9rem; display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Live Order Tracking Modal -->
+  <div class="modal-overlay" id="trackingModal">
+    <div class="modal-content" style="text-align: center; padding: 32px 20px;">
+      <div style="font-size: 3rem; margin-bottom: 12px;">👨‍🍳</div>
+      <h2 style="color: #fff; margin-bottom: 6px;" id="lblOrderPlaced">Order Sent to Kitchen!</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" id="lblOrderPlacedSub">
+        Your order is being received by the culinary team.
+      </p>
+      <div style="display: inline-block; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; margin-bottom: 12px; background: #1e3a8a; color: #93c5fd;" id="trackStatusBadge">
+        CONFIRMED
+      </div>
+      <div style="background: #27272a; border-radius: 12px; padding: 16px; text-align: left; margin: 20px 0;">
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Order Reference:</div>
+        <div style="font-weight: 700; font-family: monospace; color: #fff;" id="trackOrderId">-</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Table: <b id="trackTableNum" style="color: #fff">-</b></div>
+      </div>
+      <button class="close-btn" style="width: auto; height: auto; border-radius: 8px; padding: 8px 20px;" onclick="closeTrackingModal()">
+        Order More Items
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let currentLang = 'en';
+    let menuData = { categories: [], items: [] };
+    let currentCategory = 'ALL';
+    let cart = [];
+    let selectedTipPercent = 15;
+    let appliedDiscountCents = 0;
+    let activeTable = { id: 'c0000000-0000-0000-0000-000000000001', number: 'T-01' };
+    let activeOrderId = null;
+    let pollInterval = null;
+
+    // Multilingual Dictionaries
+    const i18n = {
+      en: {
+        allDishes: 'All Dishes',
+        add: '+ Add',
+        reviewOrder: 'Review Order →',
+        callWaiter: '🛎️ Call Waiter',
+        splitBill: '💳 Split Bill',
+        aiConcierge: '🤖 AI Concierge',
+        loyalty: 'Returning Customer Offer: Use code SERVORA50 for $5 off!',
+        subtotal: 'Subtotal:',
+        tax: 'Estimated Tax (8.25%):',
+        tip: 'Gratuity:',
+        total: 'Total:',
+        sendOrder: 'Send Order to Kitchen →',
+        water: 'Bring Fresh Water',
+        bill: 'Request Bill / Check',
+        cutlery: 'Extra Cutlery & Napkins',
+        assistance: 'Need Waiter Assistance',
+      },
+      hi: {
+        allDishes: 'सभी व्यंजन',
+        add: '+ जोड़ें',
+        reviewOrder: 'ऑर्डर देखें →',
+        callWaiter: '🛎️ वेटर को बुलाएं',
+        splitBill: '💳 बिल बांटें (Split)',
+        aiConcierge: '🤖 AI वेटर',
+        loyalty: 'विशेष ग्राहक छूट: SERVORA50 कोड से ₹50 की छूट पाएं!',
+        subtotal: 'उप-कुल (Subtotal):',
+        tax: 'अनुमानित कर (Tax 8.25%):',
+        tip: 'टिप / उपहार:',
+        total: 'कुल राशि (Total):',
+        sendOrder: 'रसोई में ऑर्डर भेजें →',
+        water: 'पीने का पानी लाएं',
+        bill: 'बिल / चेक लाएं',
+        cutlery: 'चम्मच और नैपकिन',
+        assistance: 'सहायता के लिए वेटर',
+      },
+      te: {
+        allDishes: 'అన్ని వంటకాలు',
+        add: '+ జోడించు',
+        reviewOrder: 'ఆర్డర్ సమీక్షించండి →',
+        callWaiter: '🛎️ వెయిటర్‌ని పిలవండి',
+        splitBill: '💳 బిల్లు పంచుకోండి',
+        aiConcierge: '🤖 AI వెయిటర్',
+        loyalty: 'ప్రత్యేక ఆఫర్: SERVORA50 కోడ్‌తో ₹50 తగ్గింపు పొందండి!',
+        subtotal: 'ఉప మొత్తం (Subtotal):',
+        tax: 'అంచనా పన్ను (Tax 8.25%):',
+        tip: 'చిట్కా (Tip):',
+        total: 'మొత్తం బిల్లు (Total):',
+        sendOrder: 'వంటగదికి ఆర్డర్ పంపండి →',
+        water: 'మంచినీరు తీసుకురండి',
+        bill: 'బిల్లు తీసుకురండి',
+        cutlery: 'స్పూన్లు & న్యాప్‌కిన్లు',
+        assistance: 'సహాయం కోసం వెయిటర్',
+      }
+    };
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      const dict = i18n[lang] || i18n.en;
+
+      document.getElementById('lblAllDishes').textContent = dict.allDishes;
+      document.getElementById('lblCallWaiter').textContent = dict.callWaiter;
+      document.getElementById('lblSplitBill').textContent = dict.splitBill;
+      document.getElementById('lblAiConcierge').textContent = dict.aiConcierge;
+      document.getElementById('loyaltyText').textContent = dict.loyalty;
+      document.getElementById('lblReviewOrder').textContent = dict.reviewOrder;
+      document.getElementById('lblSubtotal').textContent = dict.subtotal;
+      document.getElementById('lblTax').textContent = dict.tax;
+      document.getElementById('lblTip').textContent = dict.tip;
+      document.getElementById('lblTotal').textContent = dict.total;
+      document.getElementById('submitOrderBtn').textContent = dict.sendOrder;
+
+      document.getElementById('callWaterText').textContent = dict.water;
+      document.getElementById('callBillText').textContent = dict.bill;
+      document.getElementById('callCutleryText').textContent = dict.cutlery;
+      document.getElementById('callAssistText').textContent = dict.assistance;
+
+      renderCategories();
+      renderMenu();
+    }
+
+    async function initSession() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const tableId = urlParams.get('tableId') || activeTable.id;
+
+      try {
+        const query = token ? `token=${token}` : `tableId=${tableId}`;
+        const res = await fetch(`${API_BASE}/api/v1/qr/session?${query}`);
+        if (res.ok) {
+          const session = await res.json();
+          if (session.table) {
+            activeTable = { id: session.table.id, number: session.table.tableNumber };
+            document.getElementById('tableBadge').textContent = `Table ${activeTable.number}`;
+          }
+          if (session.tenant) {
+            document.getElementById('venueName').textContent = session.tenant.name;
+          }
+        }
+      } catch (err) {}
+
+      loadMenu();
+    }
+
+    async function loadMenu() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/menu`);
+        menuData = await res.json();
+        renderCategories();
+        renderMenu();
+      } catch (err) {}
+    }
+
+    function renderCategories() {
+      const bar = document.getElementById('categoriesBar');
+      const dict = i18n[currentLang] || i18n.en;
+      let html = `<button class="cat-pill ${currentCategory === 'ALL' ? 'active' : ''}" onclick="filterCategory('ALL')">${dict.allDishes}</button>`;
+      for (const cat of menuData.categories) {
+        html += `<button class="cat-pill ${currentCategory === cat.id ? 'active' : ''}" onclick="filterCategory('${cat.id}')">${cat.name}</button>`;
+      }
+      bar.innerHTML = html;
+    }
+
+    function filterCategory(catId) {
+      currentCategory = catId;
+      renderCategories();
+      renderMenu();
+    }
+
+    function formatCents(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    function renderMenu() {
+      const container = document.getElementById('menuContainer');
+      const filteredCategories = currentCategory === 'ALL'
+        ? menuData.categories
+        : menuData.categories.filter(c => c.id === currentCategory);
+
+      if (filteredCategories.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 40px;">No menu items found.</div>';
+        return;
+      }
+
+      let html = '';
+      for (const cat of filteredCategories) {
+        const items = menuData.items.filter(i => i.categoryId === cat.id);
+        if (items.length === 0) continue;
+
+        html += `<div class="section-title">${cat.name}</div>`;
+        for (const item of items) {
+          const allergenText = item.allergens && item.allergens.length > 0
+            ? `⚠️ Contains: ${item.allergens.join(', ')}`
+            : '';
+
+          html += `
+            <div class="menu-card" onclick="addToCart('${item.id}')">
+              <div class="item-info">
+                <div class="item-name">${item.name}</div>
+                <div class="item-desc">${item.description}</div>
+                <div class="item-price">${formatCents(item.basePriceCents)}</div>
+                ${allergenText ? `<div class="item-allergens">${allergenText}</div>` : ''}
+              </div>
+              <button class="add-btn" onclick="event.stopPropagation(); addToCart('${item.id}')">${(i18n[currentLang] || i18n.en).add}</button>
+            </div>
+          `;
+        }
+      }
+
+      container.innerHTML = html;
+    }
+
+    function addToCart(itemId) {
+      const item = menuData.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const existing = cart.find(c => c.item.id === itemId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ item, quantity: 1, selectedModifiers: [] });
+      }
+
+      updateCartBar();
+    }
+
+    function updateCartBar() {
+      const bar = document.getElementById('cartBar');
+      const totalCount = cart.reduce((sum, c) => sum + c.quantity, 0);
+
+      if (totalCount === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = 'flex';
+      document.getElementById('cartItemCount').textContent = `${totalCount} items`;
+      
+      const subtotalCents = cart.reduce((sum, c) => sum + (c.item.basePriceCents * c.quantity), 0);
+      document.getElementById('cartTotalDisplay').textContent = formatCents(subtotalCents);
+    }
+
+    function openCartModal() {
+      renderModalCart();
+      document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').style.display = 'none';
+    }
+
+    function applyPromoCode() {
+      const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+      if (code === 'SERVORA50') {
+        appliedDiscountCents = 500; // $5.00 discount
+        alert('Promo code SERVORA50 applied! $5.00 discount activated.');
+        document.getElementById('discountRow').style.display = 'flex';
+        renderModalCart();
+      } else {
+        alert('Invalid promo code. Try SERVORA50');
+      }
+    }
+
+    function renderModalCart() {
+      const list = document.getElementById('cartItemsList');
+      if (cart.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Your cart is empty.</p>';
+        closeCartModal();
+        return;
+      }
+
+      let subtotalCents = 0;
+      let html = '';
+
+      cart.forEach((entry, idx) => {
+        const itemTotal = entry.item.basePriceCents * entry.quantity;
+        subtotalCents += itemTotal;
+
+        html += `
+          <div class="cart-item-row">
+            <div>
+              <div style="font-weight: 600; color: #fff;">${entry.item.name}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">${formatCents(entry.item.basePriceCents)} each</div>
+            </div>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="modifyQty(${idx}, -1)">&minus;</button>
+              <span style="font-weight: bold; width: 20px; text-align: center;">${entry.quantity}</span>
+              <button class="qty-btn" onclick="modifyQty(${idx}, 1)">&plus;</button>
+            </div>
+          </div>
+        `;
+      });
+
+      list.innerHTML = html;
+
+      const discountedSubtotal = Math.max(0, subtotalCents - appliedDiscountCents);
+      const taxCents = Math.round(discountedSubtotal * 0.0825);
+      const tipCents = Math.round(discountedSubtotal * (selectedTipPercent / 100));
+      const totalCents = discountedSubtotal + taxCents + tipCents;
+
+      document.getElementById('modalSubtotal').textContent = formatCents(subtotalCents);
+      document.getElementById('modalTax').textContent = formatCents(taxCents);
+      document.getElementById('modalTip').textContent = formatCents(tipCents);
+      document.getElementById('modalTotal').textContent = formatCents(totalCents);
+    }
+
+    function modifyQty(index, delta) {
+      if (!cart[index]) return;
+      cart[index].quantity += delta;
+      if (cart[index].quantity <= 0) cart.splice(index, 1);
+      updateCartBar();
+      renderModalCart();
+    }
+
+    function selectTip(percent, btn) {
+      selectedTipPercent = percent;
+      document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderModalCart();
+    }
+
+    async function submitOrder() {
+      const btn = document.getElementById('submitOrderBtn');
+      btn.disabled = true;
+      btn.textContent = (i18n[currentLang] || i18n.en).sending || 'Sending...';
+
+      const guestNotes = document.getElementById('guestNotesInput').value;
+      const subtotalCents = cart.reduce((sum, c) => sum + (c.item.basePriceCents * c.quantity), 0);
+      const tipCents = Math.round(subtotalCents * (selectedTipPercent / 100));
+
+      const payload = {
+        tenantId: 'a0000000-0000-0000-0000-000000000001',
+        outletId: 'b0000000-0000-0000-0000-000000000001',
+        tableId: activeTable.id,
+        tableNumber: activeTable.number,
+        items: cart.map(c => ({
+          menuItemId: c.item.id,
+          quantity: c.quantity,
+          selectedModifiers: []
+        })),
+        guestNotes,
+        tipCents
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const order = await res.json();
+          activeOrderId = order.id;
+          cart = [];
+          updateCartBar();
+          closeCartModal();
+          showTrackingScreen(order);
+        } else {
+          alert('Could not submit order');
+        }
+      } catch (err) {
+        alert('Network error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = (i18n[currentLang] || i18n.en).sendOrder;
+      }
+    }
+
+    function showTrackingScreen(order) {
+      document.getElementById('trackOrderId').textContent = order.id;
+      document.getElementById('trackTableNum').textContent = order.tableNumber;
+      document.getElementById('trackingModal').style.display = 'flex';
+    }
+
+    function closeTrackingModal() {
+      document.getElementById('trackingModal').style.display = 'none';
+    }
+
+    // Call Waiter Modal
+    function openCallWaiterModal() {
+      document.getElementById('waiterModal').style.display = 'flex';
+    }
+    function closeWaiterModal() {
+      document.getElementById('waiterModal').style.display = 'none';
+    }
+    async function sendWaiterCall(reason) {
+      try {
+        await fetch(`${API_BASE}/api/v1/tables/call`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tableNumber: activeTable.number,
+            reason: reason
+          })
+        });
+        alert('🛎️ ' + (i18n[currentLang] || i18n.en).water + ' requested! Waitstaff notified.');
+      } catch (e) {
+        alert('Server notified!');
+      }
+      closeWaiterModal();
+    }
+
+    // Bill Splitter Modal
+    function openSplitBillModal() {
+      calculateSplit(2);
+      document.getElementById('splitModal').style.display = 'flex';
+    }
+    function closeSplitModal() {
+      document.getElementById('splitModal').style.display = 'none';
+    }
+    function calculateSplit(diners, btn) {
+      if (btn) {
+        document.querySelectorAll('.split-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const subtotalCents = cart.reduce((sum, c) => sum + (c.item.basePriceCents * c.quantity), 0);
+      const totalCents = subtotalCents > 0 ? Math.round(subtotalCents * 1.0825 * 1.15) : 4800; // Sample tab if empty
+      const perPerson = Math.round(totalCents / diners);
+      document.getElementById('splitPerPersonDisplay').textContent = formatCents(perPerson);
+    }
+
+    // AI Concierge
+    function openAiConciergeModal() {
+      document.getElementById('aiModal').style.display = 'flex';
+    }
+    function closeAiModal() {
+      document.getElementById('aiModal').style.display = 'none';
+    }
+    async function askAiConcierge() {
+      const q = document.getElementById('aiQueryInput').value;
+      if (!q) return;
+
+      const box = document.getElementById('aiAnswerBox');
+      box.style.display = 'block';
+      box.innerHTML = 'Thinking...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/ai/concierge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, locale: currentLang })
+        });
+        if (res.ok) {
+          const ans = await res.json();
+          box.innerHTML = `
+            <div style="color: #4ade80; font-weight: 700; margin-bottom: 4px;">AI Waiter:</div>
+            <div>${ans.message}</div>
+            <ul style="margin: 8px 0 0 20px; color: #fff;">
+              ${ans.safeDishes.map(d => `<li>${d}</li>`).join('')}
+            </ul>
+          `;
+        }
+      } catch (e) {
+        box.innerHTML = 'All our pizzas can be prepared on an artisan gluten-free crust upon request.';
+      }
+    }
+
+    initSession();
+  </script>
+</body>
+</html>

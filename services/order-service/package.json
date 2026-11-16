@@ -1,0 +1,20 @@
+{
+  "name": "@servora/order-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --experimental-strip-types src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@servora/shared-types": "*",
+    "@servora/utils": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

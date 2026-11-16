@@ -1,0 +1,15 @@
+{
+  "name": "@servora/auth-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/server.ts",
+  "scripts": {
+    "start": "node --experimental-strip-types src/server.ts",
+    "test": "node --experimental-strip-types tests/auth.test.ts"
+  },
+  "dependencies": {
+    "@servora/shared-types": "*",
+    "@servora/utils": "*"
+  }
+}

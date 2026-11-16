@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Database: PostgreSQL with Multi-Tenant Row-Level Security (RLS)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: servora-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: servora_dev
+      POSTGRES_USER: servora
+      POSTGRES_PASSWORD: servora_secure_password_2026
+    ports:
+      - '5432:5432'
+    volumes:
+      - servora-pgdata:/var/lib/postgresql/data
+      - ../../data/migrations/0001_initial_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ../../data/seeds/0001_demo_restaurant.sql:/docker-entrypoint-initdb.d/02_seeds.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U servora -d servora_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Cache & Event Broker: Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: servora-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Servora Core Order Service & Web Applications (Guest PWA, KDS, Owner Portal)
+  # ---------------------------------------------------------------------------
+  servora-api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    container_name: servora-order-service
+    restart: always
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://servora:servora_secure_password_2026@postgres:5432/servora_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: servora-prod-jwt-secret-replace-in-env-32-chars
+      QR_SIGNING_SALT: servora-prod-qr-hmac-salt-replace-in-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  servora-pgdata:

@@ -1,0 +1,16 @@
+{
+  "name": "@servora/pos-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local POS Bridge for ESC/POS Thermal Receipt Printing and Hardware Dispatch",
+  "main": "./src/bridge.ts",
+  "scripts": {
+    "start": "node --experimental-strip-types src/bridge.ts",
+    "test": "node --experimental-strip-types tests/printer.test.ts"
+  },
+  "dependencies": {
+    "@servora/shared-types": "*",
+    "@servora/utils": "*"
+  }
+}

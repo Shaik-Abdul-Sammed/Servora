@@ -1,0 +1,13 @@
+{
+  "name": "@servora/waiter-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "node --experimental-strip-types tests/waiter-agent.test.ts"
+  },
+  "dependencies": {
+    "@servora/shared-types": "*"
+  }
+}

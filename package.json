@@ -1,0 +1,26 @@
+{
+  "name": "servora-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-Tenant QR-Code Restaurant & Hospitality Operating System",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "imports": {
+    "#shared-types": "./packages/shared-types/src/index.ts",
+    "#utils": "./packages/utils/src/index.ts"
+  },
+  "scripts": {
+    "order-service:start": "node --experimental-strip-types services/order-service/src/server.ts",
+    "pos-bridge:start": "node --experimental-strip-types apps/pos-bridge/src/bridge.ts",
+    "qr:generate": "node --experimental-strip-types scripts/generate-table-qrs.ts",
+    "test": "node --experimental-strip-types tests/unit/order-service.test.ts && node --experimental-strip-types tests/unit/pos-bridge.test.ts && node --experimental-strip-types tests/unit/auth-service.test.ts && node --experimental-strip-types tests/unit/payment-service.test.ts && node --experimental-strip-types tests/unit/compliance.test.ts && node --experimental-strip-types tests/unit/waiter-agent.test.ts && node --experimental-strip-types tests/unit/ai-engine.test.ts && node --experimental-strip-types tests/integration/api-endpoints.test.ts && node --experimental-strip-types tests/integration/full-system.test.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@servora/ai-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/ai-engine.ts",
+  "scripts": {
+    "test": "node --experimental-strip-types tests/ai-engine.test.ts"
+  },
+  "dependencies": {
+    "@servora/shared-types": "*",
+    "@servora/utils": "*"
+  }
+}
