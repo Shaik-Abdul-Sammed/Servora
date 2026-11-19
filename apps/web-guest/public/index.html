@@ -70,6 +70,11 @@
         📅 <span id="headerBookLabel">Reserve</span>
       </a>
 
+      <!-- Order History Button (Phase 2 UX) -->
+      <button onclick="openHistoryModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); padding:5px 10px; border-radius:18px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;" title="View past orders & reorder">
+        📋 <span id="historyBtnLabel">Orders</span>
+      </button>
+
       <!-- Optional Profile / Preferences Button -->
       <button onclick="openLoginModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); padding:5px 10px; border-radius:18px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
         👤 <span id="userLoginLabel">Guest</span>
@@ -241,7 +246,8 @@
       <div class="search-icon-pos">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
-      <input type="text" id="searchInput" class="search-input" placeholder="Search for dishes, cuisines, ingredients..." oninput="handleSearch(this.value)">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search dishes, ingredients, or tap 🎙️..." oninput="handleSearch(this.value)">
+      <button id="btnVoiceOrder" class="voice-search-btn" onclick="startVoiceOrder()" title="Voice search & order dishes">🎙️</button>
       <button id="searchClear" class="search-clear" onclick="clearSearch()">✕</button>
     </div>
 
@@ -263,6 +269,46 @@
       </button>
       <button class="abiruchi-pill-toggle" onclick="toggleDietFilter('GLUTEN_FREE', this)">
         <span>🌾 Gluten-Free</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Real-Time Food Shift & Daypart Filtering Bar -->
+  <div class="shift-filter-container">
+    <div class="shift-filter-row">
+      <span id="liveClockBadge" class="live-clock-badge">🕒 <span id="clockText">--:--</span> • <span id="currentShiftText">Loading...</span></span>
+      <button class="shift-chip active" id="shiftChipNow" onclick="filterByShift('NOW', this)">
+        <span>⏰ Available Now</span>
+      </button>
+      <button class="shift-chip" id="shiftChipBreakfast" onclick="filterByShift('BREAKFAST', this)">
+        <span>🌅 Breakfast (06:00-11:30)</span>
+      </button>
+      <button class="shift-chip" id="shiftChipLunch" onclick="filterByShift('LUNCH', this)">
+        <span>🍛 Lunch (11:00-16:30)</span>
+      </button>
+      <button class="shift-chip" id="shiftChipSnacks" onclick="filterByShift('SNACKS', this)">
+        <span>☕ Snacks (15:00-23:00)</span>
+      </button>
+      <button class="shift-chip" id="shiftChipDinner" onclick="filterByShift('DINNER', this)">
+        <span>🌙 Dinner (18:00-23:59)</span>
+      </button>
+      <button class="shift-chip" id="shiftChipAll" onclick="filterByShift('ALL', this)">
+        <span>✨ All Items</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- View Mode Bar (Compact Mobile 2-Column Grid vs Detailed List) -->
+  <div class="view-mode-bar">
+    <div style="font-size:0.78rem; font-weight:800; color:var(--text-muted);">
+      <span id="menuItemCount">0</span> dishes available
+    </div>
+    <div class="view-toggle-btns">
+      <button type="button" class="view-btn active" id="btnViewGrid" onclick="setViewMode('grid')" title="Compact 2-column view (fits 6-8 dishes on screen)">
+        ⊞ Compact
+      </button>
+      <button type="button" class="view-btn" id="btnViewList" onclick="setViewMode('list')" title="Detailed list view">
+        ☰ List
       </button>
     </div>
   </div>
@@ -804,6 +850,45 @@
     </div>
   </div>
 
+  <!-- Voice Order Listening Modal Overlay -->
+  <div id="voiceModal" class="voice-modal-overlay" onclick="closeVoiceModal(event)">
+    <div class="voice-modal-card" onclick="event.stopPropagation()">
+      <div class="voice-pulse-ring">🎙️</div>
+      <h3 style="font-size:1.2rem; font-weight:900; color:var(--text-title); margin-bottom:6px;">Listening...</h3>
+      <p id="voiceLiveTranscript" style="font-size:0.95rem; color:var(--primary); font-weight:700; min-height:44px; margin-bottom:12px;">
+        "Say: 'Order two filter coffee' or 'Show Biryani'..."
+      </p>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">
+        Powered by Web Speech. Speak in English, Hindi, or Telugu.
+      </div>
+      <button onclick="stopVoiceOrder()" class="btn-primary" style="background:#ef4444; color:#fff; border:none; padding:10px 24px; border-radius:12px; font-weight:800; cursor:pointer;">
+        Stop Listening
+      </button>
+    </div>
+  </div>
+
+  <!-- Order History & 1-Tap Reorder Modal -->
+  <div id="historyModal" class="history-modal-overlay" onclick="closeHistoryModal(event)">
+    <div class="history-modal-card" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--card-border); padding-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.3rem;">📋</span>
+          <h3 style="font-size:1.15rem; font-weight:900; color:var(--text-title); margin:0;">My Order History</h3>
+        </div>
+        <button onclick="closeHistoryModal()" style="background:transparent; border:none; font-size:1.2rem; color:var(--text-muted); cursor:pointer;">✕</button>
+      </div>
+
+      <div id="historyOrdersList">
+        <div style="text-align:center; padding:32px 16px; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:8px;">🍽️</div>
+          <p style="font-weight:700;">No past orders on this device yet.</p>
+          <span style="font-size:0.8rem;">Your completed dining orders and receipts will appear here for 1-tap reordering.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/guest/dish-photos.js"></script>
   <script src="/guest/router.js" defer></script>
   <script src="/guest/app.js" defer></script>
   <script>

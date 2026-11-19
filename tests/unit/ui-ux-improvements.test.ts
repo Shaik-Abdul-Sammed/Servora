@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { translateText, SUPPORTED_LANGUAGES, translateMenuData } from '../../packages/content-translation/src/google-translate.ts';
+import { getAutoDishPhoto } from '../../packages/utils/src/dish-photo-matcher.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -110,5 +111,49 @@ describe('Abiruchi Hotel 100 UI/UX & Invisible Translation Test Suite', () => {
 
     // Owner Portal Live 86 Toggle API Link
     assert.match(ownerHtml, /\/api\/v1\/menu\/items\/\${itemId}\/toggle-86/);
+  });
+
+  it('Phase 2 UX Deliverables: Distinct Photos, Time-Shift Availability, Full Pre-Booking, Voice Control, Compact Grid & History', () => {
+    // 1. Verify getAutoDishPhoto returns distinct authentic images
+    const dosaPhoto = getAutoDishPhoto('Masala Dosa', 'Tiffins');
+    const biryaniPhoto = getAutoDishPhoto('Chicken Biryani', 'Biryani');
+    const coffeePhoto = getAutoDishPhoto('Filter Coffee', 'Beverages');
+    const samosaPhoto = getAutoDishPhoto('Samosa', 'Snacks');
+    assert.ok(dosaPhoto && biryaniPhoto && coffeePhoto && samosaPhoto);
+    assert.notEqual(dosaPhoto, biryaniPhoto, 'Dosa and Biryani must have distinct photos');
+    assert.notEqual(biryaniPhoto, coffeePhoto, 'Biryani and Coffee must have distinct photos');
+
+    // 2. Verify Guest UI has voice search, compact grid toggle, order history, and shift chips
+    const guestHtml = readFileSync(join(rootDir, 'apps/web-guest/public/index.html'), 'utf-8');
+    assert.match(guestHtml, /id="btnVoiceOrder"/, 'Voice search button must exist');
+    assert.match(guestHtml, /id="voiceModal"/, 'Voice modal overlay must exist');
+    assert.match(guestHtml, /id="historyModal"/, 'Order history modal must exist');
+    assert.match(guestHtml, /id="shiftChipNow"/, 'Real-time shift filter chip must exist');
+    assert.match(guestHtml, /id="btnViewGrid"/, 'Compact grid view button must exist');
+    assert.match(guestHtml, /id="btnViewList"/, 'List view button must exist');
+
+    // 3. Verify CSS has compact 2-column mobile grid styling
+    const css = readFileSync(join(rootDir, 'apps/web-guest/public/styles.css'), 'utf-8');
+    assert.match(css, /\.menu-container\.grid-view/, 'Compact grid view CSS must exist');
+    assert.match(css, /grid-template-columns:\s*repeat\(2,\s*1fr\)/, '2-column mobile grid must be defined');
+    assert.match(css, /\.grid-dish-card/, 'Grid dish card styling must exist');
+    assert.match(css, /\.time-badge/, 'Shift time badge styling must exist');
+
+    // 4. Verify Pre-Booking UI provides full menu pre-ordering
+    const bookingHtml = readFileSync(join(rootDir, 'apps/web-guest/public/booking.html'), 'utf-8');
+    assert.match(bookingHtml, /Pre-Order Dishes \(Full Menu Available\)/, 'Pre-order full menu section must exist');
+    assert.match(bookingHtml, /id="preOrderItemsList"/, 'Pre-order items container must exist');
+    assert.match(bookingHtml, /id="preOrderCategorySelect"/, 'Category dropdown must exist');
+    assert.match(bookingHtml, /preSelectedItems/, 'Pre-selected items must be attached to booking payload');
+
+    // 5. Verify Manager Menu & Voice Control
+    const menuHtml = readFileSync(join(rootDir, 'apps/web-owner/public/menu.html'), 'utf-8');
+    assert.match(menuHtml, /id="btnVoiceControl"/, 'Manager voice assistant button must exist');
+    assert.match(menuHtml, /id="managerVoiceModal"/, 'Manager voice modal must exist');
+    assert.match(menuHtml, /id="voiceHistoryModal"/, 'Voice history modal must exist');
+    assert.match(menuHtml, /id="dishServingFrom"/, 'Serving from time input must exist');
+    assert.match(menuHtml, /id="dishServingUntil"/, 'Serving until time input must exist');
+    assert.match(menuHtml, /autoSuggestPhoto/, 'Auto-suggest photo on dish typing must exist');
+    assert.match(menuHtml, /triggerAutoPickPhoto/, 'Auto-pick photo trigger must exist');
   });
 });

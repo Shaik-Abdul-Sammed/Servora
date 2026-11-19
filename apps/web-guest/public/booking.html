@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Reserve a Table — Abiruchi Hotel</title>
   <link rel="stylesheet" href="/styles.css">
+  <script src="/dish-photos.js"></script>
   <style>
     :root {
       --bg: #f8f9fa;
@@ -293,6 +294,49 @@
           </div>
         </div>
 
+        <!-- Pre-Order Dishes (Full Menu Available for Advance Reservation) -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="togglePreOrderSection()">
+            <div>
+              <div style="font-weight:900; font-size:0.95rem; color:var(--text); display:flex; align-items:center; gap:6px;">
+                <span>🍽️</span>
+                <span>Pre-Order Dishes (Full Menu Available)</span>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                Reserve dishes in advance. All 56+ items available across all meal shifts.
+              </div>
+            </div>
+            <span id="preOrderToggleChevron" style="font-size:1.1rem; color:var(--primary); transition:transform 0.2s;">▼</span>
+          </div>
+
+          <div id="preOrderSectionContent" style="display:none; margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
+            <!-- Category Tabs & Search -->
+            <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+              <input type="text" id="preOrderSearch" placeholder="Search full menu..." oninput="filterPreOrderMenu(this.value)" style="flex:1; min-width:140px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.85rem;" />
+              <select id="preOrderCategorySelect" onchange="filterPreOrderCategory(this.value)" style="padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.82rem; font-weight:700;">
+                <option value="ALL">All Categories</option>
+              </select>
+            </div>
+
+            <!-- Pre-order Items List -->
+            <div id="preOrderItemsList" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-right:4px;">
+              <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">Loading full menu...</div>
+            </div>
+
+            <!-- Selected Summary & Total -->
+            <div id="preOrderSummaryBox" style="display:none; margin-top:12px; background:rgba(252,128,25,0.08); border:1px solid rgba(252,128,25,0.25); border-radius:10px; padding:10px 14px; justify-content:space-between; align-items:center;">
+              <div>
+                <span id="preOrderCountText" style="font-weight:800; font-size:0.85rem; color:var(--primary);">0 dishes pre-selected</span>
+                <div id="preOrderItemsNames" style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;"></div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">Est. Food Total</div>
+                <div id="preOrderTotalAmount" style="font-weight:900; font-size:1rem; color:var(--primary);">₹0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Table Hold Notice -->
         <div class="deposit-badge">
           <div>
@@ -406,6 +450,143 @@
     document.getElementById('langSelect').value = currentLang;
     changeLanguage(currentLang);
 
+    // Pre-order Full Menu Handling for Table Reservation
+    let fullMenuItems = [];
+    let preOrderCart = {};
+    let selectedPreOrderCategory = 'ALL';
+    let preOrderSearchQuery = '';
+
+    async function loadPreOrderMenu() {
+      try {
+        const res = await fetch('/api/v1/menu');
+        if (res.ok) {
+          const data = await res.json();
+          fullMenuItems = data.items || [];
+          const catSelect = document.getElementById('preOrderCategorySelect');
+          if (catSelect && data.categories) {
+            catSelect.innerHTML = `<option value="ALL">All Categories (${fullMenuItems.length})</option>` +
+              data.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+          }
+          renderPreOrderItems();
+        }
+      } catch (e) {
+        console.error('Failed to load menu for pre-order:', e);
+      }
+    }
+
+    function togglePreOrderSection() {
+      const content = document.getElementById('preOrderSectionContent');
+      const chevron = document.getElementById('preOrderToggleChevron');
+      if (!content) return;
+      const isHidden = content.style.display === 'none' || content.style.display === '';
+      content.style.display = isHidden ? 'block' : 'none';
+      if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      if (isHidden && fullMenuItems.length === 0) {
+        loadPreOrderMenu();
+      }
+    }
+
+    function filterPreOrderMenu(query) {
+      preOrderSearchQuery = (query || '').toLowerCase().trim();
+      renderPreOrderItems();
+    }
+
+    function filterPreOrderCategory(catId) {
+      selectedPreOrderCategory = catId;
+      renderPreOrderItems();
+    }
+
+    function adjustPreOrderQty(itemId, delta) {
+      const item = fullMenuItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      const current = preOrderCart[itemId]?.quantity || 0;
+      const next = Math.max(0, current + delta);
+      if (next === 0) {
+        delete preOrderCart[itemId];
+      } else {
+        preOrderCart[itemId] = { item, quantity: next };
+      }
+      renderPreOrderItems();
+      updatePreOrderSummary();
+    }
+
+    function updatePreOrderSummary() {
+      const summaryBox = document.getElementById('preOrderSummaryBox');
+      const countText = document.getElementById('preOrderCountText');
+      const namesEl = document.getElementById('preOrderItemsNames');
+      const totalEl = document.getElementById('preOrderTotalAmount');
+      if (!summaryBox) return;
+
+      const entries = Object.values(preOrderCart);
+      if (entries.length === 0) {
+        summaryBox.style.display = 'none';
+        return;
+      }
+
+      summaryBox.style.display = 'flex';
+      const totalCount = entries.reduce((s, e) => s + e.quantity, 0);
+      const totalCents = entries.reduce((s, e) => s + (e.item.basePriceCents * e.quantity), 0);
+
+      if (countText) countText.textContent = `${totalCount} dish${totalCount > 1 ? 'es' : ''} pre-selected`;
+      if (namesEl) namesEl.textContent = entries.map(e => `${e.quantity}x ${e.item.name}`).join(', ');
+      if (totalEl) totalEl.textContent = `₹${(totalCents / 100).toFixed(0)}`;
+    }
+
+    function renderPreOrderItems() {
+      const list = document.getElementById('preOrderItemsList');
+      if (!list) return;
+
+      let filtered = [...fullMenuItems];
+      if (selectedPreOrderCategory !== 'ALL') {
+        filtered = filtered.filter(i => i.categoryId === selectedPreOrderCategory);
+      }
+      if (preOrderSearchQuery) {
+        filtered = filtered.filter(i => i.name.toLowerCase().includes(preOrderSearchQuery));
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">No dishes matching "${preOrderSearchQuery}"</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(item => {
+        const qty = preOrderCart[item.id]?.quantity || 0;
+        const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+          ? item.imageUrl
+          : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80');
+
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:8px 12px; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+              <img src="${photo}" alt="${item.name}" style="width:42px; height:42px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80';" />
+              <div style="min-width:0; flex:1;">
+                <div style="font-size:0.85rem; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  ${item.name}
+                </div>
+                <div style="font-size:0.75rem; color:var(--primary); font-weight:800;">
+                  ₹${(item.basePriceCents / 100).toFixed(0)}
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              ${qty === 0 ? `
+                <button type="button" onclick="adjustPreOrderQty('${item.id}', 1)" style="background:var(--surface); border:1px solid var(--border); color:var(--primary); font-weight:800; font-size:0.75rem; padding:4px 10px; border-radius:6px; cursor:pointer;">
+                  + Add
+                </button>
+              ` : `
+                <div style="display:flex; align-items:center; background:var(--primary); color:#fff; border-radius:6px; padding:2px 6px; font-size:0.8rem; font-weight:900; gap:8px;">
+                  <span style="cursor:pointer; padding:0 3px;" onclick="adjustPreOrderQty('${item.id}', -1)">−</span>
+                  <span>${qty}</span>
+                  <span style="cursor:pointer; padding:0 3px;" onclick="adjustPreOrderQty('${item.id}', 1)">+</span>
+                </div>
+              `}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
     async function handleReservation(e) {
       e.preventDefault();
       const phoneInput = document.getElementById('bkPhone').value.trim();
@@ -424,6 +605,19 @@
       const slotDate = document.getElementById('bkDate').value;
       const slotTime = document.getElementById('bkTime').value;
 
+      const preSelectedList = Object.values(preOrderCart).map(e => ({
+        menuItemId: e.item.id,
+        name: e.item.name,
+        quantity: e.quantity,
+        unitPriceCents: e.item.basePriceCents,
+      }));
+
+      let requests = document.getElementById('bkNotes').value.trim() || '';
+      if (preSelectedList.length > 0) {
+        const dishSummary = preSelectedList.map(p => `${p.quantity}x ${p.name}`).join(', ');
+        requests = requests ? `${requests} | Pre-orders: ${dishSummary}` : `Pre-orders: ${dishSummary}`;
+      }
+
       const payload = {
         outletId: 'b0000000-0000-0000-0000-000000000001',
         guestName: document.getElementById('bkName').value.trim(),
@@ -433,11 +627,12 @@
         childrenCount: children,
         seatingPreference: document.getElementById('bkSeating').value,
         occasion: document.getElementById('bkOccasion').value,
-        specialRequests: document.getElementById('bkNotes').value.trim() || null,
+        specialRequests: requests || null,
         slotDate,
         slotTime,
         depositAmountCents: 20000,
         cancellationPolicyHours: 2,
+        preSelectedItems: preSelectedList,
       };
 
       try {

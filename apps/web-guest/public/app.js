@@ -12,6 +12,8 @@ let splitGuestCount = 1;
 let paymentMethod = 'UPI';
 let selectedRating = 5;
 let currentDietaryFilter = 'ALL';
+let currentShiftFilter = 'NOW';
+let currentViewMode = localStorage.getItem('abiruchi_view_mode') || 'grid';
 let activeSpecials = [];
 let bestOffer = null;
 let appliedCoupon = null;
@@ -370,13 +372,94 @@ function clearSearch() {
 }
 
 // ==========================================================================
-// Abiruchi Hotel 2-Column Food Item Presentation
+// Time-Based Shift and Food Availability Helpers (Phase 2 UX)
+// ==========================================================================
+function getCurrentTimeMinutes(d = new Date()) {
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function timeStringToMinutes(str) {
+  if (!str) return 0;
+  const parts = str.split(':');
+  return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || '0', 10);
+}
+
+function isItemAvailableNow(item, d = new Date()) {
+  const currentMins = getCurrentTimeMinutes(d);
+  const fromMins = timeStringToMinutes(item.servingFrom || '06:00');
+  const untilMins = timeStringToMinutes(item.servingUntil || '23:30');
+  return currentMins >= fromMins && currentMins <= untilMins;
+}
+
+function formatShiftTime(str) {
+  if (!str) return '';
+  const parts = str.split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${ampm}`;
+}
+
+function updateLiveClock() {
+  const now = new Date();
+  let hours = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  const timeStr = `${hours}:${minutes} ${ampm}`;
+
+  const clockEl = document.getElementById('clockText');
+  if (clockEl) clockEl.textContent = timeStr;
+
+  const currentMins = getCurrentTimeMinutes(now);
+  let shiftName = 'All Day';
+  if (currentMins >= 360 && currentMins < 690) { // 06:00 - 11:30
+    shiftName = 'Breakfast';
+  } else if (currentMins >= 660 && currentMins < 990) { // 11:00 - 16:30
+    shiftName = 'Lunch';
+  } else if (currentMins >= 900 && currentMins < 1380) { // 15:00 - 23:00
+    shiftName = currentMins >= 1080 ? 'Dinner' : 'Snacks & Tea';
+  } else {
+    shiftName = 'Late Night';
+  }
+
+  const shiftEl = document.getElementById('currentShiftText');
+  if (shiftEl) shiftEl.textContent = shiftName;
+}
+
+function filterByShift(shiftKey, btn) {
+  currentShiftFilter = shiftKey;
+  document.querySelectorAll('.shift-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderMenu();
+}
+
+function setViewMode(mode) {
+  currentViewMode = mode;
+  localStorage.setItem('abiruchi_view_mode', mode);
+  const btnGrid = document.getElementById('btnViewGrid');
+  const btnList = document.getElementById('btnViewList');
+  if (btnGrid && btnList) {
+    btnGrid.classList.toggle('active', mode === 'grid');
+    btnList.classList.toggle('active', mode === 'list');
+  }
+  renderMenu();
+}
+
+// ==========================================================================
+// Abiruchi Hotel Food Presentation (Compact 2-Col Grid & Detailed List)
 // ==========================================================================
 function renderMenu() {
   const container = document.getElementById('menuContainer');
   if (!container) return;
 
-  let displayList = filteredItems;
+  const now = new Date();
+  let displayList = [...filteredItems];
+
+  // 1. Dietary filter
   if (currentDietaryFilter === 'VEG') {
     displayList = displayList.filter(i => i.dietaryType === 'VEG');
   } else if (currentDietaryFilter === 'NON_VEG') {
@@ -387,56 +470,158 @@ function renderMenu() {
     displayList = displayList.filter(i => !(i.allergens || []).includes('GLUTEN'));
   }
 
+  // 2. Real-time shift & availability filter
+  if (currentShiftFilter === 'NOW') {
+    // Show available dishes or prioritize available now
+    displayList = displayList.filter(i => isItemAvailableNow(i, now));
+  } else if (currentShiftFilter === 'BREAKFAST') {
+    displayList = displayList.filter(i => {
+      const from = timeStringToMinutes(i.servingFrom || '06:00');
+      const until = timeStringToMinutes(i.servingUntil || '11:30');
+      return from <= 690 && until >= 360; // Overlaps 06:00 - 11:30
+    });
+  } else if (currentShiftFilter === 'LUNCH') {
+    displayList = displayList.filter(i => {
+      const from = timeStringToMinutes(i.servingFrom || '11:00');
+      const until = timeStringToMinutes(i.servingUntil || '16:30');
+      return from <= 990 && until >= 660; // Overlaps 11:00 - 16:30
+    });
+  } else if (currentShiftFilter === 'SNACKS') {
+    displayList = displayList.filter(i => {
+      const from = timeStringToMinutes(i.servingFrom || '15:00');
+      const until = timeStringToMinutes(i.servingUntil || '23:00');
+      return from <= 1380 && until >= 900; // Overlaps 15:00 - 23:00
+    });
+  } else if (currentShiftFilter === 'DINNER') {
+    displayList = displayList.filter(i => {
+      const from = timeStringToMinutes(i.servingFrom || '18:00');
+      const until = timeStringToMinutes(i.servingUntil || '23:59');
+      return from <= 1439 && until >= 1080; // Overlaps 18:00 - 23:59
+    });
+  }
+
+  // Update item count indicator
+  const countEl = document.getElementById('menuItemCount');
+  if (countEl) countEl.textContent = displayList.length;
+
   if (displayList.length === 0) {
+    container.className = 'menu-container';
     container.innerHTML = `
       <div style="text-align:center; padding:48px 16px; color:var(--text-muted); grid-column:1/-1;">
-        <div style="font-size:2.5rem; margin-bottom:12px;">🔍</div>
-        <div style="font-size:1.1rem; font-weight:800; color:var(--text-title); margin-bottom:6px;">No dishes found</div>
-        <p style="font-size:0.85rem;">Try adjusting your search terms or dietary preferences.</p>
+        <div style="font-size:2.5rem; margin-bottom:12px;">⏰</div>
+        <div style="font-size:1.1rem; font-weight:800; color:var(--text-title); margin-bottom:6px;">No dishes available in this shift</div>
+        <p style="font-size:0.85rem; margin-bottom:14px;">Try selecting <strong>✨ All Items</strong> or switching dietary preferences.</p>
+        <button onclick="filterByShift('ALL', document.getElementById('shiftChipAll'))" class="btn-primary" style="padding:8px 16px; border-radius:12px; font-weight:800; border:none; cursor:pointer;">
+          Show Full Menu
+        </button>
       </div>`;
     return;
   }
 
-  container.innerHTML = displayList.map(item => {
-    const cartItem = cart.find(ci => ci.itemId === item.id);
-    const qty = cartItem ? cartItem.quantity : 0;
-    const isVeg = item.dietaryType === 'VEG';
+  // Apply layout class
+  if (currentViewMode === 'grid') {
+    container.className = 'menu-container grid-view';
+    container.innerHTML = displayList.map(item => {
+      const cartItem = cart.find(ci => ci.itemId === item.id);
+      const qty = cartItem ? cartItem.quantity : 0;
+      const isVeg = item.dietaryType === 'VEG';
+      const availableNow = isItemAvailableNow(item, now);
+      const photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+        ? item.imageUrl
+        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80');
 
-    return `
-      <div class="abiruchi-dish-card" onclick="openDishDetailsModal('${item.id}')">
-        <div class="abiruchi-dish-info">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
-              <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
-            </span>
-            ${item.tags && item.tags.includes('bestseller') ? '<span class="abiruchi-dish-tag">★ Bestseller</span>' : ''}
+      return `
+        <div class="grid-dish-card" onclick="openDishDetailsModal('${item.id}')">
+          <div class="grid-dish-media">
+            <img src="${photoUrl}" alt="${item.name}" loading="lazy" class="grid-dish-img"
+                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';" />
+            <div style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.65); padding:2px 4px; border-radius:4px; display:flex; align-items:center;">
+              <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
+                <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
+              </span>
+            </div>
+            ${item.tags && item.tags.includes('bestseller') ? `
+              <span style="position:absolute; top:6px; right:6px; background:#fc8019; color:#fff; font-size:0.6rem; font-weight:900; padding:2px 5px; border-radius:4px;">★ Best</span>
+            ` : ''}
           </div>
-          <div class="abiruchi-dish-name">${item.name}</div>
-          <div class="abiruchi-dish-price">${formatINR(item.basePriceCents)}</div>
-          <div class="abiruchi-dish-desc">${item.description || ''}</div>
-        </div>
 
-        <div class="abiruchi-dish-media" onclick="event.stopPropagation()">
-          <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'}"
-               alt="${item.name}" loading="lazy" class="abiruchi-dish-img"
-               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80';" />
-
-          <div class="abiruchi-btn-wrapper">
-            ${qty === 0 ? `
-              <button class="abiruchi-btn-add" onclick="addToCart('${item.id}'); event.stopPropagation();">
-                ADD <span style="font-size:0.8rem; font-weight:900; margin-left:2px;">+</span>
-              </button>
-            ` : `
-              <div class="abiruchi-qty-stepper">
-                <button class="abiruchi-step-btn" onclick="removeFromCart('${item.id}'); event.stopPropagation();">−</button>
-                <span class="abiruchi-qty-num">${qty}</span>
-                <button class="abiruchi-step-btn" onclick="addToCart('${item.id}'); event.stopPropagation();">+</button>
+          <div class="grid-dish-body">
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="time-badge ${availableNow ? 'now' : 'future'}">
+                  ${availableNow ? '✓ Available' : `⏰ ${formatShiftTime(item.servingFrom)}`}
+                </span>
               </div>
-            `}
+              <div class="grid-dish-title" title="${item.name}">${item.name}</div>
+            </div>
+
+            <div class="grid-dish-bottom">
+              <span class="grid-dish-price">${formatINR(item.basePriceCents)}</span>
+              <div onclick="event.stopPropagation()">
+                ${qty === 0 ? `
+                  <button class="grid-dish-btn-add" onclick="addToCart('${item.id}')">ADD +</button>
+                ` : `
+                  <div class="grid-dish-stepper">
+                    <span style="cursor:pointer; padding:0 4px;" onclick="removeFromCart('${item.id}')">−</span>
+                    <span>${qty}</span>
+                    <span style="cursor:pointer; padding:0 4px;" onclick="addToCart('${item.id}')">+</span>
+                  </div>
+                `}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>`;
-  }).join('');
+        </div>`;
+    }).join('');
+  } else {
+    // List view
+    container.className = 'menu-container';
+    container.innerHTML = displayList.map(item => {
+      const cartItem = cart.find(ci => ci.itemId === item.id);
+      const qty = cartItem ? cartItem.quantity : 0;
+      const isVeg = item.dietaryType === 'VEG';
+      const availableNow = isItemAvailableNow(item, now);
+      const photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+        ? item.imageUrl
+        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80');
+
+      return `
+        <div class="abiruchi-dish-card" onclick="openDishDetailsModal('${item.id}')">
+          <div class="abiruchi-dish-info">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
+                <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
+              </span>
+              <span class="time-badge ${availableNow ? 'now' : 'future'}">
+                ${availableNow ? '✓ Available Now' : `⏰ Serving at ${formatShiftTime(item.servingFrom)}`}
+              </span>
+              ${item.tags && item.tags.includes('bestseller') ? '<span class="abiruchi-dish-tag">★ Bestseller</span>' : ''}
+            </div>
+            <div class="abiruchi-dish-name">${item.name}</div>
+            <div class="abiruchi-dish-price">${formatINR(item.basePriceCents)}</div>
+            <div class="abiruchi-dish-desc">${item.description || ''}</div>
+          </div>
+
+          <div class="abiruchi-dish-media" onclick="event.stopPropagation()">
+            <img src="${photoUrl}" alt="${item.name}" loading="lazy" class="abiruchi-dish-img"
+                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';" />
+
+            <div class="abiruchi-btn-wrapper">
+              ${qty === 0 ? `
+                <button class="abiruchi-btn-add" onclick="addToCart('${item.id}'); event.stopPropagation();">
+                  ADD <span style="font-size:0.8rem; font-weight:900; margin-left:2px;">+</span>
+                </button>
+              ` : `
+                <div class="abiruchi-qty-stepper">
+                  <button class="abiruchi-step-btn" onclick="removeFromCart('${item.id}'); event.stopPropagation();">−</button>
+                  <span class="abiruchi-qty-num">${qty}</span>
+                  <button class="abiruchi-step-btn" onclick="addToCart('${item.id}'); event.stopPropagation();">+</button>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
 }
 
 // ==========================================================================
@@ -1070,6 +1255,26 @@ async function submitFinalOrder() {
     if (res.ok) {
       const created = await res.json();
       currentBillOrderId = created.id;
+
+      // Save order to history for 1-tap reordering
+      saveOrderToHistory({
+        id: created.id,
+        token: created.token || (created.token_id ? `TK-${created.token_id}` : `TK-${created.id.slice(0, 4).toUpperCase()}`),
+        date: new Date().toISOString(),
+        items: payload.items.map(pi => {
+          const mItem = (menuData.items || []).find(m => m.id === pi.menuItemId);
+          return {
+            id: pi.menuItemId,
+            name: mItem ? mItem.name : 'Dish',
+            quantity: pi.quantity,
+          };
+        }),
+        totalCents: created.totalAmountCents || (payload.items.reduce((s, pi) => {
+          const mItem = (menuData.items || []).find(m => m.id === pi.menuItemId);
+          return s + (mItem ? mItem.basePriceCents * pi.quantity : 0);
+        }, 0) + (payload.tipCents || 0)),
+      });
+
       cart = [];
       updateCartUI();
       closeCartModal();
@@ -1625,6 +1830,247 @@ function toggleAboutPanel() {
   if (header) header.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
 }
 
+// ==========================================================================
+// Web Speech API Voice Ordering (Phase 2 UX)
+// ==========================================================================
+let guestSpeechRecognition = null;
+
+function startVoiceOrder() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Voice ordering requires Web Speech support (Chrome, Edge, Safari on mobile/desktop).');
+    return;
+  }
+
+  const voiceModal = document.getElementById('voiceModal');
+  const transcriptEl = document.getElementById('voiceLiveTranscript');
+  const micBtn = document.getElementById('btnVoiceOrder');
+  if (voiceModal) voiceModal.style.display = 'flex';
+  if (transcriptEl) transcriptEl.textContent = 'Listening... Speak dish name or quantity.';
+  if (micBtn) micBtn.classList.add('listening');
+
+  try {
+    guestSpeechRecognition = new SpeechRecognition();
+    guestSpeechRecognition.lang = currentLang === 'te' ? 'te-IN' : currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+    guestSpeechRecognition.continuous = false;
+    guestSpeechRecognition.interimResults = true;
+
+    guestSpeechRecognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        interim += event.results[i][0].transcript;
+      }
+      if (transcriptEl) transcriptEl.textContent = `"${interim}"`;
+
+      if (event.results[0].isFinal) {
+        processVoiceCommand(interim.trim());
+      }
+    };
+
+    guestSpeechRecognition.onerror = () => {
+      if (transcriptEl) transcriptEl.textContent = 'Could not hear clearly. Please tap microphone to try again.';
+      stopVoiceOrder();
+    };
+
+    guestSpeechRecognition.onend = () => {
+      if (micBtn) micBtn.classList.remove('listening');
+    };
+
+    guestSpeechRecognition.start();
+  } catch (err) {
+    console.error('Speech error:', err);
+    stopVoiceOrder();
+  }
+}
+
+function stopVoiceOrder() {
+  if (guestSpeechRecognition) {
+    try { guestSpeechRecognition.stop(); } catch (e) {}
+  }
+  const voiceModal = document.getElementById('voiceModal');
+  const micBtn = document.getElementById('btnVoiceOrder');
+  if (voiceModal) voiceModal.style.display = 'none';
+  if (micBtn) micBtn.classList.remove('listening');
+}
+
+function closeVoiceModal(event) {
+  if (event && event.target && event.target.id === 'voiceModal') {
+    stopVoiceOrder();
+  }
+}
+
+function speakFeedback(text) {
+  if ('speechSynthesis' in window) {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = currentLang === 'te' ? 'te-IN' : currentLang === 'hi' ? 'hi-IN' : 'en-IN';
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+}
+
+function processVoiceCommand(text) {
+  stopVoiceOrder();
+  const lower = text.toLowerCase();
+
+  // 1. Dietary filter commands
+  if (lower.includes('show veg') || lower.includes('pure veg') || lower.includes('vegetarian')) {
+    toggleDietFilter('VEG', document.getElementById('filterVegBtn'));
+    speakFeedback('Showing vegetarian dishes.');
+    showToast('Filtered to Vegetarian');
+    return;
+  }
+  if (lower.includes('show non veg') || lower.includes('non veg')) {
+    toggleDietFilter('NON_VEG', document.getElementById('filterNonVegBtn'));
+    speakFeedback('Showing non-vegetarian dishes.');
+    showToast('Filtered to Non-Vegetarian');
+    return;
+  }
+  if (lower.includes('all items') || lower.includes('show all')) {
+    filterByShift('ALL', document.getElementById('shiftChipAll'));
+    toggleDietFilter('ALL', document.getElementById('filterAllBtn'));
+    speakFeedback('Showing all menu items.');
+    return;
+  }
+
+  // 2. Quantity extraction (e.g. "two masala dosa", "3 biryani")
+  let quantity = 1;
+  const numberWords = { 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'okati': 1, 'rendu': 2, 'moodu': 3, 'ek': 1, 'do': 2, 'teen': 3 };
+  for (const [w, n] of Object.entries(numberWords)) {
+    if (lower.startsWith(w + ' ') || lower.includes(' ' + w + ' ')) {
+      quantity = n;
+      break;
+    }
+  }
+  const digitMatch = lower.match(/\b(\d+)\b/);
+  if (digitMatch) {
+    quantity = parseInt(digitMatch[1], 10);
+  }
+
+  // Clean trigger words
+  const cleanQuery = lower
+    .replace(/\b(order|please|give|me|add|want|two|three|four|five|six|one|ek|do|teen|okati|rendu|moodu|plate|plates|cup|cups)\b/g, '')
+    .trim();
+
+  // Find matching menu item
+  const allItems = menuData.items || [];
+  let matchedItem = null;
+
+  if (cleanQuery.length >= 2) {
+    matchedItem = allItems.find(i => i.name.toLowerCase() === cleanQuery);
+    if (!matchedItem) {
+      matchedItem = allItems.find(i => i.name.toLowerCase().includes(cleanQuery) || cleanQuery.includes(i.name.toLowerCase()));
+    }
+  }
+
+  if (matchedItem) {
+    for (let k = 0; k < quantity; k++) {
+      addToCart(matchedItem.id);
+    }
+    const msg = `Added ${quantity > 1 ? quantity + ' ' : ''}${matchedItem.name} to your order!`;
+    showToast(`🎙️ ${msg}`);
+    speakFeedback(msg);
+  } else {
+    // Treat as search query
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.value = cleanQuery || text;
+      handleSearch(cleanQuery || text);
+      const msg = `Showing search results for ${cleanQuery || text}`;
+      showToast(`🎙️ ${msg}`);
+      speakFeedback(msg);
+    }
+  }
+}
+
+// ==========================================================================
+// Order History and 1-Tap Reorder (Phase 2 UX)
+// ==========================================================================
+function saveOrderToHistory(orderData) {
+  try {
+    const list = JSON.parse(localStorage.getItem('abiruchi_orders_history') || '[]');
+    list.unshift(orderData);
+    localStorage.setItem('abiruchi_orders_history', JSON.stringify(list.slice(0, 25)));
+  } catch (e) {}
+}
+
+function openHistoryModal() {
+  const modal = document.getElementById('historyModal');
+  const container = document.getElementById('historyOrdersList');
+  if (!modal || !container) return;
+
+  const history = JSON.parse(localStorage.getItem('abiruchi_orders_history') || '[]');
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:32px 16px; color:var(--text-muted);">
+        <div style="font-size:2rem; margin-bottom:8px;">🍽️</div>
+        <p style="font-weight:700;">No past orders on this device yet.</p>
+        <span style="font-size:0.8rem;">Your completed dining orders and receipts will appear here for 1-tap reordering.</span>
+      </div>`;
+  } else {
+    container.innerHTML = history.map((ord, idx) => {
+      const dateStr = ord.date ? new Date(ord.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+      const itemsList = (ord.items || []).map(i => `${i.quantity}x ${i.name}`).join(', ');
+      const totalFmt = formatINR(ord.totalCents || 0);
+
+      return `
+        <div class="history-order-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="background:var(--primary); color:#fff; font-size:0.75rem; font-weight:900; padding:2px 8px; border-radius:6px;">${ord.token || 'TOKEN'}</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">${dateStr}</span>
+            </div>
+            <span style="font-size:0.9rem; font-weight:900; color:var(--text-title);">${totalFmt}</span>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text); font-weight:600; margin-bottom:10px;">${itemsList}</div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button onclick="reorderPastOrder(${idx})" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
+              🔁 Reorder in 1-Tap
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeHistoryModal(event) {
+  if (event && event.target && event.target.id !== 'historyModal') return;
+  const modal = document.getElementById('historyModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function reorderPastOrder(index) {
+  const history = JSON.parse(localStorage.getItem('abiruchi_orders_history') || '[]');
+  const order = history[index];
+  if (!order || !order.items || order.items.length === 0) return;
+
+  order.items.forEach(pastItem => {
+    const menuItem = (menuData.items || []).find(m => m.id === pastItem.id || m.name.toLowerCase() === pastItem.name.toLowerCase());
+    if (menuItem) {
+      const existing = cart.find(ci => ci.itemId === menuItem.id);
+      if (existing) {
+        existing.quantity += pastItem.quantity;
+      } else {
+        cart.push({
+          itemId: menuItem.id,
+          name: menuItem.name,
+          unitPriceCents: menuItem.basePriceCents,
+          quantity: pastItem.quantity,
+          course: 'MAIN',
+        });
+      }
+    }
+  });
+
+  updateCartUI();
+  renderMenu();
+  closeHistoryModal();
+  openCartModal();
+  showToast('✓ Previous order loaded into cart!');
+}
+
 // Global Lifecycle Initializer
 async function init() {
   initTheme();
@@ -1637,6 +2083,11 @@ async function init() {
   loadAIRecommendations();
   checkRepeatLastOrder();
   loadTenantProfile();
+
+  // Real-time live clock and view mode initialization
+  updateLiveClock();
+  setInterval(updateLiveClock, 30000);
+  setViewMode(currentViewMode);
 
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => prefetchLanguages(['te', 'hi']));

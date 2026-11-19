@@ -113,6 +113,11 @@ export interface MenuItem {
   specialDate?: string;
   ingredientCostCents?: number;
   nutrition?: NutritionInfo;
+  servingFrom?: string;
+  servingUntil?: string;
+  daypartFrom?: string;
+  daypartUntil?: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }

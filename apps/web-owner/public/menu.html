@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Menu & Photo Studio — Abiruchi Hotel Owner</title>
+  <script src="/owner/dish-photos.js"></script>
   <style>
     :root {
       --bg: #090a0f;
@@ -69,18 +70,57 @@
         <h1 class="page-title">📖 Menu & High-Res Food Imagery</h1>
         <p style="font-size:0.85rem; color:var(--muted);">Add and manage dishes with food photography, Indian Rupee pricing (₹), dietary badges, and ingredients.</p>
       </div>
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn" id="btnVoiceControl" onclick="toggleManagerVoiceAssistant()" style="background:linear-gradient(135deg, #fc8019, #e06d0c); color:#fff; font-weight:800;">
+          🎙️ Voice Assistant
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="openVoiceHistoryModal()">📜 Voice Log</button>
         <button class="btn btn-secondary" onclick="exportMenuJson()">📥 Export JSON</button>
         <button class="btn btn-primary" onclick="openAddDishModal()">➕ Add New Dish</button>
       </div>
     </div>
 
-    <!-- Active Menu Items List -->
+    <!-- Active Menu Items List with Comprehensive Filters -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h3 style="font-size:1.1rem; font-weight:800;">Dishes in Active Menu</h3>
-        <span id="dishCountBadge" class="badge" style="background:rgba(252,128,25,0.15); color:var(--primary);">0 Dishes</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 style="font-size:1.1rem; font-weight:800;">Dishes in Active Menu</h3>
+          <span id="dishCountBadge" class="badge" style="background:rgba(252,128,25,0.15); color:var(--primary);">0 Dishes</span>
+        </div>
       </div>
+
+      <!-- Filter Controls Row (Search, Category, Shift, 86-Status) -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:12px;">
+        <div>
+          <label class="form-label" style="font-size:0.7rem;">Search Dish</label>
+          <input type="text" id="ownerSearchInput" placeholder="Filter by name..." oninput="applyMenuFilters()" class="form-input" style="padding:6px 10px; font-size:0.82rem;" />
+        </div>
+        <div>
+          <label class="form-label" style="font-size:0.7rem;">Category</label>
+          <select id="filterCategory" onchange="applyMenuFilters()" class="form-select" style="padding:6px 10px; font-size:0.82rem;">
+            <option value="ALL">All Categories</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:0.7rem;">Serving Shift</label>
+          <select id="filterShift" onchange="applyMenuFilters()" class="form-select" style="padding:6px 10px; font-size:0.82rem;">
+            <option value="ALL">All Shifts</option>
+            <option value="BREAKFAST">🌅 Breakfast (06:00-11:30)</option>
+            <option value="LUNCH">🍛 Lunch (11:00-16:30)</option>
+            <option value="SNACKS">☕ Snacks (15:00-23:00)</option>
+            <option value="DINNER">🌙 Dinner (18:00-23:59)</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:0.7rem;">Stock Availability</label>
+          <select id="filterStatus" onchange="applyMenuFilters()" class="form-select" style="padding:6px 10px; font-size:0.82rem;">
+            <option value="ALL">All Status</option>
+            <option value="AVAILABLE">✓ Available (In Stock)</option>
+            <option value="SOLD_OUT">⚠️ Sold Out (86)</option>
+          </select>
+        </div>
+      </div>
+
       <div id="menuItemsList">
         <p style="color:var(--muted); font-size:0.88rem;">Loading menu catalog...</p>
       </div>
@@ -99,7 +139,8 @@
 
       <div class="form-group">
         <label class="form-label">Dish Name *</label>
-        <input type="text" id="dishName" class="form-input" placeholder="e.g. Paneer Butter Masala, Wood-Fired Margherita" required />
+        <input type="text" id="dishName" class="form-input" placeholder="e.g. Masala Dosa, Paneer Butter Masala, Filter Coffee" oninput="autoSuggestPhoto(this.value)" required />
+        <span style="font-size:0.7rem; color:var(--muted); margin-top:3px; display:block;">✨ Photo & shift timings auto-generate as you type dish name.</span>
       </div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
@@ -110,6 +151,29 @@
         <div class="form-group">
           <label class="form-label">Price in ₹ (INR) *</label>
           <input type="number" id="dishPriceINR" class="form-input" placeholder="299" min="0" step="1" required />
+        </div>
+      </div>
+
+      <!-- Serving Hours & Shift Availability (Phase 2 UX) -->
+      <div class="form-group" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:14px;">
+        <label class="form-label" style="color:var(--primary);">⏰ Serving Hours & Shift Availability</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+          <div>
+            <label class="form-label" style="font-size:0.7rem;">Serving From (HH:MM)</label>
+            <input type="time" id="dishServingFrom" value="06:00" class="form-input" />
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.7rem;">Serving Until (HH:MM)</label>
+            <input type="time" id="dishServingUntil" value="23:30" class="form-input" />
+          </div>
+        </div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-bottom:6px;">1-Click Shift Presets:</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="setShiftPreset('06:00', '11:30')">🌅 Breakfast (06:00-11:30)</button>
+          <button type="button" class="btn btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="setShiftPreset('11:00', '16:30')">🍛 Lunch (11:00-16:30)</button>
+          <button type="button" class="btn btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="setShiftPreset('15:00', '23:00')">☕ Snacks (15:00-23:00)</button>
+          <button type="button" class="btn btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="setShiftPreset('18:00', '23:59')">🌙 Dinner (18:00-23:59)</button>
+          <button type="button" class="btn btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="setShiftPreset('00:00', '23:59')">✨ All Day (24 hrs)</button>
         </div>
       </div>
 
@@ -125,9 +189,9 @@
         <div class="form-group">
           <label class="form-label">Kitchen Station *</label>
           <select id="dishStation" class="form-select">
-            <option value="PIZZA_OVEN">Pizza Oven</option>
             <option value="GRILL">Grill & Hot Line</option>
             <option value="COLD_PREP">Cold Prep & Salads</option>
+            <option value="PIZZA_OVEN">Pizza Oven</option>
             <option value="COFFEE">Coffee Bar</option>
             <option value="BAR">Bar & Mocktails</option>
             <option value="DESSERT">Dessert Station</option>
@@ -142,16 +206,19 @@
 
       <!-- Food Image Studio -->
       <div class="form-group" style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:14px;">
-        <label class="form-label" style="color:var(--primary);">📸 Food Photography & Image Studio</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <label class="form-label" style="color:var(--primary); margin:0;">📸 Food Photography & Image Studio</label>
+          <button type="button" class="btn btn-secondary" onclick="triggerAutoPickPhoto()" style="font-size:0.72rem; padding:3px 8px;">✨ Auto-pick Photo</button>
+        </div>
         <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
           <img id="imagePreview" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80"
                style="width:80px; height:80px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); background:#1e2433;"
                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';" />
           <div style="flex:1;">
-            <input type="url" id="dishImageUrl" class="form-input" placeholder="Paste custom image URL..." oninput="updateImagePreview(this.value)" />
+            <input type="url" id="dishImageUrl" class="form-input" placeholder="Auto-populated or paste custom image URL..." oninput="updateImagePreview(this.value)" />
             <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
               <label class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px; cursor:pointer;">
-                📁 Choose File From Computer
+                📁 Choose File
                 <input type="file" accept="image/*" style="display:none;" onchange="handleFileUpload(event)" />
               </label>
               <span style="font-size:0.7rem; color:var(--muted);">or choose from high-res presets below:</span>
@@ -181,6 +248,37 @@
     </div>
   </div>
 
+  <!-- Manager Voice Assistant Modal Overlay (Phase 2 UX) -->
+  <div id="managerVoiceModal" class="modal-overlay" onclick="closeVoiceModalOnBackdrop(event)">
+    <div class="modal-box" style="max-width:440px; text-align:center;">
+      <div style="font-size:2.4rem; margin-bottom:8px;" id="mgrVoicePulse">🎙️</div>
+      <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin-bottom:8px;">Manager Voice Assistant</h3>
+      <div id="mgrVoiceTranscript" style="font-size:0.92rem; color:var(--primary); font-weight:700; min-height:48px; background:rgba(255,255,255,0.03); border-radius:10px; padding:12px; margin-bottom:12px;">
+        Listening... Speak commands like:
+        <br>"Add Masala Dosa price 80"
+        <br>"Mark Plain Idli sold out"
+        <br>"Filter by Biryanis"
+      </div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-bottom:16px;">
+        Hands-free kitchen & catalog control powered by Web Speech API.
+      </div>
+      <button type="button" class="btn btn-danger" onclick="stopManagerVoice()">Stop Listening</button>
+    </div>
+  </div>
+
+  <!-- Voice Command Action History Modal -->
+  <div id="voiceHistoryModal" class="modal-overlay" onclick="closeVoiceHistoryOnBackdrop(event)">
+    <div class="modal-box" style="max-width:550px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:1.15rem; font-weight:900;">📜 Manager Voice Command Log</h3>
+        <button onclick="closeVoiceHistoryModal()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+      <div id="voiceHistoryList" style="max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+        <p style="color:var(--muted); font-size:0.85rem; text-align:center; padding:20px;">No voice commands executed this session.</p>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script src="/owner/shared.js"></script>
@@ -189,6 +287,7 @@
 
     let allCategories = [];
     let allMenuItems = [];
+    let voiceHistoryLog = [];
 
     function showToast(msg, type = 'success') {
       const el = document.getElementById('toast');
@@ -198,41 +297,99 @@
       setTimeout(() => { el.style.display = 'none'; }, 3000);
     }
 
-    async function loadMenu() {
-      try {
-        const res = await apiFetch('/api/v1/menu');
-        const data = await res.json();
-        allCategories = data.categories || [];
-        allMenuItems = data.items || [];
-
-        // Populate category dropdown in modal
-        const catSelect = document.getElementById('dishCategory');
-        catSelect.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
-        document.getElementById('dishCountBadge').textContent = `${allMenuItems.length} Dishes`;
-
-        const listEl = document.getElementById('menuItemsList');
-        if (allMenuItems.length === 0) {
-          listEl.innerHTML = '<p style="color:var(--muted); padding:20px; text-align:center;">No dishes found. Click "Add New Dish" to create one.</p>';
-          return;
+    function autoSuggestPhoto(dishName) {
+      if (!dishName || dishName.trim().length < 2) return;
+      const catSelect = document.getElementById('dishCategory');
+      const catName = catSelect && catSelect.selectedOptions[0] ? catSelect.selectedOptions[0].textContent : '';
+      if (window.getAutoDishPhoto) {
+        const photo = window.getAutoDishPhoto(dishName, catName);
+        if (photo) {
+          document.getElementById('dishImageUrl').value = photo;
+          updateImagePreview(photo);
         }
+      }
+    }
 
-        listEl.innerHTML = allMenuItems.map(item => `
+    function triggerAutoPickPhoto() {
+      const name = document.getElementById('dishName').value.trim();
+      if (!name) {
+        showToast('Please enter a dish name first to pick a matching photo.', 'error');
+        return;
+      }
+      autoSuggestPhoto(name);
+      showToast('✨ Photo automatically matched for ' + name);
+    }
+
+    function setShiftPreset(from, until) {
+      document.getElementById('dishServingFrom').value = from;
+      document.getElementById('dishServingUntil').value = until;
+      showToast(`Serving hours set: ${from} - ${until}`);
+    }
+
+    function applyMenuFilters() {
+      const query = (document.getElementById('ownerSearchInput').value || '').toLowerCase().trim();
+      const catFilter = document.getElementById('filterCategory').value;
+      const shiftFilter = document.getElementById('filterShift').value;
+      const statusFilter = document.getElementById('filterStatus').value;
+
+      let filtered = [...allMenuItems];
+
+      if (query) {
+        filtered = filtered.filter(i => i.name.toLowerCase().includes(query) || (i.description && i.description.toLowerCase().includes(query)));
+      }
+      if (catFilter !== 'ALL') {
+        filtered = filtered.filter(i => i.categoryId === catFilter);
+      }
+      if (statusFilter === 'AVAILABLE') {
+        filtered = filtered.filter(i => i.isAvailable);
+      } else if (statusFilter === 'SOLD_OUT') {
+        filtered = filtered.filter(i => !i.isAvailable);
+      }
+      if (shiftFilter === 'BREAKFAST') {
+        filtered = filtered.filter(i => (i.servingFrom || '06:00') <= '11:30' && (i.servingUntil || '23:30') >= '06:00');
+      } else if (shiftFilter === 'LUNCH') {
+        filtered = filtered.filter(i => (i.servingFrom || '06:00') <= '16:30' && (i.servingUntil || '23:30') >= '11:00');
+      } else if (shiftFilter === 'SNACKS') {
+        filtered = filtered.filter(i => (i.servingFrom || '06:00') <= '23:00' && (i.servingUntil || '23:30') >= '15:00');
+      } else if (shiftFilter === 'DINNER') {
+        filtered = filtered.filter(i => (i.servingFrom || '06:00') <= '23:59' && (i.servingUntil || '23:30') >= '18:00');
+      }
+
+      renderMenuItemsList(filtered);
+    }
+
+    function renderMenuItemsList(items) {
+      const listEl = document.getElementById('menuItemsList');
+      document.getElementById('dishCountBadge').textContent = `${items.length} Dishes`;
+
+      if (items.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--muted); padding:20px; text-align:center;">No dishes match your filter criteria.</p>';
+        return;
+      }
+
+      listEl.innerHTML = items.map(item => {
+        const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+          ? item.imageUrl
+          : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=200&q=80');
+
+        return `
           <div class="dish-row" id="dish-row-${item.id}">
             <img class="dish-thumb"
-                 src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80'}"
+                 src="${photo}"
                  alt="${item.name}"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80';" />
+                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=200&q=80';" />
             <div style="flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span style="font-weight:800; font-size:1.02rem; color:#fff;">${item.name}</span>
                 <span class="badge" style="background:${item.dietaryType==='VEG'?'rgba(34,197,94,0.15)':item.dietaryType==='EGG'?'rgba(234,179,8,0.15)':'rgba(239,68,68,0.15)'};color:${item.dietaryType==='VEG'?'#22c55e':item.dietaryType==='EGG'?'#eab308':'#ef4444'};">
                   ${item.dietaryType==='VEG'?'🟢 VEG':item.dietaryType==='EGG'?'🟡 EGG':'🔴 NON-VEG'}
                 </span>
-                <span class="badge" style="background:rgba(255,255,255,0.06);color:var(--muted);">${item.station || 'PIZZA_OVEN'}</span>
+                <span class="badge" style="background:rgba(252,128,25,0.12); color:#fc8019;">
+                  ⏰ ${item.servingFrom || '06:00'} - ${item.servingUntil || '23:30'}
+                </span>
+                <span class="badge" style="background:rgba(255,255,255,0.06);color:var(--muted);">${item.station || 'GRILL'}</span>
               </div>
-              <p style="font-size:0.8rem; color:var(--muted); margin-top:3px;">${item.description || 'No description added'}</p>
-              <div style="font-size:0.75rem; color:var(--sky); margin-top:3px;">Allergens: ${(item.allergens || []).join(', ') || 'None declared'}</div>
+              <p style="font-size:0.8rem; color:var(--muted); margin-top:3px;">${item.description || 'Traditional house preparation'}</p>
             </div>
             <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
               <div style="font-size:1.15rem; font-weight:900; color:#fff;">₹${(item.basePriceCents / 100).toFixed(0)}</div>
@@ -244,8 +401,28 @@
                 <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteDish('${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑️</button>
               </div>
             </div>
-          </div>
-        `).join('');
+          </div>`;
+      }).join('');
+    }
+
+    async function loadMenu() {
+      try {
+        const res = await apiFetch('/api/v1/menu');
+        const data = await res.json();
+        allCategories = data.categories || [];
+        allMenuItems = data.items || [];
+
+        // Populate category dropdowns
+        const catSelect = document.getElementById('dishCategory');
+        catSelect.innerHTML = allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+        const filterCatSelect = document.getElementById('filterCategory');
+        if (filterCatSelect) {
+          filterCatSelect.innerHTML = '<option value="ALL">All Categories</option>' +
+            allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        applyMenuFilters();
       } catch (err) {
         showToast('Error loading menu: ' + err.message, 'error');
       }
@@ -257,8 +434,11 @@
       document.getElementById('dishName').value = '';
       document.getElementById('dishPriceINR').value = '';
       document.getElementById('dishDesc').value = '';
-      document.getElementById('dishImageUrl').value = 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&q=80';
-      updateImagePreview('https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&q=80');
+      document.getElementById('dishServingFrom').value = '06:00';
+      document.getElementById('dishServingUntil').value = '23:30';
+      const autoPhoto = 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';
+      document.getElementById('dishImageUrl').value = autoPhoto;
+      updateImagePreview(autoPhoto);
       document.getElementById('dishModal').style.display = 'flex';
     }
 
@@ -271,10 +451,15 @@
       document.getElementById('dishCategory').value = item.categoryId;
       document.getElementById('dishPriceINR').value = (item.basePriceCents / 100).toFixed(0);
       document.getElementById('dishDietary').value = item.dietaryType || 'NON_VEG';
-      document.getElementById('dishStation').value = item.station || 'PIZZA_OVEN';
+      document.getElementById('dishStation').value = item.station || 'GRILL';
       document.getElementById('dishDesc').value = item.description || '';
-      document.getElementById('dishImageUrl').value = item.imageUrl || '';
-      updateImagePreview(item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80');
+      document.getElementById('dishServingFrom').value = item.servingFrom || '06:00';
+      document.getElementById('dishServingUntil').value = item.servingUntil || '23:30';
+      const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+        ? item.imageUrl
+        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80');
+      document.getElementById('dishImageUrl').value = photo;
+      updateImagePreview(photo);
       document.getElementById('dishModal').style.display = 'flex';
     }
 
@@ -288,7 +473,330 @@
 
     function updateImagePreview(url) {
       const img = document.getElementById('imagePreview');
-      img.src = url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80';
+      img.src = url || 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80';
+    }
+
+    function selectPresetPhoto(url) {
+      document.getElementById('dishImageUrl').value = url;
+      updateImagePreview(url);
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result;
+        document.getElementById('dishImageUrl').value = base64;
+        updateImagePreview(base64);
+        showToast('Photo loaded into studio!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveDishAction() {
+      const editId = document.getElementById('editItemId').value;
+      const name = document.getElementById('dishName').value.trim();
+      const categoryId = document.getElementById('dishCategory').value;
+      const priceINR = parseFloat(document.getElementById('dishPriceINR').value);
+      const dietaryType = document.getElementById('dishDietary').value;
+      const station = document.getElementById('dishStation').value;
+      const description = document.getElementById('dishDesc').value.trim();
+      let imageUrl = document.getElementById('dishImageUrl').value.trim();
+      const servingFrom = document.getElementById('dishServingFrom').value || '06:00';
+      const servingUntil = document.getElementById('dishServingUntil').value || '23:30';
+
+      if (!name) return alert('Please enter a dish name.');
+      if (isNaN(priceINR) || priceINR <= 0) return alert('Please enter a valid price in INR.');
+
+      if (!imageUrl || imageUrl.includes('photo-1546069901-ba9599a7e63c')) {
+        imageUrl = window.getAutoDishPhoto ? window.getAutoDishPhoto(name, '') : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';
+      }
+
+      const payload = {
+        name,
+        categoryId,
+        basePriceCents: Math.round(priceINR * 100),
+        dietaryType,
+        station,
+        description,
+        imageUrl,
+        servingFrom,
+        servingUntil,
+        daypartFrom: servingFrom,
+        daypartUntil: servingUntil,
+      };
+
+      try {
+        let res;
+        if (editId) {
+          res = await apiFetch(`/api/v1/menu/items/${editId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          });
+        } else {
+          res = await apiFetch('/api/v1/menu/items', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+        }
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        showToast(editId ? 'Dish updated successfully!' : 'New dish added with photo & timings!');
+        closeDishModal();
+        await loadMenu();
+      } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleItem86(id, nextState) {
+      try {
+        const res = await apiFetch(`/api/v1/menu/items/${id}/toggle-86`, { method: 'PATCH' });
+        if (!res.ok) throw new Error('Failed to update status');
+        showToast('Availability updated');
+        await loadMenu();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteDish(id, name) {
+      if (!confirm(`Are you sure you want to delete "${name}" from the menu?`)) return;
+      try {
+        const res = await apiFetch(`/api/v1/menu/items/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed');
+        showToast(`"${name}" removed from catalog`);
+        await loadMenu();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function exportMenuJson() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(allMenuItems, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', `abiruchi_menu_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    // ==========================================================================
+    // Manager Voice Control Assistant (Web Speech API)
+    // ==========================================================================
+    let mgrRecognition = null;
+
+    function toggleManagerVoiceAssistant() {
+      const modal = document.getElementById('managerVoiceModal');
+      if (modal.style.display === 'flex') {
+        stopManagerVoice();
+      } else {
+        startManagerVoice();
+      }
+    }
+
+    function startManagerVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Web Speech API is not supported in this browser. Please use Google Chrome or Edge.');
+        return;
+      }
+
+      const modal = document.getElementById('managerVoiceModal');
+      const transcriptEl = document.getElementById('mgrVoiceTranscript');
+      modal.style.display = 'flex';
+      transcriptEl.textContent = 'Listening... Speak command clearly.';
+
+      try {
+        mgrRecognition = new SpeechRecognition();
+        mgrRecognition.lang = 'en-IN';
+        mgrRecognition.continuous = false;
+        mgrRecognition.interimResults = true;
+
+        mgrRecognition.onresult = (event) => {
+          let str = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            str += event.results[i][0].transcript;
+          }
+          transcriptEl.textContent = `"${str}"`;
+
+          if (event.results[0].isFinal) {
+            processManagerVoiceCommand(str.trim());
+          }
+        };
+
+        mgrRecognition.onerror = (e) => {
+          transcriptEl.textContent = 'Could not understand command. Tap to retry.';
+          stopManagerVoice();
+        };
+
+        mgrRecognition.start();
+      } catch (err) {
+        console.error('Speech recognition error:', err);
+        stopManagerVoice();
+      }
+    }
+
+    function stopManagerVoice() {
+      if (mgrRecognition) {
+        try { mgrRecognition.stop(); } catch (e) {}
+      }
+      document.getElementById('managerVoiceModal').style.display = 'none';
+    }
+
+    function closeVoiceModalOnBackdrop(e) {
+      if (e.target.id === 'managerVoiceModal') stopManagerVoice();
+    }
+
+    function speakManagerFeedback(text) {
+      if ('speechSynthesis' in window) {
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = 'en-IN';
+          window.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+    }
+
+    async function processManagerVoiceCommand(transcript) {
+      stopManagerVoice();
+      const lower = transcript.toLowerCase();
+      let logEntry = { timestamp: new Date().toISOString(), command: transcript, result: 'Unknown command' };
+
+      // Command 1: Add item (e.g. "Add Masala Dosa price 80" or "Add Paneer Butter Masala price 220")
+      if (lower.startsWith('add ') || lower.includes('add item')) {
+        const priceMatch = lower.match(/(?:price|rate|rupees|rs\.?|cost)\s*(\d+)/i) || lower.match(/\b(\d+)\b/);
+        const price = priceMatch ? parseInt(priceMatch[1], 10) : 100;
+
+        let dishName = lower
+          .replace(/^add\s+(?:item\s+)?/, '')
+          .replace(/(?:price|rate|rupees|rs\.?|cost)\s*\d+.*$/i, '')
+          .trim();
+
+        if (dishName.length > 2) {
+          dishName = dishName.charAt(0).toUpperCase() + dishName.slice(1);
+          const autoPhoto = window.getAutoDishPhoto ? window.getAutoDishPhoto(dishName, '') : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';
+          const catId = allCategories[0] ? allCategories[0].id : 'cat_tiffins';
+
+          try {
+            const res = await apiFetch('/api/v1/menu/items', {
+              method: 'POST',
+              body: JSON.stringify({
+                name: dishName,
+                categoryId: catId,
+                basePriceCents: price * 100,
+                dietaryType: 'VEG',
+                station: 'GRILL',
+                imageUrl: autoPhoto,
+                servingFrom: '06:00',
+                servingUntil: '23:30',
+              })
+            });
+            if (res.ok) {
+              const msg = `Added ${dishName} at ₹${price} with auto-matched photo!`;
+              showToast(`🎙️ ${msg}`);
+              speakManagerFeedback(msg);
+              logEntry.result = msg;
+              voiceHistoryLog.unshift(logEntry);
+              await loadMenu();
+              return;
+            }
+          } catch (e) {}
+        }
+      }
+
+      // Command 2: Mark sold out / 86 (e.g. "Mark Plain Idli sold out" or "Mark Masala Dosa 86")
+      if (lower.includes('sold out') || lower.includes('86') || lower.includes('unavailable')) {
+        const cleanName = lower
+          .replace(/^mark\s+/, '')
+          .replace(/\s+(?:as\s+)?(?:sold out|86|unavailable).*$/, '')
+          .trim();
+
+        const item = allMenuItems.find(i => i.name.toLowerCase().includes(cleanName) || cleanName.includes(i.name.toLowerCase()));
+        if (item) {
+          await toggleItem86(item.id, false);
+          const msg = `Marked ${item.name} as sold out.`;
+          showToast(`🎙️ ${msg}`);
+          speakManagerFeedback(msg);
+          logEntry.result = msg;
+          voiceHistoryLog.unshift(logEntry);
+          return;
+        }
+      }
+
+      // Command 3: Mark available (e.g. "Mark Plain Idli available")
+      if (lower.includes('available') || lower.includes('in stock') || lower.includes('active')) {
+        const cleanName = lower
+          .replace(/^mark\s+/, '')
+          .replace(/\s+(?:as\s+)?(?:available|in stock|active).*$/, '')
+          .trim();
+
+        const item = allMenuItems.find(i => i.name.toLowerCase().includes(cleanName) || cleanName.includes(i.name.toLowerCase()));
+        if (item) {
+          await toggleItem86(item.id, true);
+          const msg = `Marked ${item.name} as available.`;
+          showToast(`🎙️ ${msg}`);
+          speakManagerFeedback(msg);
+          logEntry.result = msg;
+          voiceHistoryLog.unshift(logEntry);
+          return;
+        }
+      }
+
+      // Command 4: Filter by category (e.g. "Filter by Biryanis" or "Show Breakfast")
+      if (lower.includes('filter') || lower.includes('show')) {
+        const catMatch = allCategories.find(c => lower.includes(c.name.toLowerCase()));
+        if (catMatch) {
+          document.getElementById('filterCategory').value = catMatch.id;
+          applyMenuFilters();
+          const msg = `Filtered menu by ${catMatch.name}`;
+          showToast(`🎙️ ${msg}`);
+          speakManagerFeedback(msg);
+          logEntry.result = msg;
+          voiceHistoryLog.unshift(logEntry);
+          return;
+        }
+      }
+
+      // Fallback: search filter
+      document.getElementById('ownerSearchInput').value = transcript;
+      applyMenuFilters();
+      const msg = `Searching for "${transcript}"`;
+      showToast(`🎙️ ${msg}`);
+      speakManagerFeedback(msg);
+      logEntry.result = msg;
+      voiceHistoryLog.unshift(logEntry);
+    }
+
+    function openVoiceHistoryModal() {
+      const modal = document.getElementById('voiceHistoryModal');
+      const list = document.getElementById('voiceHistoryList');
+      if (!modal || !list) return;
+
+      if (voiceHistoryLog.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted); font-size:0.85rem; text-align:center; padding:20px;">No voice commands executed yet.</p>';
+      } else {
+        list.innerHTML = voiceHistoryLog.map(v => `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:800; font-size:0.85rem; color:#fff;">🎙️ "${v.command}"</span>
+              <span style="font-size:0.7rem; color:var(--muted);">${new Date(v.timestamp).toLocaleTimeString()}</span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--primary); margin-top:4px;">${v.result}</div>
+          </div>
+        `).join('');
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeVoiceHistoryModal() {
+      document.getElementById('voiceHistoryModal').style.display = 'none';
+    }
+
+    function closeVoiceHistoryOnBackdrop(e) {
+      if (e.target.id === 'voiceHistoryModal') closeVoiceHistoryModal();
     }
 
     function selectPresetPhoto(url) {

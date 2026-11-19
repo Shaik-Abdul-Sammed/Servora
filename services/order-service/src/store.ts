@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID } from 'node:crypto';
-import { createSignedQRSession } from '../../../packages/utils/src/qr-crypto.ts';
+import { createSignedQRSession, getAutoDishPhoto } from '../../../packages/utils/src/index.ts';
 const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET || process.env.QR_SIGNING_SALT || 'abiruchi-dev-qr-secret-key-32-bytes-min';
 import { auditService } from '../../audit-service/src/audit-service.ts';
 import { TursoDatabase } from './turso-client.ts';
@@ -4973,12 +4973,19 @@ export class OrderStore {
     customizations?: any;
     prep_time_minutes?: number;
     bom?: any;
+    servingFrom?: string;
+    servingUntil?: string;
+    daypartFrom?: string;
+    daypartUntil?: string;
+    tags?: string[];
   }): MenuItem {
     const id = `item_${randomUUID().slice(0, 12)}`;
     const tenantId = params.tenantId || 'a0000000-0000-0000-0000-000000000001';
     const outletId = params.outletId || 'b0000000-0000-0000-0000-000000000001';
     const now = new Date().toISOString();
     const resolvedDietary = (params.dietaryType || params.diet_type || 'VEG').toUpperCase();
+    const resolvedCategory = this.categories.get(params.categoryId)?.name || '';
+    const autoPhoto = getAutoDishPhoto(params.name, resolvedCategory);
     const item: MenuItem & {
       dietaryType?: string;
       diet_type?: string;
@@ -4991,6 +4998,11 @@ export class OrderStore {
       prep_time_minutes?: number;
       bom?: any;
       photo_url?: string;
+      servingFrom?: string;
+      servingUntil?: string;
+      daypartFrom?: string;
+      daypartUntil?: string;
+      tags?: string[];
       deleted_at?: string | null;
     } = {
       id,
@@ -5000,11 +5012,11 @@ export class OrderStore {
       name: params.name,
       description: params.description || '',
       basePriceCents: params.basePriceCents,
-      imageUrl: params.photo_url || params.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
+      imageUrl: params.photo_url || params.imageUrl || autoPhoto,
       allergens: params.allergens || [],
       isAvailable: params.isAvailable !== undefined ? params.isAvailable : true,
       course: params.course || 'PLATE',
-      station: params.station || 'PIZZA_OVEN',
+      station: params.station || 'HOT_LINE',
       createdAt: now,
       updatedAt: now,
       dietaryType: resolvedDietary,
@@ -5017,7 +5029,12 @@ export class OrderStore {
       customizations: params.customizations || [],
       prep_time_minutes: params.prep_time_minutes || 15,
       bom: params.bom || [],
-      photo_url: params.photo_url || params.imageUrl || '',
+      photo_url: params.photo_url || params.imageUrl || autoPhoto,
+      servingFrom: params.servingFrom || '06:00',
+      servingUntil: params.servingUntil || '23:30',
+      daypartFrom: params.daypartFrom || params.servingFrom || '06:00',
+      daypartUntil: params.daypartUntil || params.servingUntil || '23:30',
+      tags: params.tags || [],
       deleted_at: null,
     };
     this.menuItems.set(id, item as MenuItem);

@@ -213,6 +213,7 @@
     <div class="nav-links">
       <a href="/owner.html" class="nav-link" aria-label="Owner Dashboard">Dashboard</a>
       <a href="/manager.html" class="nav-link active" aria-label="Manager Operations">Manager Ops</a>
+      <a href="/owner/menu" class="nav-link" aria-label="Menu & Voice Studio">📖 Menu &amp; Voice</a>
       <a href="/qr-manager.html" class="nav-link" aria-label="QR Studio">QR Studio</a>
       <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
@@ -323,9 +324,18 @@
 
       <!-- UPI Prepayment Verification Queue -->
       <section class="panel" style="margin-bottom:20px;" aria-labelledby="upiVerifQueueTitle">
-        <div class="panel-header">
+        <div class="panel-header" style="flex-wrap:wrap; gap:10px;">
           <div class="panel-title" id="upiVerifQueueTitle">🛡️ UPI Prepayment Verification Queue</div>
-          <button class="btn btn-secondary" onclick="loadUpiVerifications()" style="font-size:0.75rem; padding:4px 10px;">🔄 Refresh Queue</button>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="upiFilterSearch" placeholder="Search Token / UTR..." oninput="filterUpiQueue()" class="form-input" style="padding:4px 8px; font-size:0.78rem; width:140px;" />
+            <select id="upiFilterStatus" onchange="filterUpiQueue()" class="form-input" style="padding:4px 8px; font-size:0.78rem;">
+              <option value="ALL">All Status</option>
+              <option value="AWAITING" selected>⏳ Awaiting Verification</option>
+              <option value="VERIFIED">✓ Verified / Paid</option>
+              <option value="REJECTED">✕ Rejected</option>
+            </select>
+            <button class="btn btn-secondary" onclick="loadUpiVerifications()" style="font-size:0.75rem; padding:4px 10px;">🔄 Refresh Queue</button>
+          </div>
         </div>
         <div id="upiVerifQueueContainer" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
           <div style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:16px;">Loading verification queue...</div>
@@ -839,6 +849,96 @@
     // ------------------------------------------------------------------------
     // UPI Prepayment Verification Handlers
     // ------------------------------------------------------------------------
+    let rawUpiVerifications = [];
+
+    function filterUpiQueue() {
+      const query = (document.getElementById('upiFilterSearch')?.value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('upiFilterStatus')?.value || 'ALL';
+
+      let filtered = [...rawUpiVerifications];
+      if (statusFilter === 'AWAITING') {
+        filtered = filtered.filter(v => v.status === 'AWAITING_VERIFICATION' || v.status === 'UNVERIFIED');
+      } else if (statusFilter === 'VERIFIED') {
+        filtered = filtered.filter(v => v.status === 'VERIFIED' || v.status === 'PAID');
+      } else if (statusFilter === 'REJECTED') {
+        filtered = filtered.filter(v => v.status === 'REJECTED');
+      }
+
+      if (query) {
+        filtered = filtered.filter(v =>
+          (v.token && v.token.toLowerCase().includes(query)) ||
+          (v.utr && v.utr.toLowerCase().includes(query)) ||
+          (v.orderId && v.orderId.toLowerCase().includes(query)) ||
+          (v.customerName && v.customerName.toLowerCase().includes(query)) ||
+          (v.customerMobile && v.customerMobile.includes(query))
+        );
+      }
+
+      renderUpiVerifications(filtered);
+    }
+
+    function renderUpiVerifications(list) {
+      const container = document.getElementById('upiVerifQueueContainer');
+      if (!container) return;
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">No transactions matching filter criteria.</div>';
+        return;
+      }
+
+      container.innerHTML = list.map(v => {
+        const isAwaiting = v.status === 'AWAITING_VERIFICATION' || v.status === 'UNVERIFIED';
+        const isVerified = v.status === 'VERIFIED' || v.status === 'PAID';
+        const isRejected = v.status === 'REJECTED';
+        const statusBadge = isVerified
+          ? '<span class="chip" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981;">✓ VERIFIED</span>'
+          : isRejected
+          ? '<span class="chip" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid #ef4444;">✕ REJECTED</span>'
+          : '<span class="chip" style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid #f59e0b;">⏳ AWAITING VERIFICATION</span>';
+
+        return `
+          <div style="background:var(--card-bg, #1e293b); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px;">
+            <div style="flex:1; min-width:260px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="font-size:1.1rem; font-weight:900; font-family:monospace; background:rgba(252,128,25,0.15); color:var(--primary); padding:3px 8px; border-radius:6px;">${v.token}</span>
+                <span style="font-weight:800; font-size:0.95rem;">Order #${v.orderId.slice(-6).toUpperCase()}</span>
+                ${statusBadge}
+              </div>
+              <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">
+                Table: <b>${v.tableNumber}</b> · Guest: <b>${v.customerName}</b> (${v.customerMobile})
+              </div>
+              <div style="font-size:0.82rem; font-family:monospace; color:var(--text-title); margin-bottom:4px;">
+                UTR: <span style="background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; font-weight:700;">${v.utr}</span>
+                · Time: ${new Date(v.createdAt).toLocaleTimeString()}
+              </div>
+              ${v.rejectionReason ? `<div style="font-size:0.8rem; color:#ef4444; margin-top:2px;">Rejection Reason: ${v.rejectionReason}</div>` : ''}
+              ${v.verificationNotes ? `<div style="font-size:0.8rem; color:#10b981; margin-top:2px;">Notes: ${v.verificationNotes}</div>` : ''}
+            </div>
+
+            <div style="text-align:right; min-width:160px;">
+              <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Expected / Paid</div>
+              <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:8px;">₹${v.submittedAmountINR}</div>
+              ${isAwaiting ? `
+                <div style="display:flex; gap:6px; justify-content:flex-end;">
+                  <button class="btn btn-verify" onclick="managerVerifyPayment('${v.orderId}', '${v.paymentId}', '${v.utr}', '${v.submittedAmountINR}')" style="padding:6px 12px; font-size:0.8rem;">
+                    ✓ Verify
+                  </button>
+                  <button class="btn btn-escalate" onclick="managerRejectPayment('${v.orderId}', '${v.paymentId}')" style="padding:6px 10px; font-size:0.8rem;">
+                    ✕ Reject
+                  </button>
+                  <button class="btn btn-secondary" onclick="managerRequestMoreInfo('${v.orderId}')" style="padding:6px 8px; font-size:0.8rem;">
+                    💬 Info
+                  </button>
+                </div>
+              ` : `
+                <div style="font-size:0.75rem; color:var(--text-muted);">${v.verifiedBy ? `By: ${v.verifiedBy}` : ''}</div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     async function loadUpiVerifications() {
       const container = document.getElementById('upiVerifQueueContainer');
       if (!container) return;
@@ -853,63 +953,8 @@
           return;
         }
         const data = await res.json();
-        const list = data.verifications || [];
-        if (list.length === 0) {
-          container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">✓ All UPI payments verified. No pending transactions.</div>';
-          return;
-        }
-
-        container.innerHTML = list.map(v => {
-          const isAwaiting = v.status === 'AWAITING_VERIFICATION' || v.status === 'UNVERIFIED';
-          const isVerified = v.status === 'VERIFIED' || v.status === 'PAID';
-          const isRejected = v.status === 'REJECTED';
-          const statusBadge = isVerified
-            ? '<span class="chip" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981;">✓ VERIFIED</span>'
-            : isRejected
-            ? '<span class="chip" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid #ef4444;">✕ REJECTED</span>'
-            : '<span class="chip" style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid #f59e0b;">⏳ AWAITING VERIFICATION</span>';
-
-          return `
-            <div style="background:var(--card-bg, #1e293b); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px;">
-              <div style="flex:1; min-width:260px;">
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                  <span style="font-size:1.1rem; font-weight:900; font-family:monospace; background:rgba(252,128,25,0.15); color:var(--primary); padding:3px 8px; border-radius:6px;">${v.token}</span>
-                  <span style="font-weight:800; font-size:0.95rem;">Order #${v.orderId.slice(-6).toUpperCase()}</span>
-                  ${statusBadge}
-                </div>
-                <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">
-                  Table: <b>${v.tableNumber}</b> · Guest: <b>${v.customerName}</b> (${v.customerMobile})
-                </div>
-                <div style="font-size:0.82rem; font-family:monospace; color:var(--text-title); margin-bottom:4px;">
-                  UTR: <span style="background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; font-weight:700;">${v.utr}</span>
-                  · Time: ${new Date(v.createdAt).toLocaleTimeString()}
-                </div>
-                ${v.rejectionReason ? `<div style="font-size:0.8rem; color:#ef4444; margin-top:2px;">Rejection Reason: ${v.rejectionReason}</div>` : ''}
-                ${v.verificationNotes ? `<div style="font-size:0.8rem; color:#10b981; margin-top:2px;">Notes: ${v.verificationNotes}</div>` : ''}
-              </div>
-
-              <div style="text-align:right; min-width:160px;">
-                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Expected / Paid</div>
-                <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:8px;">₹${v.submittedAmountINR}</div>
-                ${isAwaiting ? `
-                  <div style="display:flex; gap:6px; justify-content:flex-end;">
-                    <button class="btn btn-verify" onclick="managerVerifyPayment('${v.orderId}', '${v.paymentId}', '${v.utr}', '${v.submittedAmountINR}')" style="padding:6px 12px; font-size:0.8rem;">
-                      ✓ Verify
-                    </button>
-                    <button class="btn btn-escalate" onclick="managerRejectPayment('${v.orderId}', '${v.paymentId}')" style="padding:6px 10px; font-size:0.8rem;">
-                      ✕ Reject
-                    </button>
-                    <button class="btn btn-secondary" onclick="managerRequestMoreInfo('${v.orderId}')" style="padding:6px 8px; font-size:0.8rem;">
-                      💬 Info
-                    </button>
-                  </div>
-                ` : `
-                  <div style="font-size:0.75rem; color:var(--text-muted);">${v.verifiedBy ? `By: ${v.verifiedBy}` : ''}</div>
-                `}
-              </div>
-            </div>
-          `;
-        }).join('');
+        rawUpiVerifications = data.verifications || [];
+        filterUpiQueue();
       } catch (err) {
         container.innerHTML = '<div style="color:var(--danger); text-align:center; padding:16px;">Error loading verification queue.</div>';
       }

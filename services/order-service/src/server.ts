@@ -413,6 +413,14 @@ export function createOrderApp() {
           return;
         }
       }
+      if ((pathname === '/guest/dish-photos.js' || pathname === '/dish-photos.js' || pathname === '/owner/dish-photos.js') && method === 'GET') {
+        const p = join(repoRoot, 'apps/web-guest/public/dish-photos.js');
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
 
       
       // P0 Multi-Surface HTML Routes (Mono-page fix)
@@ -1410,6 +1418,10 @@ export function createOrderApp() {
           course?: any;
           station?: any;
           isAvailable?: boolean;
+          servingFrom?: string;
+          servingUntil?: string;
+          daypartFrom?: string;
+          daypartUntil?: string;
           tenantId?: string;
           outletId?: string;
         }>(req);
