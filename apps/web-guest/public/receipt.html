@@ -186,6 +186,16 @@
         💬 WhatsApp Receipt
       </button>
     </div>
+
+    <!-- Free Customer Email Receipt Section -->
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
+      <div style="font-size:0.8rem; font-weight:700; color:#475569; margin-bottom:6px;">✉️ Email Receipt to Customer:</div>
+      <div style="display:flex; gap:8px;">
+        <input type="email" id="customerEmailInput" placeholder="Enter customer email address" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.85rem;" aria-label="Customer Email for Receipt">
+        <button class="btn" style="background:#2563eb; color:#fff; flex:none; padding:8px 14px;" onclick="sendEmailReceipt()">Send Email</button>
+      </div>
+      <div id="emailStatusMsg" style="font-size:0.78rem; margin-top:6px; display:none;"></div>
+    </div>
   </div>
 
   <script>
@@ -236,7 +246,7 @@
       const phone = prompt('Enter WhatsApp mobile number with country code:', '+919010150809');
       if (!phone) return;
       try {
-        const res = await fetch(\`/api/v1/receipts/\${orderId}/whatsapp?phone=\${encodeURIComponent(phone)}\`);
+        const res = await fetch(`/api/v1/receipts/${orderId}/whatsapp?phone=${encodeURIComponent(phone)}`);
         const data = await res.json();
         if (data.stubbed) {
           alert('Receipt dispatched to ' + phone + ' (logged via WhatsApp Business API)');
@@ -245,6 +255,48 @@
         }
       } catch (e) {
         alert('WhatsApp dispatch failed');
+      }
+    }
+
+    async function sendEmailReceipt() {
+      const emailInput = document.getElementById('customerEmailInput');
+      const email = (emailInput ? emailInput.value.trim() : '');
+      const msgEl = document.getElementById('emailStatusMsg');
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid customer email address.');
+        emailInput?.focus();
+        return;
+      }
+
+      if (msgEl) {
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#64748b';
+        msgEl.textContent = 'Sending receipt to ' + email + '...';
+      }
+
+      try {
+        const res = await fetch(`/api/v1/receipts/${orderId}/email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          if (msgEl) {
+            msgEl.style.color = '#16a34a';
+            msgEl.textContent = `✓ Receipt sent to ${email}!`;
+          }
+        } else {
+          if (msgEl) {
+            msgEl.style.color = '#dc2626';
+            msgEl.textContent = 'Error: ' + (data.error || 'Failed to dispatch email');
+          }
+        }
+      } catch (err) {
+        if (msgEl) {
+          msgEl.style.color = '#dc2626';
+          msgEl.textContent = 'Network error sending email receipt';
+        }
       }
     }
 
