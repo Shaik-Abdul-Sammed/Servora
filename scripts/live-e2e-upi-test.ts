@@ -1,4 +1,7 @@
 import assert from 'node:assert';
+import dns from 'node:dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const BASE_URL = process.env.LIVE_URL || 'https://servora-hotel-os.onrender.com';
 const TENANT_ID = 'a0000000-0000-0000-0000-000000000001';
@@ -70,8 +73,9 @@ async function runLiveUpiWorkflow() {
   assert.strictEqual(orderRes.status, 201, 'Order must be created with 201');
   const order = orderRes.body;
   const orderId = order.id;
+  const totalINR = (order.totalCents / 100).toFixed(2);
   console.log(`  ✓ Order created: #${orderId.slice(-6).toUpperCase()}`);
-  console.log(`  ✓ Subtotal: INR ${(order.subtotalCents / 100).toFixed(2)}, Tax: INR ${(order.taxCents / 100).toFixed(2)}, Total: INR ${(order.totalCents / 100).toFixed(2)}`);
+  console.log(`  ✓ Subtotal: INR ${(order.subtotalCents / 100).toFixed(2)}, Tax: INR ${(order.taxCents / 100).toFixed(2)}, Total: INR ${totalINR}`);
 
   // Step 3 & 4: Exact amount & Provisional token
   console.log('\n[4/17] Verifying provisional token & payment state...');
@@ -104,14 +108,14 @@ async function runLiveUpiWorkflow() {
   // Step 7: Negative test: Amount mismatch submission
   console.log('\n[7/17] Testing validation: Tampered / mismatched amount rejected...');
   const fakeUtr = 'UTR' + Date.now().toString().slice(-8);
-  const mismatchRes = await req('/api/v1/payments/upi/submit-utr', {
+  const mismatchRes = await req('/api/v1/payments/upi/submit-reference', {
     method: 'POST',
     body: JSON.stringify({
       orderId,
       utr: fakeUtr,
-      amountPaise: 100, // 1 Rupee instead of total
+      amountPaid: 1.00, // 1 Rupee instead of total
       customerName: 'Test Customer',
-      customerMobile: '9876543210',
+      customerPhone: '9876543210',
     }),
   });
   assert.strictEqual(mismatchRes.status, 400, 'Tampered amount must be rejected with 400');
@@ -120,38 +124,56 @@ async function runLiveUpiWorkflow() {
   // Step 8: Customer submits valid UTR
   console.log('\n[8/17] Customer submits genuine 12-digit UTR...');
   const realUtr = 'UTR' + Math.floor(100000000000 + Math.random() * 900000000000).toString();
-  const submitRes = await req('/api/v1/payments/upi/submit-utr', {
+  const submitRes = await req('/api/v1/payments/upi/submit-reference', {
     method: 'POST',
     body: JSON.stringify({
       orderId,
       utr: realUtr,
-      amountPaise: order.totalCents,
+      amountPaid: parseFloat(totalINR),
       customerName: 'Ramesh Sharma',
-      customerMobile: '9876543210',
+      customerPhone: '9876543210',
     }),
   });
   assert.strictEqual(submitRes.status, 200);
-  assert.strictEqual(submitRes.body.status, 'AWAITING_VERIFICATION');
-  console.log(`  ✓ UTR submitted: ${realUtr} -> Payment status: ${submitRes.body.status}`);
+  assert.strictEqual(submitRes.body.paymentStatus, 'AWAITING_VERIFICATION');
+  console.log(`  ✓ UTR submitted: ${realUtr} -> Payment status: ${submitRes.body.paymentStatus}`);
 
   // Step 9: Customer receives WhatsApp click-to-chat reconciliation link
   console.log('\n[9/17] Generating WhatsApp payment reconciliation link...');
-  const waRes = await req(`/api/v1/payments/upi/whatsapp-link?orderId=${orderId}`);
-  assert.strictEqual(waRes.status, 200);
-  assert.ok(waRes.body.whatsappUrl.includes('api.whatsapp.com') || waRes.body.whatsappUrl.includes('wa.me'));
-  assert.ok(waRes.body.whatsappUrl.includes('9010150809'));
-  console.log(`  ✓ WhatsApp link generated with pre-filled UTR and token: ${waRes.body.whatsappUrl.slice(0, 60)}...`);
+  assert.ok(submitRes.body.whatsAppUrl, 'submit-reference must return whatsAppUrl');
+  assert.ok(submitRes.body.whatsAppUrl.includes('9010150809'));
+  console.log(`  ✓ Instant reconciliation link returned in submit response: ${submitRes.body.whatsAppUrl.slice(0, 55)}...`);
 
-  // Step 10: Negative test: Duplicate UTR rejection
-  console.log('\n[10/17] Testing duplicate UTR submission rejection (409 Conflict)...');
-  const dupRes = await req('/api/v1/payments/upi/submit-utr', {
+  const waRes = await req(`/api/v1/payments/${orderId}/whatsapp-link`, {
+    method: 'POST',
+    body: JSON.stringify({ phone: '9010150809' }),
+  });
+  assert.strictEqual(waRes.status, 200);
+  assert.ok(waRes.body.whatsAppUrl.includes('api.whatsapp.com') || waRes.body.whatsAppUrl.includes('wa.me'));
+  console.log(`  ✓ WhatsApp link generated via endpoint: ${waRes.body.whatsAppUrl.slice(0, 55)}...`);
+
+  // Step 10: Negative test: Duplicate UTR rejection across orders (409 Conflict)
+  console.log('\n[10/17] Testing duplicate UTR submission rejection across orders (409 Conflict)...');
+  const orderRes2 = await req('/api/v1/orders', {
     method: 'POST',
     body: JSON.stringify({
-      orderId,
+      tenantId: TENANT_ID,
+      outletId: OUTLET_ID,
+      tableNumber: 'T-02',
+      items: [{ menuItemId: 'e0000000-0000-0000-0000-000000000010', quantity: 1 }],
+      diningOption: 'DINE_IN',
+      payMethod: 'UPI',
+    }),
+  });
+  const orderId2 = orderRes2.body.id;
+  const dupRes = await req('/api/v1/payments/upi/submit-reference', {
+    method: 'POST',
+    body: JSON.stringify({
+      orderId: orderId2,
       utr: realUtr,
-      amountPaise: order.totalCents,
-      customerName: 'Duplicate Attempt',
-      customerMobile: '9876543210',
+      amountPaid: (orderRes2.body.totalCents / 100),
+      customerName: 'Duplicate Attempt User',
+      customerPhone: '9876543210',
     }),
   });
   assert.strictEqual(dupRes.status, 409, 'Duplicate UTR must be rejected with 409');
@@ -161,25 +183,25 @@ async function runLiveUpiWorkflow() {
   console.log('\n[11/17] Staff / Manager authentication...');
   const loginRes = await req('/api/v1/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email: 'manager@abiruchi.local', password: 'managerpassword' }),
+    body: JSON.stringify({ email: 'manager@abiruchi.local', password: 'abiruchi123' }),
   });
   assert.strictEqual(loginRes.status, 200);
   const managerToken = loginRes.body.token;
 
   const waiterLogin = await req('/api/v1/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email: 'waiter@abiruchi.local', password: 'waiterpassword' }),
+    body: JSON.stringify({ email: 'waiter@abiruchi.local', password: 'abiruchi123' }),
   });
   assert.strictEqual(waiterLogin.status, 200);
   const waiterToken = waiterLogin.body.token;
   console.log('  ✓ Manager and Waiter authentication tokens acquired');
 
   console.log('\n[12/17] Manager inspects pending verification queue...');
-  const pendingRes = await req('/api/v1/manager/payments/pending', {
+  const pendingRes = await req('/api/v1/payments/upi/verifications', {
     headers: { Authorization: `Bearer ${managerToken}` },
   });
   assert.strictEqual(pendingRes.status, 200);
-  const itemInQueue = (pendingRes.body.pendingPayments || []).find((p: any) => p.orderId === orderId);
+  const itemInQueue = (pendingRes.body.verifications || []).find((p: any) => p.orderId === orderId);
   assert.ok(itemInQueue, 'Order payment must appear in manager pending queue');
   assert.strictEqual(itemInQueue.utr, realUtr);
   assert.strictEqual(itemInQueue.customerName, 'Ramesh Sharma');
@@ -187,25 +209,25 @@ async function runLiveUpiWorkflow() {
 
   // Step 13: RBAC test: Unauthorized waiter / non-manager cannot verify
   console.log('\n[13/17] RBAC: Unauthorized waiter attempts to verify payment...');
-  const waiterAttempt = await req(`/api/v1/manager/payments/${itemInQueue.id}/verify`, {
+  const waiterAttempt = await req(`/api/v1/payments/upi/manager-verify`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${waiterToken}` },
-    body: JSON.stringify({ notes: 'Waiter unauthorized verification' }),
+    body: JSON.stringify({ orderId, notes: 'Waiter unauthorized verification' }),
   });
   assert.ok(waiterAttempt.status === 401 || waiterAttempt.status === 403, 'Waiter must be forbidden (401/403)');
   console.log(`  ✓ Unauthorized verification blocked with HTTP ${waiterAttempt.status}`);
 
   // Step 14: Authorized manager verifies payment against bank transaction
   console.log('\n[14/17] Authorized manager verifies payment with bank reconciliation note...');
-  const verifyRes = await req(`/api/v1/manager/payments/${itemInQueue.id}/verify`, {
+  const verifyRes = await req(`/api/v1/payments/upi/manager-verify`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${managerToken}` },
-    body: JSON.stringify({ notes: 'Bank credit confirmed in HDFC Current A/C #1234' }),
+    body: JSON.stringify({ orderId, notes: 'Bank credit confirmed in HDFC Current A/C #1234' }),
   });
   assert.strictEqual(verifyRes.status, 200);
-  assert.strictEqual(verifyRes.body.payment.status, 'VERIFIED');
-  assert.strictEqual(verifyRes.body.order.status, 'CONFIRMED');
-  console.log(`  ✓ Payment verified! Order status -> ${verifyRes.body.order.status}`);
+  assert.strictEqual(verifyRes.body.paymentStatus, 'VERIFIED');
+  assert.strictEqual(verifyRes.body.orderStatus, 'CONFIRMED');
+  console.log(`  ✓ Payment verified! Order status -> ${verifyRes.body.orderStatus}`);
 
   // Step 15: Kitchen now receives the order
   console.log('\n[15/17] Confirming Kitchen Display System receives order after verification...');
