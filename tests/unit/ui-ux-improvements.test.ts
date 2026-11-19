@@ -251,4 +251,45 @@ describe('Abiruchi Hotel 100 UI/UX & Invisible Translation Test Suite', () => {
     assert.equal(matching.tableNumber, '12', 'Token must have tableNumber');
     assert.equal(matching.customerName, 'Kamesh', 'Token must have customerName');
   });
+
+  it('Phase 4 QR Code Visual Enhancement: Top Subject Reference & Dark-Mode High-Contrast Quiet-Zone Frame', () => {
+    // 1. Verify Table QR SVG contains top reference header and dark mode styling
+    const tableSvgPath = join(rootDir, 'DOCUMENTS/QR/Table-01-Main-Dining.svg');
+    assert.ok(existsSync(tableSvgPath), 'DOCUMENTS/QR/Table-01-Main-Dining.svg must exist');
+    const tableSvg = readFileSync(tableSvgPath, 'utf-8');
+
+    assert.match(tableSvg, /ABIRUCHI HOTEL/, 'SVG must display brand header at top');
+    assert.match(tableSvg, /MAIN DINING/, 'SVG must display zone pill at top');
+    assert.match(tableSvg, /TABLE T-01/, 'SVG must display table subject at top');
+    assert.match(tableSvg, /prefers-color-scheme:\s*dark/, 'SVG must support dark mode media query');
+    assert.match(tableSvg, /qr-quiet-zone/, 'SVG must define high-contrast scanner quiet-zone');
+
+    // 2. Verify UPI QR SVG contains top reference header and payee VPA
+    const upiSvgPath = join(rootDir, 'DOCUMENTS/QR/UPI-Payee-Indiranagar-9010150809.svg');
+    assert.ok(existsSync(upiSvgPath), 'DOCUMENTS/QR/UPI-Payee-Indiranagar-9010150809.svg must exist');
+    const upiSvg = readFileSync(upiSvgPath, 'utf-8');
+
+    assert.match(upiSvg, /UPI DIRECT PREPAYMENT/, 'UPI SVG must display prepayment title at top');
+    assert.match(upiSvg, /BILLING & CASHIER STAND/, 'UPI SVG must display cashier stand at top');
+    assert.match(upiSvg, /9010150809@ybl/, 'UPI SVG must display payee VPA');
+    assert.match(upiSvg, /prefers-color-scheme:\s*dark/, 'UPI SVG must support dark mode');
+
+    // 3. Verify Printable sheet has dark mode styling and print fidelity
+    const printablePath = join(rootDir, 'DOCUMENTS/QR/Printable-Table-Tents-All.html');
+    assert.ok(existsSync(printablePath), 'Printable-Table-Tents-All.html must exist');
+    const printableHtml = readFileSync(printablePath, 'utf-8');
+    assert.match(printableHtml, /@media\s*\(prefers-color-scheme:\s*dark\)/, 'Printable sheet must include dark mode CSS');
+    assert.match(printableHtml, /ref-title/, 'Printable card must have top reference title');
+    assert.match(printableHtml, /qr-frame/, 'Printable card must have high-contrast qr-frame');
+
+    // 4. Verify Guest checkout modal has dark-mode safe quiet frame and top reference
+    const guestHtml = readFileSync(join(rootDir, 'apps/web-guest/public/index.html'), 'utf-8');
+    assert.match(guestHtml, /qr-display-card/, 'Guest checkout must use qr-display-card');
+    assert.match(guestHtml, /qr-header-ref/, 'Guest checkout must show top header reference');
+    assert.match(guestHtml, /qr-quiet-frame/, 'Guest checkout must use high-contrast qr-quiet-frame');
+
+    const guestCss = readFileSync(join(rootDir, 'apps/web-guest/public/styles.css'), 'utf-8');
+    assert.match(guestCss, /\.qr-display-card/, 'styles.css must style .qr-display-card');
+    assert.match(guestCss, /\[data-theme="dark"\]\s*\.qr-quiet-frame/, 'styles.css must have dark mode quiet frame styling');
+  });
 });

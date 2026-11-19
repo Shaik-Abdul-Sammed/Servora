@@ -205,22 +205,25 @@
       </div>
 
       <div class="printable-card-preview" id="printableCardArea">
-        <div class="printable-logo">S</div>
-        <h2 style="font-size:1.3rem; font-weight:900; margin-bottom:2px;">Trattoria Abiruchi Hotel</h2>
-        <div style="font-size:0.75rem; font-weight:700; color:#686b78; margin-bottom:14px;">Contactless Ordering &amp; Pay</div>
+        <div class="printable-logo">🍛</div>
+        <h2 style="font-size:1.3rem; font-weight:900; margin-bottom:4px; color:#ea580c;">Abiruchi Hotel</h2>
+        
+        <!-- Table/Target Reference Badge placed prominently at the top -->
+        <div id="printCardBadge" style="display:inline-block; background:rgba(252,128,25,0.12); color:#fc8019; padding:5px 16px; border-radius:20px; font-weight:900; font-size:1.05rem; margin-bottom:12px; border:1px solid rgba(252,128,25,0.25);">
+          Table 14
+        </div>
+        <div style="font-size:0.75rem; font-weight:700; color:#686b78; margin-bottom:12px;">Contactless Ordering &amp; Touchless Pay</div>
 
-        <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; border:1px solid #e2e8f0; margin-bottom:12px;">
+        <!-- High-Contrast QR Frame with dark-mode safe quiet zone -->
+        <div style="background:#fff; padding:10px; border-radius:14px; display:inline-block; border:2px solid #cbd5e1; box-shadow:0 4px 14px rgba(0,0,0,0.1); margin-bottom:12px;">
           <img id="printQrImg" src="" style="width:180px; height:180px; display:block;" alt="QR Code" />
         </div>
 
-        <div id="printCardBadge" style="display:inline-block; background:rgba(252,128,25,0.12); color:#fc8019; padding:5px 14px; border-radius:20px; font-weight:900; font-size:1rem; margin-bottom:10px;">
-          Table 14
-        </div>
         <p style="font-size:0.82rem; color:#4a5568; font-weight:600; line-height:1.4;">
           Point your phone camera to scan.<br>No app download required.
         </p>
         <div style="margin-top:12px; font-size:0.68rem; color:#a0aec0; border-top:1px dashed #e2e8f0; padding-top:8px;">
-          Powered by Abiruchi Hotel Hospitality OS
+          🔒 Signed HMAC-SHA256 Token • Free Guest Wi-Fi
         </div>
       </div>
 
@@ -289,8 +292,10 @@
               </span>
             </div>
 
-            <div style="display:flex; gap:12px; align-items:center; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;">
-              <img src="${qr.qrImageUrl}" style="width:72px; height:72px; border-radius:8px; background:#fff; padding:3px;" alt="QR" />
+            <div style="display:flex; gap:12px; align-items:center; background:rgba(0,0,0,0.25); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+              <div style="background:#ffffff; padding:4px; border-radius:10px; border:1.5px solid rgba(56,189,248,0.4); box-shadow:0 2px 8px rgba(0,0,0,0.25); flex-shrink:0;">
+                <img src="${qr.qrImageUrl}" style="width:68px; height:68px; display:block; border-radius:6px;" alt="QR" />
+              </div>
               <div style="flex:1; font-size:0.78rem;">
                 <div style="color:var(--sky); font-weight:700;">Type: ${qr.type}</div>
                 <div style="color:var(--muted); margin-top:2px;">Target: ${qr.targetId || 'Counter / Menu'}</div>

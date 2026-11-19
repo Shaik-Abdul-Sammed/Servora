@@ -2,262 +2,299 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abiruchi Hotel — Official Table Tents & Counter QR Codes</title>
   <style>
     @page { size: A4 portrait; margin: 10mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #f8fafc; color: #0f172a; padding: 20px; }
-    .header-bar { text-align: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
-    .header-bar h1 { font-size: 24px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; }
-    .header-bar p { font-size: 13px; color: #64748b; margin-top: 4px; }
-    .print-btn { background: #ea580c; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-    @media print {
-      .no-print { display: none; }
-      body { background: #fff; padding: 0; }
+    
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #ea580c;
+      --qr-frame-bg: #ffffff;
+      --qr-frame-border: #cbd5e1;
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #090a0f;
+        --card-bg: #121520;
+        --border: #1e293b;
+        --text: #f8fafc;
+        --text-muted: #94a3b8;
+        --qr-frame-bg: #ffffff;
+        --qr-frame-border: #38bdf8;
+      }
+    }
+
+    body { background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    .header-bar { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .header-bar h1 { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+    .header-bar p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    
+    .actions-row { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+    .print-btn { background: #ea580c; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+    .toggle-btn { background: #1e293b; color: #38bdf8; border: 1px solid var(--border); padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
     .qr-card {
-      background: #fff;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 18px;
       text-align: center;
       page-break-inside: avoid;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
     }
-    .brand { font-size: 15px; font-weight: 900; letter-spacing: 1.5px; color: #ea580c; margin-bottom: 4px; text-transform: uppercase; }
-    .zone-badge { display: inline-block; background: #fff7ed; color: #c2410c; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid #ffedd5; margin-bottom: 12px; }
-    .qr-frame { width: 180px; height: 180px; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .brand { font-size: 14px; font-weight: 900; letter-spacing: 1.5px; color: #ea580c; margin-bottom: 4px; text-transform: uppercase; }
+    .zone-badge { display: inline-block; background: rgba(234, 88, 12, 0.1); color: #ea580c; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
+    .ref-title { font-size: 18px; font-weight: 900; color: var(--text); margin-bottom: 10px; }
+    
+    .qr-frame { width: 190px; height: 190px; padding: 8px; border: 2px solid var(--qr-frame-border); border-radius: 14px; background: var(--qr-frame-bg); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .qr-frame img { width: 100%; height: 100%; object-fit: contain; }
-    .table-name { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-    .subtext { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; }
-    .footer-note { font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 8px; width: 100%; }
+    .subtext { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4; }
+    .footer-note { font-size: 10px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; width: 100%; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+      .qr-card { background: #fff !important; border: 2px solid #cbd5e1 !important; box-shadow: none !important; }
+      .ref-title { color: #000 !important; }
+      .subtext, .footer-note { color: #475569 !important; }
+    }
   </style>
 </head>
 <body>
   <div class="header-bar no-print">
-    <h1>Abiruchi Hotel — Official Table Tents & Counter QR Codes</h1>
-    <p>Printable high-resolution QR cards ready for acrylic stands and table tents</p>
-    <button class="print-btn" onclick="window.print()">🖨️ Print All Cards (Ctrl+P)</button>
+    <h1>🍛 Abiruchi Hotel — Official Table Tents & Counter QR Codes</h1>
+    <p>Enhanced with prominent reference headers and adaptive dark-mode quiet zones</p>
+    <div class="actions-row">
+      <button class="print-btn" onclick="window.print()">🖨️ Print All Cards (Ctrl+P)</button>
+    </div>
   </div>
   <div class="grid">
     
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Main Dining</div>
+          <div class="ref-title">TABLE T-01</div>
           <div class="qr-frame">
             <img src="./Table-01-Main-Dining.svg" alt="Table-01-Main-Dining" />
           </div>
-          <div class="table-name">T-01</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Main Dining</div>
+          <div class="ref-title">TABLE T-02</div>
           <div class="qr-frame">
             <img src="./Table-02-Main-Dining.svg" alt="Table-02-Main-Dining" />
           </div>
-          <div class="table-name">T-02</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Patio Terrace</div>
+          <div class="ref-title">TABLE T-03</div>
           <div class="qr-frame">
             <img src="./Table-03-Patio-Terrace.svg" alt="Table-03-Patio-Terrace" />
           </div>
-          <div class="table-name">T-03</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Patio Terrace</div>
+          <div class="ref-title">TABLE T-04</div>
           <div class="qr-frame">
             <img src="./Table-04-Patio-Terrace.svg" alt="Table-04-Patio-Terrace" />
           </div>
-          <div class="table-name">T-04</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Main Dining</div>
+          <div class="ref-title">TABLE T-05</div>
           <div class="qr-frame">
             <img src="./Table-05-Main-Dining.svg" alt="Table-05-Main-Dining" />
           </div>
-          <div class="table-name">T-05</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Main Dining</div>
+          <div class="ref-title">TABLE T-06</div>
           <div class="qr-frame">
             <img src="./Table-06-Main-Dining.svg" alt="Table-06-Main-Dining" />
           </div>
-          <div class="table-name">T-06</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">AC Hall</div>
+          <div class="ref-title">TABLE T-07</div>
           <div class="qr-frame">
             <img src="./Table-07-AC-Hall.svg" alt="Table-07-AC-Hall" />
           </div>
-          <div class="table-name">T-07</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">AC Hall</div>
+          <div class="ref-title">TABLE T-08</div>
           <div class="qr-frame">
             <img src="./Table-08-AC-Hall.svg" alt="Table-08-AC-Hall" />
           </div>
-          <div class="table-name">T-08</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Family Section</div>
+          <div class="ref-title">TABLE T-09</div>
           <div class="qr-frame">
             <img src="./Table-09-Family-Section.svg" alt="Table-09-Family-Section" />
           </div>
-          <div class="table-name">T-09</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Family Section</div>
+          <div class="ref-title">TABLE T-10</div>
           <div class="qr-frame">
             <img src="./Table-10-Family-Section.svg" alt="Table-10-Family-Section" />
           </div>
-          <div class="table-name">T-10</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Executive Dining</div>
+          <div class="ref-title">TABLE T-11</div>
           <div class="qr-frame">
             <img src="./Table-11-Executive-Dining.svg" alt="Table-11-Executive-Dining" />
           </div>
-          <div class="table-name">T-11</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Executive Dining</div>
+          <div class="ref-title">TABLE T-12</div>
           <div class="qr-frame">
             <img src="./Table-12-Executive-Dining.svg" alt="Table-12-Executive-Dining" />
           </div>
-          <div class="table-name">T-12</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Main Dining</div>
+          <div class="ref-title">TABLE T-14</div>
           <div class="qr-frame">
             <img src="./Table-14-Main-Dining.svg" alt="Table-14-Main-Dining" />
           </div>
-          <div class="table-name">T-14</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Family Section</div>
+          <div class="ref-title">TABLE T-15</div>
           <div class="qr-frame">
             <img src="./Table-15-Family-Section.svg" alt="Table-15-Family-Section" />
           </div>
-          <div class="table-name">T-15</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Cocktail & Beverage Bar</div>
+          <div class="ref-title">TABLE Bar-01</div>
           <div class="qr-frame">
             <img src="./Table-Bar-01-Beverage-Counter.svg" alt="Table-Bar-01-Beverage-Counter" />
           </div>
-          <div class="table-name">Bar-01</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
           <div class="zone-badge">Parcel & Takeaway Counter</div>
+          <div class="ref-title">TABLE Pickup-01</div>
           <div class="qr-frame">
             <img src="./Takeaway-Counter-Pickup.svg" alt="Takeaway-Counter-Pickup" />
           </div>
-          <div class="table-name">Pickup-01</div>
-          <div class="subtext">Scan to View Menu & Order</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan to View Menu, Order & Call Waiter</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
-          <div class="zone-badge">Merchant Standee Billing Counter</div>
+          <div class="zone-badge">CASHIER & BILLING STAND</div>
+          <div class="ref-title">UPI DIRECT PREPAYMENT</div>
           <div class="qr-frame">
             <img src="./UPI-Payee-Indiranagar-9010150809.svg" alt="UPI-Payee-Indiranagar-9010150809" />
           </div>
-          <div class="table-name">UPI-Merchant</div>
-          <div class="subtext">Scan with any UPI App to Pay</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan with GPay / PhonePe / Paytm / BHIM</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
 
         <div class="qr-card">
           <div class="brand">ABIRUCHI HOTEL</div>
-          <div class="zone-badge">Main Billing Counter Standee</div>
+          <div class="zone-badge">CASHIER & BILLING STAND</div>
+          <div class="ref-title">UPI DIRECT PREPAYMENT</div>
           <div class="qr-frame">
             <img src="./UPI-Payment-Standee-Counter.svg" alt="UPI-Payment-Standee-Counter" />
           </div>
-          <div class="table-name">UPI-Standee</div>
-          <div class="subtext">Scan with any UPI App to Pay</div>
-          <div class="footer-note">Free Wi-Fi: Abiruchi-Guest | Touchless Dining</div>
+          <div class="subtext">Scan with GPay / PhonePe / Paytm / BHIM</div>
+          <div class="footer-note">🔒 Signed QR Token • Touchless Dining • Wi-Fi: Abiruchi-Guest</div>
         </div>
       
   </div>

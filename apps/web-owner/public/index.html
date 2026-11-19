@@ -226,23 +226,33 @@
       z-index: 100;
     }
     .qr-card-print {
-      background: #fff;
-      color: #000;
-      width: 320px;
-      border-radius: 16px;
+      background: #18181b;
+      color: #f4f4f5;
+      border: 1px solid #27272a;
+      width: 340px;
+      border-radius: 18px;
       padding: 28px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
-    .qr-card-print h2 { font-size: 1.4rem; margin-bottom: 4px; }
-    .qr-card-print p { font-size: 0.9rem; color: #52525b; margin-bottom: 18px; }
+    .qr-card-print h2 { font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; color: #ea580c; }
+    .qr-card-print p { font-size: 0.95rem; font-weight: 800; color: #f4f4f5; margin-bottom: 14px; }
     .qr-placeholder {
-      background: #f4f4f5;
-      border: 2px dashed #d4d4d8;
-      border-radius: 12px;
-      padding: 24px;
+      background: #ffffff;
+      color: #090a0f;
+      border: 2px solid #38bdf8;
+      border-radius: 14px;
+      padding: 16px;
       margin-bottom: 16px;
-      font-size: 0.9rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    @media print {
+      .qr-card-print { background: #fff !important; color: #000 !important; border: 2px solid #000 !important; }
+      .qr-card-print h2 { color: #ea580c !important; }
+      .qr-placeholder { background: #fff !important; border: 2px solid #000 !important; }
     }
     .print-actions { display: flex; gap: 8px; margin-top: 16px; }
     .btn-action {
@@ -405,15 +415,15 @@
   <!-- QR Print Modal -->
   <div class="modal-overlay" id="qrModal">
     <div class="qr-card-print">
-      <h2>Trattoria Abiruchi Hotel</h2>
-      <p id="qrTableLabel">Table T-01</p>
+      <h2>🍛 Abiruchi Hotel</h2>
+      <p id="qrTableLabel" style="font-weight:900; font-size:1.15rem; color:#ea580c; margin-bottom:12px;">Table T-01</p>
       <div class="qr-placeholder">
-        <div style="font-size: 3rem; margin-bottom: 8px;">📱</div>
-        <div style="font-weight: 700; margin-bottom: 4px;">Scan to Order & Pay</div>
-        <div style="font-size: 0.75rem; color: #71717a;" id="qrSignedUrl">https://abiruchi.local/qr?t=...</div>
+        <img id="qrModalImg" src="" style="width:160px; height:160px; border-radius:8px; display:block; margin:0 auto 10px;" alt="QR Code" />
+        <div style="font-weight: 700; font-size: 0.85rem; color: #090a0f; margin-bottom: 4px;">Scan to View Menu & Order</div>
+        <div style="font-size: 0.72rem; color: #71717a; word-break: break-all;" id="qrSignedUrl">https://abiruchi.local/qr?t=...</div>
       </div>
-      <div style="font-size: 0.8rem; color: #71717a;">
-        Cryptographically signed HMAC-SHA256 session token active.
+      <div style="font-size: 0.78rem; color: #94a3b8;">
+        🔒 Cryptographically signed HMAC-SHA256 session active.
       </div>
       <div class="print-actions">
         <button class="btn-action btn-close" onclick="closeQrModal()">Close</button>
@@ -661,7 +671,12 @@
 
     async function openQrModal(tableNum, tableId) {
       document.getElementById('qrTableLabel').textContent = `Table ${tableNum}`;
-      document.getElementById('qrSignedUrl').textContent = `${window.location.origin}/?tableId=${tableId}`;
+      const signedUrl = `${window.location.origin}/?table=${encodeURIComponent(tableNum)}&tableId=${encodeURIComponent(tableId)}`;
+      document.getElementById('qrSignedUrl').textContent = signedUrl;
+      const qrImg = document.getElementById('qrModalImg');
+      if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(signedUrl)}`;
+      }
       document.getElementById('qrModal').style.display = 'flex';
     }
 

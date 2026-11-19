@@ -464,15 +464,20 @@
         </div>
 
         <!-- Dynamic UPI QR & App Intent (Indian Commerce Standard - 9010150809) -->
-        <div id="upiPaymentBox" style="margin-top:10px; padding:12px; background:rgba(252,128,25,0.06); border:1px dashed var(--primary); border-radius:12px; text-align:center;">
-          <div style="font-size:0.75rem; font-weight:800; color:var(--text-title); text-transform:uppercase; margin-bottom:4px;">Instant UPI Checkout</div>
-          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Scan with Google Pay, PhonePe, Paytm, or BHIM (UPI: 9010150809@ybl)</div>
-          <div style="display:flex; justify-content:center; margin:8px 0;">
-            <img id="upiQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9010150809%40ybl%26pn%3DAbiruchi%2BHotel%26cu%3DINR"
-                 style="width:130px; height:130px; border-radius:10px; border:2px solid #fff; background:#fff; padding:6px;" alt="UPI QR"
-                 onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9010150809%40ybl%26pn%3DAbiruchi%2BHotel%26cu%3DINR';" />
+        <div id="upiPaymentBox" style="margin-top:10px; padding:14px; background:rgba(252,128,25,0.06); border:1px dashed var(--primary); border-radius:14px; text-align:center;">
+          <div class="qr-display-card">
+            <div class="qr-header-ref">
+              <span>🍛 ABIRUCHI HOTEL • DIRECT PREPAYMENT</span>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">Scan with GPay, PhonePe, Paytm, or BHIM</div>
+            <div class="qr-quiet-frame">
+              <img id="upiQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9010150809%40ybl%26pn%3DAbiruchi%2BHotel%26cu%3DINR"
+                   style="width:140px; height:140px;" alt="UPI QR Code"
+                   onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9010150809%40ybl%26pn%3DAbiruchi%2BHotel%26cu%3DINR';" />
+            </div>
+            <div class="qr-footer-ref">VPA: 9010150809@ybl</div>
           </div>
-          <div style="display:flex; justify-content:center; gap:8px; margin-top:6px;">
+          <div style="display:flex; justify-content:center; gap:8px; margin-top:8px;">
             <a id="upiIntentLink" href="upi://pay?pa=9010150809@ybl&pn=Abiruchi+Hotel&cu=INR" style="text-decoration:none; background:var(--primary); color:#fff; font-size:0.8rem; font-weight:800; padding:8px 16px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;">
               📱 Pay via UPI App
             </a>
