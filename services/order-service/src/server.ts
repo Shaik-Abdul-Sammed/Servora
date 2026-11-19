@@ -1120,8 +1120,9 @@ export function createOrderApp() {
         const now = new Date().toISOString();
 
         // Initial order status determination (Achievements 16 & 47)
+        const payMethod = (body.paymentMethod as any) || (body as any).payMethod || 'CASH';
         let initialStatus: OrderStatus = 'CONFIRMED';
-        if (outletSettings.paymentMode === 'PAY_FIRST') {
+        if (outletSettings.paymentMode === 'PAY_FIRST' || payMethod === 'UPI') {
           initialStatus = 'PENDING_PAYMENT';
         } else if (
           outletSettings.requireFirstOrderApproval &&
@@ -1172,7 +1173,6 @@ export function createOrderApp() {
           }
         }
 
-        const payMethod = (body.paymentMethod as any) || 'CASH';
         (newOrder as any).paymentMethod = payMethod;
 
         let assignedToken: string | undefined = undefined;
