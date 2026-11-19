@@ -1082,7 +1082,11 @@ async function submitFinalOrder() {
           tokenBadge.style.display = 'block';
         }
       }
-      openOrderStatusModal(created.id);
+      if (paymentMethod === 'UPI') {
+        openUpiPrepaymentModal(created.id);
+      } else {
+        openOrderStatusModal(created.id);
+      }
       setTimeout(promptLoyaltyIfEligible, 1200);
     } else {
       const err = await res.json();
@@ -1096,6 +1100,183 @@ async function submitFinalOrder() {
       submitBtn.textContent = 'Send Order to Kitchen →';
     }
   }
+}
+
+// ==========================================================================
+// UPI Prepayment & Token Verification Handlers
+// ==========================================================================
+let currentUpiData = null;
+let upiPollInterval = null;
+
+async function openUpiPrepaymentModal(orderId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/payments/upi/initiate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    });
+    if (!res.ok) {
+      openOrderStatusModal(orderId);
+      return;
+    }
+    const data = await res.json();
+    currentUpiData = data;
+    currentBillOrderId = orderId;
+
+    const tokEl = document.getElementById('upiOrderToken');
+    if (tokEl) tokEl.textContent = data.token || '---';
+    const idEl = document.getElementById('upiOrderIdText');
+    if (idEl) idEl.textContent = orderId;
+    const amtEl = document.getElementById('upiPayableAmount');
+    if (amtEl) amtEl.textContent = `₹${data.amountINR}`;
+    const amtInput = document.getElementById('upiAmountPaidInput');
+    if (amtInput) amtInput.value = data.amountINR;
+
+    const qrImg = document.getElementById('upiModalQrImg');
+    if (qrImg) qrImg.src = data.qrImageUrl;
+
+    const intentBtn = document.getElementById('upiModalIntentBtn');
+    if (intentBtn) intentBtn.href = data.upiUri;
+
+    // Prefill customer profile
+    const savedName = localStorage.getItem('abiruchi_guest_name') || '';
+    const savedPhone = localStorage.getItem('abiruchi_guest_phone') || '';
+    const nameInput = document.getElementById('upiCustomerNameInput');
+    const phoneInput = document.getElementById('upiCustomerPhoneInput');
+    if (nameInput && !nameInput.value) nameInput.value = savedName;
+    if (phoneInput && !phoneInput.value) phoneInput.value = savedPhone;
+
+    // Reset steps
+    const s1 = document.getElementById('upiStep1Box');
+    if (s1) s1.style.display = 'block';
+    const s2 = document.getElementById('upiStep2Box');
+    if (s2) s2.style.display = 'block';
+    const s3 = document.getElementById('upiStep3Box');
+    if (s3) s3.style.display = 'none';
+    const alertEl = document.getElementById('upiRejectionAlert');
+    if (alertEl) alertEl.style.display = 'none';
+
+    document.getElementById('upiPrepaymentModal')?.classList.add('active');
+  } catch (err) {
+    console.error('Error initiating UPI prepayment:', err);
+    openOrderStatusModal(orderId);
+  }
+}
+
+function closeUpiPrepaymentModal() {
+  document.getElementById('upiPrepaymentModal')?.classList.remove('active');
+  if (upiPollInterval) { clearInterval(upiPollInterval); upiPollInterval = null; }
+}
+
+function copyUpiVpa() {
+  const vpa = currentUpiData?.payeeVpa || '9010150809@ybl';
+  navigator.clipboard.writeText(vpa);
+  showToast(`📋 Copied UPI ID: ${vpa}`);
+}
+
+function copyOrderRef() {
+  const ref = currentUpiData?.orderRef || currentBillOrderId || '';
+  navigator.clipboard.writeText(ref);
+  showToast(`📋 Copied Order Ref: ${ref}`);
+}
+
+async function submitUpiPaymentReferenceAction() {
+  const utrInput = document.getElementById('upiUtrInput');
+  const utr = (utrInput ? utrInput.value.trim() : '');
+  if (!utr) {
+    showToast('⚠️ Please enter the 12-digit UPI reference / UTR number');
+    utrInput?.focus();
+    return;
+  }
+  if (!/^[a-zA-Z0-9_\-]{6,35}$/.test(utr)) {
+    showToast('⚠️ Invalid UTR format. Please enter a valid reference number.');
+    utrInput?.focus();
+    return;
+  }
+
+  const name = document.getElementById('upiCustomerNameInput')?.value.trim() || 'Guest';
+  const phone = document.getElementById('upiCustomerPhoneInput')?.value.trim() || '';
+  const amountPaid = parseFloat(document.getElementById('upiAmountPaidInput')?.value || '0');
+
+  const submitBtn = document.getElementById('upiSubmitRefBtn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting for Verification...';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/payments/upi/submit-reference`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: currentBillOrderId,
+        utr,
+        amountPaid,
+        customerName: name,
+        customerPhone: phone
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(`❌ ${data.error || 'Submission failed'}`);
+      return;
+    }
+
+    showToast('✓ Payment details submitted for manager verification');
+
+    // Update UI to Step 3
+    const s2 = document.getElementById('upiStep2Box');
+    if (s2) s2.style.display = 'none';
+    const step3 = document.getElementById('upiStep3Box');
+    if (step3) step3.style.display = 'block';
+
+    const waBtn = document.getElementById('upiWhatsAppBtn');
+    if (waBtn && data.whatsAppUrl) {
+      waBtn.href = data.whatsAppUrl;
+      waBtn.style.display = 'inline-flex';
+    }
+
+    // Start live polling for manager verification
+    startUpiStatusPolling(currentBillOrderId);
+  } catch (err) {
+    showToast('Network error submitting payment reference.');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '✓ Submit Payment Details';
+    }
+  }
+}
+
+function startUpiStatusPolling(orderId) {
+  if (upiPollInterval) clearInterval(upiPollInterval);
+  upiPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/payments/order-status/${orderId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.paymentStatus === 'PAID' || data.paymentStatus === 'VERIFIED') {
+        clearInterval(upiPollInterval);
+        upiPollInterval = null;
+        showToast('🎉 Payment verified by manager! Kitchen is preparing your order.');
+        closeUpiPrepaymentModal();
+        openOrderStatusModal(orderId);
+      } else if (data.paymentStatus === 'REJECTED') {
+        clearInterval(upiPollInterval);
+        upiPollInterval = null;
+        const s2 = document.getElementById('upiStep2Box');
+        if (s2) s2.style.display = 'block';
+        const alertEl = document.getElementById('upiRejectionAlert');
+        if (alertEl) {
+          alertEl.textContent = `❌ Payment Rejected: ${data.rejectionReason || 'Invalid reference'}. Please check your UTR and resubmit.`;
+          alertEl.style.display = 'block';
+        }
+        showToast(`❌ Payment Rejected: ${data.rejectionReason || 'Please resubmit valid UTR'}`);
+      }
+    } catch (e) {}
+  }, 3000);
 }
 
 // Live Order Tracking

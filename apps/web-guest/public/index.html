@@ -548,6 +548,88 @@
     </div>
   </div>
 
+  <!-- UPI Prepayment & Token Verification Modal -->
+  <div id="upiPrepaymentModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'upiPrepaymentModal')">
+    <div class="bottom-sheet" style="text-align:left; max-width:480px; max-height:90vh; overflow-y:auto;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title">📱 UPI Prepayment</h3>
+        <button class="sheet-close" onclick="closeUpiPrepaymentModal()">✕</button>
+      </div>
+
+      <!-- Allocated Token Banner -->
+      <div style="background:rgba(252,128,25,0.1); border:1px solid rgba(252,128,25,0.3); border-radius:12px; padding:12px; text-align:center; margin-bottom:12px;">
+        <div style="font-size:0.75rem; text-transform:uppercase; font-weight:800; color:var(--text-muted); letter-spacing:0.06em;">Allocated Order Token</div>
+        <div id="upiOrderToken" style="font-size:2rem; font-weight:900; color:var(--primary); font-family:monospace; margin:4px 0;">---</div>
+        <div style="font-size:0.8rem; color:var(--text-muted);">Order ID: <span id="upiOrderIdText" style="font-family:monospace; font-weight:700;">---</span></div>
+      </div>
+
+      <!-- QR & Intent Box -->
+      <div id="upiStep1Box" style="background:#fff; border-radius:12px; padding:14px; text-align:center; margin-bottom:12px; border:1px solid var(--border);">
+        <div style="font-size:0.85rem; color:#64748b; font-weight:700;">Exact Payable Amount</div>
+        <div id="upiPayableAmount" style="font-size:1.8rem; font-weight:900; color:#0f172a; margin:4px 0;">₹0.00</div>
+        <div style="display:flex; justify-content:center; margin:10px 0;">
+          <img id="upiModalQrImg" src="" alt="UPI QR Code" style="width:160px; height:160px; border-radius:10px; border:2px solid #e2e8f0; padding:6px; background:#fff;" />
+        </div>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:8px;">
+          <a id="upiModalIntentBtn" href="#" style="background:var(--primary); color:#fff; text-decoration:none; padding:10px 16px; border-radius:8px; font-weight:800; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+            📱 Pay with UPI App
+          </a>
+          <button type="button" class="opt-pill" onclick="copyUpiVpa()" style="padding:8px 12px; font-size:0.8rem; font-weight:700;">
+            📋 Copy UPI ID
+          </button>
+          <button type="button" class="opt-pill" onclick="copyOrderRef()" style="padding:8px 12px; font-size:0.8rem; font-weight:700;">
+            📋 Copy Order Ref
+          </button>
+        </div>
+        <div style="font-size:0.75rem; color:#dc2626; margin-top:10px; font-weight:600; background:#fef2f2; padding:6px 10px; border-radius:6px;">
+          ⚠️ Opening your UPI app does not complete your order. Return here to submit your UTR / reference number below.
+        </div>
+      </div>
+
+      <!-- Payment Confirmation Form -->
+      <div id="upiStep2Box" style="background:var(--card-bg, #fff); border-radius:12px; padding:14px; border:1px solid var(--border); margin-bottom:12px;">
+        <div style="font-size:0.9rem; font-weight:800; margin-bottom:10px; color:var(--text-title);">Submit Payment Details for Verification</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">UPI Reference / UTR (12 Digits or Bank Ref) *</label>
+            <input type="text" id="upiUtrInput" placeholder="e.g. 412345678901" style="width:100%; padding:10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.95rem; font-weight:700; font-family:monospace;" aria-label="UPI Transaction Reference or UTR" required>
+          </div>
+          <div>
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Amount Paid (₹) *</label>
+            <input type="number" id="upiAmountPaidInput" step="0.01" style="width:100%; padding:10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.95rem; font-weight:700;" aria-label="Amount Paid in INR" readonly>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Customer Name</label>
+              <input type="text" id="upiCustomerNameInput" placeholder="Your Name" style="width:100%; padding:8px 10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.85rem;" aria-label="Customer Name">
+            </div>
+            <div>
+              <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Phone Number</label>
+              <input type="tel" id="upiCustomerPhoneInput" placeholder="10-digit mobile" style="width:100%; padding:8px 10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.85rem;" aria-label="Customer Phone Number">
+            </div>
+          </div>
+          <button id="upiSubmitRefBtn" class="submit-order-btn" onclick="submitUpiPaymentReferenceAction()" style="margin-top:6px;">
+            ✓ Submit Payment Details
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Submission Waiting & WhatsApp Status -->
+      <div id="upiStep3Box" style="display:none; background:rgba(38,126,62,0.06); border:1px solid rgba(38,126,62,0.3); border-radius:12px; padding:14px; text-align:center;">
+        <div style="font-size:1.2rem; margin-bottom:6px;">⏳</div>
+        <div id="upiStatusBadge" style="font-weight:800; color:#267e3e; font-size:0.95rem; margin-bottom:6px;">Payment details submitted. Your order is waiting for manager verification.</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">The manager will verify your transaction reference against the bank account.</div>
+
+        <a id="upiWhatsAppBtn" href="#" target="_blank" style="display:none; background:#25D366; color:#fff; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:800; font-size:0.9rem; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;">
+          💬 Send Payment Details on WhatsApp
+        </a>
+
+        <div id="upiRejectionAlert" style="display:none; background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; border-radius:8px; padding:10px; font-size:0.85rem; font-weight:700; margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Live Order Tracking Stepper Modal -->
   <div id="orderStatusModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'orderStatusModal')">
     <div class="bottom-sheet" style="text-align:left; max-width:480px;">

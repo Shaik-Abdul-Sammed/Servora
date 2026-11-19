@@ -170,7 +170,7 @@ export interface ServiceToken {
 // C3 — Payment Verification
 // ----------------------------------------------------------------------------
 
-export type PaymentVerificationStatus = 'UNVERIFIED' | 'VERIFIED' | 'DISPUTED';
+export type PaymentVerificationStatus = 'UNVERIFIED' | 'VERIFIED' | 'DISPUTED' | 'PENDING' | 'SUBMITTED' | 'AWAITING_VERIFICATION' | 'REJECTED' | 'FAILED' | 'REFUNDED';
 
 export interface PaymentRecord {
   id: string;
@@ -182,6 +182,12 @@ export interface PaymentRecord {
   verifiedBy?: string;
   verifiedAt?: string;
   notes?: string;
+  utr?: string;
+  customerName?: string;
+  customerMobile?: string;
+  screenshotUrl?: string;
+  verificationNotes?: string;
+  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
 }

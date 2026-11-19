@@ -686,6 +686,11 @@ export class OrderStore {
         amount_cents INTEGER NOT NULL,
         method TEXT NOT NULL,
         status TEXT NOT NULL,
+        utr TEXT,
+        customer_name TEXT,
+        customer_mobile TEXT,
+        screenshot_url TEXT,
+        verification_notes TEXT,
         split_group_id TEXT,
         split_share_amount INTEGER,
         tip_paise INTEGER DEFAULT 0,
@@ -729,6 +734,20 @@ export class OrderStore {
     try { this.db.exec("ALTER TABLE payment_records ADD COLUMN rejected_reason TEXT"); } catch {}
     try { this.db.exec("ALTER TABLE payment_records ADD COLUMN refund_of_payment_id TEXT"); } catch {}
     try { this.db.exec("ALTER TABLE payment_records ADD COLUMN reconciled_at TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payment_records ADD COLUMN utr TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payment_records ADD COLUMN customer_name TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payment_records ADD COLUMN customer_mobile TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payment_records ADD COLUMN screenshot_url TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payment_records ADD COLUMN verification_notes TEXT"); } catch {}
+    try { this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_records_utr_unique ON payment_records(utr) WHERE utr IS NOT NULL AND utr != '' AND status != 'REJECTED'"); } catch {}
+
+    // Payments table alterations for UPI prepayment reconciliation
+    try { this.db.exec("ALTER TABLE payments ADD COLUMN utr TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payments ADD COLUMN customer_name TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payments ADD COLUMN customer_mobile TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payments ADD COLUMN screenshot_url TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE payments ADD COLUMN verification_notes TEXT"); } catch {}
+    try { this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_utr_unique ON payments(utr) WHERE utr IS NOT NULL AND utr != '' AND status != 'REJECTED'"); } catch {}
 
     // Table bookings alterations (Group P)
     try { this.db.exec("ALTER TABLE table_bookings ADD COLUMN override_of_booking_id TEXT"); } catch {}
@@ -901,11 +920,60 @@ export class OrderStore {
     for (const r of tokenRows) {
       superSet(this.tokens, r.id, JSON.parse(r.data));
     }
+    try {
+      const p0TokenRows = this.db.prepare('SELECT * FROM p0_service_tokens').all() as any[];
+      for (const r of p0TokenRows) {
+        if (!this.tokens.has(r.id)) {
+          superSet(this.tokens, r.id, {
+            id: r.id,
+            tenantId: r.tenant_id,
+            outletId: 'b0000000-0000-0000-0000-000000000001',
+            orderId: r.order_id,
+            order_id: r.order_id,
+            code: r.token_code,
+            token_code: r.token_code,
+            station: r.station,
+            bucket: r.station,
+            state: r.state,
+            createdAt: r.created_at,
+            created_at: r.created_at,
+            updatedAt: r.state_changed_at,
+            state_changed_at: r.state_changed_at,
+          });
+        }
+      }
+    } catch {}
     // Load C3 payments
     const paymentRows = this.db.prepare('SELECT * FROM payment_records').all() as Array<{ id: string; data: string }>;
     for (const r of paymentRows) {
       superSet(this.payments, r.id, JSON.parse(r.data));
     }
+    try {
+      const directPayments = this.db.prepare('SELECT * FROM payments').all() as any[];
+      for (const p of directPayments) {
+        if (!this.payments.has(p.id)) {
+          superSet(this.payments, p.id, {
+            id: p.id,
+            outletId: p.outlet_id,
+            orderId: p.order_id,
+            amountCents: p.amount_cents,
+            method: p.method,
+            status: p.status,
+            utr: p.utr,
+            customerName: p.customer_name,
+            customerMobile: p.customer_mobile,
+            screenshotUrl: p.screenshot_url,
+            verificationNotes: p.verification_notes,
+            verifiedBy: p.verified_by,
+            verifiedAt: p.verified_at,
+            rejectedReason: p.rejected_reason,
+            notes: p.notes,
+            createdAt: p.created_at,
+            updatedAt: p.updated_at,
+          });
+        }
+      }
+    } catch {}
     // Load C4 bookings
     const bookingRows = this.db.prepare('SELECT * FROM table_bookings').all() as Array<{ id: string; data: string }>;
     for (const r of bookingRows) {
@@ -7043,6 +7111,559 @@ export class OrderStore {
       thresholdMinutes: maxMinutes,
       riskCount: unpaidOrders.length,
       orders: unpaidOrders
+    };
+  }
+
+  // =========================================================================
+  // FREE UPI PREPAYMENT & TOKEN-BASED PAYMENT RECONCILIATION
+  // =========================================================================
+
+  private upiSubmissionAttempts = new Map<string, number>();
+
+  /**
+   * 1. Initiate UPI Prepayment
+   * - Calculates exact server total
+   * - Sets order status to PENDING_PAYMENT and payment status to PENDING
+   * - Allocates an order token immediately
+   * - Generates standard UPI URI with payee VPA, payee name, exact amount, unique TR, order TN, cu=INR
+   */
+  public initiateUpiPrepayment(orderId: string, options: { vpa?: string; payeeName?: string; mobile?: string } = {}) {
+    const order = this.orders.get(orderId);
+    if (!order) return null;
+
+    const tenantProfile = this.getTenantProfile();
+    const payeeVpa = options.vpa || process.env.UPI_VPA || tenantProfile.upiVpa || '9010150809@ybl';
+    const payeeName = options.payeeName || process.env.UPI_PAYEE_NAME || tenantProfile.name || 'Abiruchi Hotel';
+    const payeeMobile = options.mobile || process.env.UPI_MOBILE || tenantProfile.phone || '9010150809';
+
+    // Ensure order token exists
+    if (!order.token) {
+      const firstItem = order.items?.[0];
+      const mi = firstItem ? this.menuItems.get(firstItem.itemId) : null;
+      const st = mi?.station || 'HOT_LINE';
+      const tok = this.createServiceToken(order.tenantId || 'a0000000-0000-0000-0000-000000000001', order.id, st);
+      order.token = tok.token_code;
+    }
+
+    order.paymentMethod = 'UPI';
+    order.status = 'PENDING_PAYMENT';
+    order.paymentStatus = 'PENDING';
+    order.updatedAt = new Date().toISOString();
+    this.orders.set(order.id, order);
+
+    try {
+      this.db.prepare("UPDATE orders SET status = 'PENDING_PAYMENT', payment_status = 'PENDING', updated_at = ? WHERE id = ?")
+        .run(order.updatedAt, order.id);
+    } catch {}
+
+    const amountCents = order.totalCents || 0;
+    const amountINR = (amountCents / 100).toFixed(2);
+    const uniqueTxnRef = `TR-${order.id.slice(-6)}-${Date.now()}`;
+    const orderRef = order.id;
+    const transactionNote = `Abiruchi Hotel Order ${order.id} Token ${order.token}`;
+
+    const upiUri = `upi://pay?pa=${encodeURIComponent(payeeVpa)}&pn=${encodeURIComponent(payeeName)}&am=${amountINR}&cu=INR&tr=${encodeURIComponent(uniqueTxnRef)}&tn=${encodeURIComponent(transactionNote)}`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUri)}`;
+
+    // Record or update payment record
+    let payment = Array.from(this.payments.values()).find(p => p.orderId === order.id && p.method === 'UPI');
+    if (!payment) {
+      payment = this.createPaymentRecord(order.outletId, order.id, amountCents, 'UPI');
+    }
+    payment.status = 'PENDING';
+    payment.amountCents = amountCents;
+    payment.updatedAt = new Date().toISOString();
+    this.payments.set(payment.id, payment);
+
+    return {
+      orderId: order.id,
+      orderRef,
+      token: order.token,
+      amountCents,
+      amountINR,
+      payeeVpa,
+      payeeName,
+      payeeMobile,
+      transactionRef: uniqueTxnRef,
+      transactionNote,
+      upiUri,
+      qrPayload: upiUri,
+      qrImageUrl,
+      orderStatus: 'PENDING_PAYMENT',
+      paymentStatus: 'PENDING',
+      paymentId: payment.id,
+      disclaimer: 'Opening your UPI app does not confirm payment. Return here to submit your UTR / transaction reference number.'
+    };
+  }
+
+  /**
+   * 2. Submit UPI Payment Reference
+   * - Validates UTR format and length (6-35 alphanumeric)
+   * - Enforces rate-limiting (max 5 attempts)
+   * - Enforces duplicate UTR check across orders (409 Conflict)
+   * - Enforces amount check against server total (400 Bad Request)
+   * - Sets payment status to AWAITING_VERIFICATION
+   * - Generates prefilled WhatsApp click-to-chat URL with exact format
+   */
+  public submitUpiPaymentReference(payload: {
+    orderId: string;
+    utr: string;
+    amountPaid?: number;
+    amountCents?: number;
+    customerName?: string;
+    customerPhone?: string;
+    screenshotUrl?: string;
+    timestamp?: string;
+  }) {
+    const order = this.orders.get(payload.orderId);
+    if (!order) {
+      return { success: false, status: 404, error: 'Order not found' };
+    }
+
+    // Immutable check: cannot modify payment if already verified/completed
+    if (order.paymentStatus === 'PAID' || order.status === 'COMPLETED' || order.status === 'COLLECTED') {
+      return {
+        success: false,
+        status: 400,
+        error: 'Order is already paid and completed. Payment details cannot be modified.'
+      };
+    }
+
+    // Rate limiting: max 5 attempts per order
+    const attempts = (this.upiSubmissionAttempts.get(order.id) || 0) + 1;
+    this.upiSubmissionAttempts.set(order.id, attempts);
+    if (attempts > 5) {
+      return {
+        success: false,
+        status: 429,
+        error: 'Too many payment reference submissions for this order. Please contact staff.'
+      };
+    }
+
+    // Validate UTR format (6 to 35 alphanumeric characters)
+    const rawUtr = (payload.utr || '').trim();
+    if (!rawUtr || !/^[a-zA-Z0-9_\-]{6,35}$/.test(rawUtr)) {
+      return {
+        success: false,
+        status: 400,
+        error: 'Invalid transaction reference format. UTR must be 6 to 35 alphanumeric characters.'
+      };
+    }
+
+    // Duplicate UTR check across orders (excluding REJECTED payments)
+    const existingPaymentWithUtr = Array.from(this.payments.values()).find(p =>
+      p.utr === rawUtr &&
+      p.status !== 'REJECTED' &&
+      p.orderId !== order.id
+    );
+
+    let duplicateInDb = null;
+    try {
+      duplicateInDb = this.db.prepare(
+        "SELECT id, order_id, status FROM payments WHERE utr = ? AND status != 'REJECTED' AND order_id != ?"
+      ).get(rawUtr, order.id) as any;
+    } catch {}
+
+    if (existingPaymentWithUtr || duplicateInDb) {
+      return {
+        success: false,
+        status: 409,
+        error: 'This transaction reference has already been submitted.'
+      };
+    }
+
+    // Server-calculated amount verification
+    const expectedCents = order.totalCents || 0;
+    const submittedCents = payload.amountCents !== undefined
+      ? payload.amountCents
+      : (payload.amountPaid !== undefined ? Math.round(payload.amountPaid * 100) : expectedCents);
+
+    if (submittedCents !== expectedCents) {
+      return {
+        success: false,
+        status: 400,
+        error: `Submitted amount (${(submittedCents / 100).toFixed(2)}) does not match order total (${(expectedCents / 100).toFixed(2)})`
+      };
+    }
+
+    // Ensure token exists
+    if (!order.token) {
+      const firstItem = order.items?.[0];
+      const mi = firstItem ? this.menuItems.get(firstItem.itemId) : null;
+      const st = mi?.station || 'HOT_LINE';
+      const tok = this.createServiceToken(order.tenantId || 'a0000000-0000-0000-0000-000000000001', order.id, st);
+      order.token = tok.token_code;
+    }
+
+    const now = payload.timestamp || new Date().toISOString();
+    order.paymentStatus = 'AWAITING_VERIFICATION';
+    order.status = 'PENDING_PAYMENT';
+    order.updatedAt = now;
+    this.orders.set(order.id, order);
+
+    try {
+      this.db.prepare("UPDATE orders SET status = 'PENDING_PAYMENT', payment_status = 'AWAITING_VERIFICATION', updated_at = ? WHERE id = ?")
+        .run(now, order.id);
+    } catch {}
+
+    // Find or create payment record
+    let payment = Array.from(this.payments.values()).find(p => p.orderId === order.id && p.method === 'UPI');
+    const paymentId = payment ? payment.id : `pay_upi_${Date.now()}_${randomUUID().slice(0, 6)}`;
+    const tenantId = order.tenantId || 'a0000000-0000-0000-0000-000000000001';
+    const outletId = order.outletId || 'b0000000-0000-0000-0000-000000000001';
+
+    const paymentRecord: any = {
+      id: paymentId,
+      tenantId,
+      outletId,
+      orderId: order.id,
+      amountCents: expectedCents,
+      method: 'UPI',
+      status: 'AWAITING_VERIFICATION',
+      utr: rawUtr,
+      customerName: payload.customerName || 'Guest',
+      customerMobile: payload.customerPhone,
+      screenshotUrl: payload.screenshotUrl,
+      notes: `UTR: ${rawUtr} by ${payload.customerName || 'Guest'} (${payload.customerPhone || 'N/A'})`,
+      createdAt: payment ? payment.createdAt : now,
+      updatedAt: now,
+    };
+    this.payments.set(paymentId, paymentRecord);
+
+    try {
+      this.db.prepare(`
+        INSERT OR REPLACE INTO payments (
+          id, tenant_id, outlet_id, order_id, amount_cents, method, status,
+          utr, customer_name, customer_mobile, screenshot_url, notes, data, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, 'UPI', 'AWAITING_VERIFICATION', ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        paymentId, tenantId, outletId, order.id, expectedCents,
+        rawUtr, payload.customerName || null, payload.customerPhone || null, payload.screenshotUrl || null,
+        paymentRecord.notes, JSON.stringify(paymentRecord), paymentRecord.createdAt, now
+      );
+    } catch (e: any) {
+      if (e.message?.includes('UNIQUE constraint failed') || e.message?.includes('idx_payments_utr_unique')) {
+        return {
+          success: false,
+          status: 409,
+          error: 'This transaction reference has already been submitted.'
+        };
+      }
+    }
+
+    // Build WhatsApp Message
+    const amountINR = (expectedCents / 100).toFixed(2);
+    const tenantProfile = this.getTenantProfile();
+    const rawPhone = process.env.WHATSAPP_PHONE || process.env.UPI_MOBILE || tenantProfile?.phone || '';
+    const cleanPhone = rawPhone.replace(/[\s\+\-]/g, '');
+    const fullCleanPhone = (cleanPhone.length === 10) ? `91${cleanPhone}` : cleanPhone;
+
+    const messageText = `Hello Abiruchi Hotel,\nI have paid ₹${amountINR} via UPI for Order #${order.id}.\nToken: ${order.token}\nUPI Ref / UTR: ${rawUtr}\nCustomer Name: ${payload.customerName || 'Guest'}\nCustomer Phone: ${payload.customerPhone || 'N/A'}\nPlease verify and prepare my order.`;
+
+    let whatsAppUrl: string | null = null;
+    if (fullCleanPhone) {
+      whatsAppUrl = `https://wa.me/${fullCleanPhone}?text=${encodeURIComponent(messageText)}`;
+    } else {
+      whatsAppUrl = `https://wa.me/?text=${encodeURIComponent(messageText)}`;
+    }
+
+    auditService.log({
+      tenantId,
+      actor: { id: payload.customerPhone || 'guest', role: 'GUEST' },
+      action: 'PAYMENT_SUBMITTED_FOR_VERIFICATION',
+      target: order.id,
+      details: {
+        paymentId,
+        orderId: order.id,
+        utr: rawUtr,
+        token: order.token,
+        amountCents: expectedCents,
+        customerName: payload.customerName,
+        customerPhone: payload.customerPhone
+      }
+    });
+
+    return {
+      success: true,
+      status: 200,
+      paymentId,
+      orderId: order.id,
+      token: order.token,
+      paymentStatus: 'AWAITING_VERIFICATION',
+      orderStatus: 'PENDING_PAYMENT',
+      utr: rawUtr,
+      amountINR,
+      amountCents: expectedCents,
+      whatsAppUrl,
+      whatsappMessage: messageText,
+      message: 'Payment details submitted. Your order is waiting for manager verification.'
+    };
+  }
+
+  /**
+   * 3. Manager Verify UPI Payment
+   * - Enforces Manager / Owner role
+   * - Sets payment status to VERIFIED / PAID
+   * - Sets order status to CONFIRMED
+   * - Advances token to kitchen queue
+   * - Logs audit trail
+   */
+  public verifyUpiPaymentByManager(payload: {
+    orderId: string;
+    paymentId?: string;
+    verifiedBy: string;
+    staffRole?: string;
+    notes?: string;
+  }) {
+    const role = (payload.staffRole || '').toUpperCase();
+    if (role !== 'MANAGER' && role !== 'OWNER') {
+      return {
+        success: false,
+        status: 403,
+        error: 'Forbidden: Only managers and owners can verify payments'
+      };
+    }
+
+    const order = this.orders.get(payload.orderId);
+    if (!order) {
+      return { success: false, status: 404, error: 'Order not found' };
+    }
+
+    const now = new Date().toISOString();
+    order.paymentStatus = 'PAID';
+    order.status = 'CONFIRMED';
+    order.updatedAt = now;
+    if (payload.notes) {
+      (order as any).paymentNotes = payload.notes;
+    }
+    this.orders.set(order.id, order);
+
+    try {
+      this.db.prepare("UPDATE orders SET status = 'CONFIRMED', payment_status = 'PAID', updated_at = ? WHERE id = ?")
+        .run(now, order.id);
+    } catch {}
+
+    // Find payment record
+    let payment = payload.paymentId ? this.payments.get(payload.paymentId) : null;
+    if (!payment) {
+      payment = Array.from(this.payments.values()).find(p => p.orderId === order.id && p.method === 'UPI');
+    }
+    if (!payment) {
+      payment = this.createPaymentRecord(order.outletId, order.id, order.totalCents, 'UPI');
+    }
+
+    payment.status = 'VERIFIED';
+    payment.verifiedBy = payload.verifiedBy;
+    payment.verifiedAt = now;
+    payment.verificationNotes = payload.notes;
+    payment.notes = payload.notes || payment.notes || `Verified by ${payload.verifiedBy}`;
+    payment.updatedAt = now;
+    this.payments.set(payment.id, payment);
+
+    try {
+      this.db.prepare(`
+        UPDATE payments
+        SET status = 'PAID', verified_by = ?, verified_at = ?, verification_notes = ?, notes = ?, updated_at = ?
+        WHERE id = ?
+      `).run(payload.verifiedBy, now, payload.notes || null, payment.notes || null, now, payment.id);
+    } catch {}
+
+    // Update associated token to kitchen queue
+    const tokenObj = Array.from(this.tokens.values()).find((t: any) =>
+      (t.orderId === order.id || t.order_id === order.id || t.token_code === order.token || t.code === order.token)
+    );
+    if (tokenObj) {
+      tokenObj.state = 'QUEUED';
+      tokenObj.updatedAt = now;
+      this.tokens.set(tokenObj.id, tokenObj);
+      try {
+        this.db.prepare("UPDATE p0_service_tokens SET state = 'QUEUED', state_changed_at = ? WHERE id = ?")
+          .run(now, tokenObj.id);
+      } catch {}
+    }
+
+    auditService.log({
+      tenantId: order.tenantId || 'a0000000-0000-0000-0000-000000000001',
+      actor: { id: payload.verifiedBy, role },
+      action: 'PAYMENT_VERIFIED',
+      target: order.id,
+      details: {
+        paymentId: payment.id,
+        orderId: order.id,
+        utr: payment.utr,
+        amountCents: order.totalCents,
+        verifiedBy: payload.verifiedBy,
+        staffRole: role,
+        notes: payload.notes
+      }
+    });
+
+    return {
+      success: true,
+      status: 200,
+      orderId: order.id,
+      token: order.token,
+      paymentId: payment.id,
+      paymentStatus: 'VERIFIED',
+      orderStatus: 'CONFIRMED',
+      verifiedBy: payload.verifiedBy,
+      verifiedAt: now,
+      utr: payment.utr
+    };
+  }
+
+  /**
+   * 4. Manager Reject UPI Payment
+   * - Requires rejection reason
+   * - Enforces Manager / Owner role
+   * - Sets payment status to REJECTED
+   * - Keeps order unpaid in PENDING_PAYMENT to allow customer resubmission
+   * - Logs audit trail
+   */
+  public rejectUpiPaymentByManager(payload: {
+    orderId: string;
+    paymentId?: string;
+    rejectionReason: string;
+    rejectedBy: string;
+    staffRole?: string;
+  }) {
+    const role = (payload.staffRole || '').toUpperCase();
+    if (role !== 'MANAGER' && role !== 'OWNER') {
+      return {
+        success: false,
+        status: 403,
+        error: 'Forbidden: Only managers and owners can reject payments'
+      };
+    }
+
+    const reason = (payload.rejectionReason || '').trim();
+    if (!reason) {
+      return {
+        success: false,
+        status: 400,
+        error: 'Rejection reason is required (e.g. Amount mismatch, Invalid UTR, Transaction not found in bank account)'
+      };
+    }
+
+    const order = this.orders.get(payload.orderId);
+    if (!order) {
+      return { success: false, status: 404, error: 'Order not found' };
+    }
+
+    const now = new Date().toISOString();
+    order.paymentStatus = 'REJECTED';
+    order.status = 'PENDING_PAYMENT';
+    order.updatedAt = now;
+    (order as any).rejectionReason = reason;
+    this.orders.set(order.id, order);
+
+    try {
+      this.db.prepare("UPDATE orders SET status = 'PENDING_PAYMENT', payment_status = 'REJECTED', updated_at = ? WHERE id = ?")
+        .run(now, order.id);
+    } catch {}
+
+    let payment = payload.paymentId ? this.payments.get(payload.paymentId) : null;
+    if (!payment) {
+      payment = Array.from(this.payments.values()).find(p => p.orderId === order.id && p.method === 'UPI');
+    }
+
+    if (payment) {
+      payment.status = 'REJECTED';
+      payment.rejectionReason = reason;
+      payment.updatedAt = now;
+      this.payments.set(payment.id, payment);
+
+      try {
+        this.db.prepare("UPDATE payments SET status = 'REJECTED', rejected_reason = ?, updated_at = ? WHERE id = ?")
+          .run(reason, now, payment.id);
+      } catch {}
+    }
+
+    auditService.log({
+      tenantId: order.tenantId || 'a0000000-0000-0000-0000-000000000001',
+      actor: { id: payload.rejectedBy, role },
+      action: 'PAYMENT_REJECTED',
+      target: order.id,
+      details: {
+        paymentId: payment?.id,
+        orderId: order.id,
+        reason,
+        rejectedBy: payload.rejectedBy
+      }
+    });
+
+    return {
+      success: true,
+      status: 200,
+      orderId: order.id,
+      paymentId: payment?.id,
+      paymentStatus: 'REJECTED',
+      orderStatus: 'PENDING_PAYMENT',
+      rejectionReason: reason,
+      canResubmit: true
+    };
+  }
+
+  /**
+   * 5. Get UPI Verifications Queue (Manager Dashboard)
+   */
+  public getUpiVerificationsQueue(outletId?: string) {
+    const queue = Array.from(this.payments.values())
+      .filter(p => (!outletId || p.outletId === outletId) && (
+        p.status === 'AWAITING_VERIFICATION' ||
+        p.status === 'VERIFIED' ||
+        p.status === 'REJECTED' ||
+        p.status === 'UNVERIFIED'
+      ))
+      .map(p => {
+        const order = p.orderId ? this.orders.get(p.orderId) : null;
+        return {
+          paymentId: p.id,
+          orderId: p.orderId,
+          token: order?.token || '—',
+          tableNumber: order?.tableNumber || 'Takeaway',
+          customerName: p.customerName || (p as any).customer_name || 'Guest',
+          customerMobile: p.customerMobile || (p as any).customer_mobile || '—',
+          expectedAmountCents: order?.totalCents || p.amountCents,
+          expectedAmountINR: (((order?.totalCents || p.amountCents) || 0) / 100).toFixed(2),
+          submittedAmountCents: p.amountCents,
+          submittedAmountINR: ((p.amountCents || 0) / 100).toFixed(2),
+          utr: p.utr || (p as any).transactionReference || '—',
+          screenshotUrl: p.screenshotUrl || null,
+          status: p.status,
+          orderStatus: order?.status || 'PENDING_PAYMENT',
+          rejectionReason: p.rejectionReason || null,
+          verificationNotes: p.verificationNotes || null,
+          verifiedBy: p.verifiedBy || null,
+          verifiedAt: p.verifiedAt || null,
+          createdAt: p.createdAt,
+          updatedAt: p.updatedAt,
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    return queue;
+  }
+
+  /**
+   * 6. Real-time Order & Payment Status Polling for Customer
+   */
+  public getOrderPaymentStatus(orderId: string) {
+    const order = this.orders.get(orderId);
+    if (!order) return null;
+
+    const payment = Array.from(this.payments.values()).find(p => p.orderId === order.id && p.method === 'UPI');
+    return {
+      orderId: order.id,
+      orderStatus: order.status,
+      paymentStatus: order.paymentStatus || payment?.status || 'PENDING',
+      token: order.token || '—',
+      totalCents: order.totalCents,
+      totalINR: ((order.totalCents || 0) / 100).toFixed(2),
+      utr: payment?.utr,
+      rejectionReason: payment?.rejectionReason || (order as any).rejectionReason || null,
+      verificationNotes: payment?.verificationNotes || (order as any).paymentNotes || null,
+      updatedAt: order.updatedAt
     };
   }
 

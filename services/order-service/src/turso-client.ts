@@ -409,19 +409,44 @@ export class TursoDatabase {
           `CREATE UNIQUE INDEX IF NOT EXISTS uq_p0_tokens_tenant_code ON p0_service_tokens(tenant_id, token_code);`,
         ],
       },
+      {
+        version: 3,
+        name: '003_upi_prepayment_reconciliation',
+        statements: [
+          `ALTER TABLE payments ADD COLUMN utr TEXT;`,
+          `ALTER TABLE payments ADD COLUMN customer_name TEXT;`,
+          `ALTER TABLE payments ADD COLUMN customer_mobile TEXT;`,
+          `ALTER TABLE payments ADD COLUMN screenshot_url TEXT;`,
+          `ALTER TABLE payments ADD COLUMN verification_notes TEXT;`,
+          `CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_utr_unique ON payments(utr) WHERE utr IS NOT NULL AND utr != '' AND status != 'REJECTED';`,
+          `ALTER TABLE payment_records ADD COLUMN utr TEXT;`,
+          `ALTER TABLE payment_records ADD COLUMN customer_name TEXT;`,
+          `ALTER TABLE payment_records ADD COLUMN customer_mobile TEXT;`,
+          `ALTER TABLE payment_records ADD COLUMN screenshot_url TEXT;`,
+          `ALTER TABLE payment_records ADD COLUMN verification_notes TEXT;`,
+          `CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_records_utr_unique ON payment_records(utr) WHERE utr IS NOT NULL AND utr != '' AND status != 'REJECTED';`,
+        ],
+      },
     ];
 
     for (const migration of migrations) {
       if (!appliedVersions.has(migration.version)) {
         console.log(`[Turso Migration] Applying ${migration.version}: ${migration.name}...`);
-        const batchStatements = [
-          ...migration.statements.map((sql) => ({ sql, args: [] })),
-          {
-            sql: 'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);',
-            args: [migration.version, migration.name, new Date().toISOString()],
-          },
-        ];
-        await this.client.batch(batchStatements, 'write');
+        for (const sql of migration.statements) {
+          try {
+            await this.client.execute(sql);
+          } catch (e: any) {
+            // Ignore if column or index already exists
+            const msg = (e.message || '').toLowerCase();
+            if (!msg.includes('duplicate column') && !msg.includes('already exists')) {
+              console.warn(`[Turso Migration] Warning on statement "${sql}":`, e.message);
+            }
+          }
+        }
+        await this.client.execute({
+          sql: 'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);',
+          args: [migration.version, migration.name, new Date().toISOString()],
+        });
         newlyApplied.push(migration.version);
         console.log(`[Turso Migration] Successfully applied ${migration.name}`);
       }

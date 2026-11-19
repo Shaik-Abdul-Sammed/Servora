@@ -321,6 +321,17 @@
         </div>
       </div>
 
+      <!-- UPI Prepayment Verification Queue -->
+      <section class="panel" style="margin-bottom:20px;" aria-labelledby="upiVerifQueueTitle">
+        <div class="panel-header">
+          <div class="panel-title" id="upiVerifQueueTitle">🛡️ UPI Prepayment Verification Queue</div>
+          <button class="btn btn-secondary" onclick="loadUpiVerifications()" style="font-size:0.75rem; padding:4px 10px;">🔄 Refresh Queue</button>
+        </div>
+        <div id="upiVerifQueueContainer" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+          <div style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:16px;">Loading verification queue...</div>
+        </div>
+      </section>
+
       <div class="grid">
         <!-- Record Cash & Card -->
         <section class="panel" aria-labelledby="cashCardTitle">
@@ -494,7 +505,7 @@
       const activePanel = document.getElementById('tab-' + tabId);
       if (activePanel) activePanel.classList.add('active');
 
-      if (tabId === 'payments') loadReconciliation();
+      if (tabId === 'payments') { loadReconciliation(); loadUpiVerifications(); }
       if (tabId === 'bookings') checkSlots();
     }
 
@@ -822,6 +833,182 @@
         box.innerHTML = html;
       } catch (e) {
         box.innerHTML = '<div style="color:var(--danger);">Error checking risk alerts.</div>';
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // UPI Prepayment Verification Handlers
+    // ------------------------------------------------------------------------
+    async function loadUpiVerifications() {
+      const container = document.getElementById('upiVerifQueueContainer');
+      if (!container) return;
+      try {
+        const token = localStorage.getItem('abiruchi_jwt') || '';
+        const headers = { 'X-Staff-Role': 'MANAGER', 'X-Staff-Id': 'manager' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch('/api/v1/payments/upi/verifications', { headers });
+        if (!res.ok) {
+          container.innerHTML = '<div style="color:var(--danger); text-align:center; padding:16px;">Failed to load verification queue (manager authentication required).</div>';
+          return;
+        }
+        const data = await res.json();
+        const list = data.verifications || [];
+        if (list.length === 0) {
+          container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">✓ All UPI payments verified. No pending transactions.</div>';
+          return;
+        }
+
+        container.innerHTML = list.map(v => {
+          const isAwaiting = v.status === 'AWAITING_VERIFICATION' || v.status === 'UNVERIFIED';
+          const isVerified = v.status === 'VERIFIED' || v.status === 'PAID';
+          const isRejected = v.status === 'REJECTED';
+          const statusBadge = isVerified
+            ? '<span class="chip" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981;">✓ VERIFIED</span>'
+            : isRejected
+            ? '<span class="chip" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid #ef4444;">✕ REJECTED</span>'
+            : '<span class="chip" style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid #f59e0b;">⏳ AWAITING VERIFICATION</span>';
+
+          return `
+            <div style="background:var(--card-bg, #1e293b); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px;">
+              <div style="flex:1; min-width:260px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                  <span style="font-size:1.1rem; font-weight:900; font-family:monospace; background:rgba(252,128,25,0.15); color:var(--primary); padding:3px 8px; border-radius:6px;">${v.token}</span>
+                  <span style="font-weight:800; font-size:0.95rem;">Order #${v.orderId.slice(-6).toUpperCase()}</span>
+                  ${statusBadge}
+                </div>
+                <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">
+                  Table: <b>${v.tableNumber}</b> · Guest: <b>${v.customerName}</b> (${v.customerMobile})
+                </div>
+                <div style="font-size:0.82rem; font-family:monospace; color:var(--text-title); margin-bottom:4px;">
+                  UTR: <span style="background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; font-weight:700;">${v.utr}</span>
+                  · Time: ${new Date(v.createdAt).toLocaleTimeString()}
+                </div>
+                ${v.rejectionReason ? `<div style="font-size:0.8rem; color:#ef4444; margin-top:2px;">Rejection Reason: ${v.rejectionReason}</div>` : ''}
+                ${v.verificationNotes ? `<div style="font-size:0.8rem; color:#10b981; margin-top:2px;">Notes: ${v.verificationNotes}</div>` : ''}
+              </div>
+
+              <div style="text-align:right; min-width:160px;">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Expected / Paid</div>
+                <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:8px;">₹${v.submittedAmountINR}</div>
+                ${isAwaiting ? `
+                  <div style="display:flex; gap:6px; justify-content:flex-end;">
+                    <button class="btn btn-verify" onclick="managerVerifyPayment('${v.orderId}', '${v.paymentId}', '${v.utr}', '${v.submittedAmountINR}')" style="padding:6px 12px; font-size:0.8rem;">
+                      ✓ Verify
+                    </button>
+                    <button class="btn btn-escalate" onclick="managerRejectPayment('${v.orderId}', '${v.paymentId}')" style="padding:6px 10px; font-size:0.8rem;">
+                      ✕ Reject
+                    </button>
+                    <button class="btn btn-secondary" onclick="managerRequestMoreInfo('${v.orderId}')" style="padding:6px 8px; font-size:0.8rem;">
+                      💬 Info
+                    </button>
+                  </div>
+                ` : `
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${v.verifiedBy ? `By: ${v.verifiedBy}` : ''}</div>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = '<div style="color:var(--danger); text-align:center; padding:16px;">Error loading verification queue.</div>';
+      }
+    }
+
+    async function managerVerifyPayment(orderId, paymentId, utr, amount) {
+      if (!confirm(`Confirm receipt of ₹${amount} with UTR "${utr}" in the restaurant bank account?`)) return;
+
+      try {
+        const token = localStorage.getItem('abiruchi_jwt') || '';
+        const headers = { 'Content-Type': 'application/json', 'X-Staff-Role': 'MANAGER', 'X-Staff-Id': 'manager' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch('/api/v1/payments/upi/manager-verify', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            orderId,
+            paymentId,
+            verifiedBy: 'manager_sarah',
+            role: 'MANAGER',
+            notes: `Verified in bank account (UTR: ${utr})`
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(`✓ Payment verified! Order #${orderId.slice(-6)} is confirmed and moved to kitchen queue.`);
+          loadUpiVerifications();
+          loadReconciliation();
+        } else {
+          alert('Verification failed: ' + (data.error || 'Server error'));
+        }
+      } catch (e) {
+        alert('Network error verifying payment');
+      }
+    }
+
+    async function managerRejectPayment(orderId, paymentId) {
+      const reason = prompt('Enter reason for payment rejection (e.g. Amount mismatch, Invalid UTR, Transaction not found in bank account):', 'Transaction not found in bank account');
+      if (!reason || !reason.trim()) return;
+
+      try {
+        const token = localStorage.getItem('abiruchi_jwt') || '';
+        const headers = { 'Content-Type': 'application/json', 'X-Staff-Role': 'MANAGER', 'X-Staff-Id': 'manager' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch('/api/v1/payments/upi/manager-reject', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            orderId,
+            paymentId,
+            rejectionReason: reason.trim(),
+            rejectedBy: 'manager_sarah',
+            role: 'MANAGER'
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert(`✕ Payment rejected. Customer can check reference and resubmit.`);
+          loadUpiVerifications();
+          loadReconciliation();
+        } else {
+          alert('Rejection failed: ' + (data.error || 'Server error'));
+        }
+      } catch (e) {
+        alert('Network error rejecting payment');
+      }
+    }
+
+    async function managerRequestMoreInfo(orderId) {
+      const note = prompt('Enter note / information requested from customer:', 'Please upload a clear screenshot showing bank UTR reference');
+      if (!note || !note.trim()) return;
+
+      try {
+        const token = localStorage.getItem('abiruchi_jwt') || '';
+        const headers = { 'Content-Type': 'application/json', 'X-Staff-Role': 'MANAGER', 'X-Staff-Id': 'manager' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch('/api/v1/payments/upi/request-info', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            orderId,
+            note: note.trim(),
+            role: 'MANAGER'
+          })
+        });
+
+        if (res.ok) {
+          alert('Note sent to customer.');
+          loadUpiVerifications();
+        } else {
+          alert('Failed to send note');
+        }
+      } catch (e) {
+        alert('Network error');
       }
     }
 

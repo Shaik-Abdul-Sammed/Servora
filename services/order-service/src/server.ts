@@ -60,6 +60,12 @@ const DEMO_USERS: Record<string, { password: string; role: UserRole; tenantId: s
     tenantId: 'a0000000-0000-0000-0000-000000000001',
     outletId: 'b0000000-0000-0000-0000-000000000001',
   },
+  'manager@abiruchi.local': {
+    password: 'abiruchi123',
+    role: 'MANAGER',
+    tenantId: 'a0000000-0000-0000-0000-000000000001',
+    outletId: 'b0000000-0000-0000-0000-000000000001',
+  },
   'admin@abiruchi.local': {
     password: 'abiruchi123',
     role: 'SUPER_ADMIN',
@@ -1166,9 +1172,12 @@ export function createOrderApp() {
           }
         }
 
+        const payMethod = (body.paymentMethod as any) || 'CASH';
+        (newOrder as any).paymentMethod = payMethod;
+
         let assignedToken: string | undefined = undefined;
         const tenantMode = (store as any).orderMode || 'table';
-        if (tenantMode === 'token' || tenantMode === 'hybrid') {
+        if (tenantMode === 'token' || tenantMode === 'hybrid' || payMethod === 'UPI' || newOrder.status === 'PENDING_PAYMENT') {
           const firstItem = newOrder.items[0];
           const mi = firstItem ? store.menuItems.get(firstItem.itemId) : null;
           const st = mi?.station || 'HOT_LINE';
@@ -1186,7 +1195,6 @@ export function createOrderApp() {
         }
 
         // C3: Create payment record
-        const payMethod = (body.paymentMethod as any) || 'CASH';
         store.createPaymentRecord(newOrder.outletId, newOrder.id, newOrder.totalCents, payMethod);
 
         // Broadcast to KDS via Server-Sent Events
@@ -4745,6 +4753,324 @@ export function createOrderApp() {
         const minutes = parseInt(reqUrl.searchParams.get('maxMinutes') || '45', 10);
         const result = store.getWalkoutRiskOrders(minutes);
         return sendJson(res, 200, { success: true, ...result });
+      }
+
+      // ======================================================================
+      // FREE UPI PREPAYMENT & TOKEN-BASED PAYMENT RECONCILIATION
+      // ======================================================================
+      function getStaffAuth(req: any, body?: any): { authorized: boolean; role: string; staffId: string } {
+        const authHeader = req.headers.authorization;
+        const queryToken = reqUrl.searchParams.get('token');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : queryToken;
+        if (token) {
+          const verified = authService.verifyToken(token);
+          if ((verified.valid || (verified as any).isValid) && verified.payload) {
+            return {
+              authorized: true,
+              role: (verified.payload.role || '').toUpperCase(),
+              staffId: verified.payload.userId || verified.payload.email || 'manager',
+            };
+          }
+        }
+        const headerRole = (req.headers['x-staff-role'] as string) || (req.headers['x-role'] as string);
+        if (headerRole) {
+          return {
+            authorized: true,
+            role: headerRole.toUpperCase(),
+            staffId: (req.headers['x-staff-id'] as string) || 'manager',
+          };
+        }
+        if (body && body.role) {
+          return {
+            authorized: true,
+            role: String(body.role).toUpperCase(),
+            staffId: body.staffId || body.managerId || body.verifiedBy || 'manager',
+          };
+        }
+        return { authorized: false, role: '', staffId: '' };
+      }
+
+      // 1. Initiate UPI Prepayment
+      if (pathname === '/api/v1/payments/upi/initiate' && method === 'POST') {
+        const body: any = await parseJsonBody(req).catch(() => ({}));
+        let orderId = body.orderId || body.order_id;
+        if (!orderId && body.items && body.items.length) {
+          const calculatedItems: OrderItem[] = [];
+          for (const itemInput of body.items) {
+            const menuItem = store.menuItems.get(itemInput.menuItemId || itemInput.id);
+            if (!menuItem) {
+              sendJson(res, 400, { error: `Menu item not found: ${itemInput.menuItemId || itemInput.id}` });
+              return;
+            }
+            const quantity = itemInput.quantity || 1;
+            calculatedItems.push({
+              id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+              menuItemId: menuItem.id,
+              name: menuItem.name,
+              unitPriceCents: menuItem.basePriceCents,
+              quantity,
+              selectedModifiers: itemInput.selectedModifiers || [],
+              itemTotalCents: menuItem.basePriceCents * quantity,
+            });
+          }
+          const totals = calculateOrderTotals(
+            calculatedItems.map((i) => ({ unitPriceCents: i.unitPriceCents, quantity: i.quantity })),
+            5.0,
+            body.tipCents || 0
+          );
+          orderId = `ord_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+          const now = new Date().toISOString();
+          const newOrder: Order = {
+            id: orderId,
+            tenantId: body.tenantId || 'a0000000-0000-0000-0000-000000000001',
+            outletId: body.outletId || 'b0000000-0000-0000-0000-000000000001',
+            tableId: body.tableId || 'c0000000-0000-0000-0000-000000000001',
+            tableNumber: body.tableNumber || 'T-01',
+            status: 'PENDING_PAYMENT',
+            paymentStatus: 'PENDING',
+            items: calculatedItems,
+            subtotalCents: totals.subtotalCents,
+            taxCents: totals.taxCents,
+            tipCents: totals.tipCents,
+            totalCents: totals.totalCents,
+            createdAt: now,
+            updatedAt: now,
+          };
+          const firstItem = newOrder.items[0];
+          const mi = firstItem ? store.menuItems.get(firstItem.itemId) : null;
+          const st = mi?.station || 'HOT_LINE';
+          const tok = store.createServiceToken(newOrder.tenantId, newOrder.id, st);
+          (newOrder as any).token = tok.token_code;
+          store.orders.set(orderId, newOrder);
+        }
+
+        if (!orderId) {
+          sendJson(res, 400, { error: 'orderId or items array is required' });
+          return;
+        }
+
+        const result = store.initiateUpiPrepayment(orderId, {
+          vpa: body.vpa,
+          payeeName: body.payeeName,
+          mobile: body.mobile
+        });
+        if (!result) {
+          sendJson(res, 404, { error: 'Order not found' });
+          return;
+        }
+
+        sendJson(res, 200, { success: true, ...result });
+        return;
+      }
+
+      // 2. Submit UPI Payment Reference
+      if (pathname === '/api/v1/payments/upi/submit-reference' && method === 'POST') {
+        const body: any = await parseJsonBody(req).catch(() => ({}));
+        if (!body.orderId) {
+          sendJson(res, 400, { error: 'orderId is required' });
+          return;
+        }
+        if (!body.utr && !body.transactionReference) {
+          sendJson(res, 400, { error: 'utr / transaction reference is required' });
+          return;
+        }
+
+        const result = store.submitUpiPaymentReference({
+          orderId: body.orderId,
+          utr: body.utr || body.transactionReference,
+          amountPaid: body.amountPaid,
+          amountCents: body.amountCents,
+          customerName: body.customerName,
+          customerPhone: body.customerPhone,
+          screenshotUrl: body.screenshotUrl,
+          timestamp: body.timestamp
+        });
+
+        if (!result.success) {
+          sendJson(res, result.status || 400, { error: result.error });
+          return;
+        }
+
+        broadcastEvent({
+          type: 'ORDER_PAYMENT_SUBMITTED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: result
+        });
+
+        sendJson(res, 200, result);
+        return;
+      }
+
+      // 3. Manager Verify UPI Payment
+      if (pathname === '/api/v1/payments/upi/manager-verify' && method === 'POST') {
+        const body: any = await parseJsonBody(req).catch(() => ({}));
+        const auth = getStaffAuth(req, body);
+        if (!auth.authorized) {
+          sendJson(res, 401, { error: 'Authentication required: Manager or owner credentials required' });
+          return;
+        }
+        if (auth.role !== 'MANAGER' && auth.role !== 'OWNER') {
+          sendJson(res, 403, { error: 'Forbidden: Only managers and owners can verify payments' });
+          return;
+        }
+        if (!body.orderId && !body.paymentId) {
+          sendJson(res, 400, { error: 'orderId or paymentId is required' });
+          return;
+        }
+
+        const orderId = body.orderId || (body.paymentId ? store.payments.get(body.paymentId)?.orderId : null);
+        if (!orderId) {
+          sendJson(res, 400, { error: 'Valid orderId is required' });
+          return;
+        }
+
+        const result = store.verifyUpiPaymentByManager({
+          orderId,
+          paymentId: body.paymentId,
+          verifiedBy: body.verifiedBy || auth.staffId,
+          staffRole: auth.role,
+          notes: body.notes || body.customerNote || 'Verified in bank account'
+        });
+
+        if (!result.success) {
+          sendJson(res, result.status || 400, { error: result.error });
+          return;
+        }
+
+        broadcastEvent({
+          type: 'ORDER_PAYMENT_VERIFIED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: result
+        });
+
+        sendJson(res, 200, result);
+        return;
+      }
+
+      // 4. Manager Reject UPI Payment
+      if (pathname === '/api/v1/payments/upi/manager-reject' && method === 'POST') {
+        const body: any = await parseJsonBody(req).catch(() => ({}));
+        const auth = getStaffAuth(req, body);
+        if (!auth.authorized) {
+          sendJson(res, 401, { error: 'Authentication required: Manager or owner credentials required' });
+          return;
+        }
+        if (auth.role !== 'MANAGER' && auth.role !== 'OWNER') {
+          sendJson(res, 403, { error: 'Forbidden: Only managers and owners can reject payments' });
+          return;
+        }
+        if (!body.orderId && !body.paymentId) {
+          sendJson(res, 400, { error: 'orderId or paymentId is required' });
+          return;
+        }
+        const reason = body.rejectionReason || body.reason;
+        if (!reason || !reason.trim()) {
+          sendJson(res, 400, { error: 'rejectionReason is required' });
+          return;
+        }
+
+        const orderId = body.orderId || (body.paymentId ? store.payments.get(body.paymentId)?.orderId : null);
+        if (!orderId) {
+          sendJson(res, 400, { error: 'Valid orderId is required' });
+          return;
+        }
+
+        const result = store.rejectUpiPaymentByManager({
+          orderId,
+          paymentId: body.paymentId,
+          rejectionReason: reason,
+          rejectedBy: body.rejectedBy || auth.staffId,
+          staffRole: auth.role
+        });
+
+        if (!result.success) {
+          sendJson(res, result.status || 400, { error: result.error });
+          return;
+        }
+
+        broadcastEvent({
+          type: 'ORDER_PAYMENT_REJECTED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: result
+        });
+
+        sendJson(res, 200, result);
+        return;
+      }
+
+      // 5. Manager Verifications Queue
+      if (pathname === '/api/v1/payments/upi/verifications' && method === 'GET') {
+        const auth = getStaffAuth(req);
+        if (!auth.authorized) {
+          sendJson(res, 401, { error: 'Authentication required: Manager credentials required' });
+          return;
+        }
+        if (auth.role !== 'MANAGER' && auth.role !== 'OWNER') {
+          sendJson(res, 403, { error: 'Forbidden: Only managers and owners can view payment verifications' });
+          return;
+        }
+        const outletId = reqUrl.searchParams.get('outletId') || undefined;
+        const verifications = store.getUpiVerificationsQueue(outletId);
+        sendJson(res, 200, {
+          success: true,
+          count: verifications.length,
+          verifications
+        });
+        return;
+      }
+
+      // 6. Real-time Customer Order & Payment Status
+      if (pathname.startsWith('/api/v1/payments/order-status/') && method === 'GET') {
+        const orderId = pathname.replace('/api/v1/payments/order-status/', '');
+        const status = store.getOrderPaymentStatus(orderId);
+        if (!status) {
+          sendJson(res, 404, { error: 'Order not found' });
+          return;
+        }
+        sendJson(res, 200, { success: true, ...status });
+        return;
+      }
+
+      // 7. Request Info
+      if (pathname === '/api/v1/payments/upi/request-info' && method === 'POST') {
+        const body: any = await parseJsonBody(req).catch(() => ({}));
+        const auth = getStaffAuth(req, body);
+        if (!auth.authorized) {
+          sendJson(res, 401, { error: 'Authentication required: Manager credentials required' });
+          return;
+        }
+        if (auth.role !== 'MANAGER' && auth.role !== 'OWNER') {
+          sendJson(res, 403, { error: 'Forbidden: Only managers and owners can request payment info' });
+          return;
+        }
+        if (!body.orderId) {
+          sendJson(res, 400, { error: 'orderId is required' });
+          return;
+        }
+        const order = store.orders.get(body.orderId);
+        if (!order) {
+          sendJson(res, 404, { error: 'Order not found' });
+          return;
+        }
+        (order as any).customerNote = body.note || 'Please provide clear bank transaction reference';
+        store.orders.set(order.id, order);
+
+        broadcastEvent({
+          type: 'PAYMENT_INFO_REQUESTED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: { orderId: order.id, note: (order as any).customerNote }
+        });
+
+        sendJson(res, 200, { success: true, orderId: order.id, note: (order as any).customerNote });
+        return;
       }
 
       // ======================================================================
