@@ -552,7 +552,10 @@ describe('UPI Prepayment & Token-Based Reconciliation Integration Test Suite', (
     assert.ok(verifItem, 'Verification queue entry must survive server restart');
     assert.strictEqual(verifItem?.utr, pUtr);
 
+    try { s1.getDb().close(); } catch {}
+    try { s2.getDb().close(); } catch {}
     try { unlinkSync(persistDbFile); } catch {}
+    process.env.DATABASE_FILE = testDbFile;
   });
 
   // Scenario 12: Concurrent submissions for same order handled cleanly

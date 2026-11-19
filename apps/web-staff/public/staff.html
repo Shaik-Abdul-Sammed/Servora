@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Staff Terminal — Abiruchi Hotel Operating System</title>
   <link rel="stylesheet" href="/guest/styles.css">
+  <script src="/staff/waiter-voice.js"></script>
   <style>
     :root {
       --primary: #ff6600;
@@ -15,6 +16,8 @@
       --border: #334155;
       --warning: #f59e0b;
       --success: #10b981;
+      --sky: #38bdf8;
+      --danger: #ef4444;
     }
     body {
       background: var(--bg);
@@ -43,6 +46,7 @@
     .nav-links {
       display: flex;
       gap: 8px;
+      align-items: center;
       flex-wrap: wrap;
     }
     .nav-link {
@@ -58,15 +62,57 @@
       background: rgba(255, 102, 0, 0.15);
       outline: 2px solid var(--primary);
     }
+    .voice-btn {
+      background: linear-gradient(135deg, #ea580c, #c2410c);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .voice-btn.listening {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      animation: pulseMic 1.2s infinite;
+    }
+    @keyframes pulseMic {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    }
+    .lang-select {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .voice-log-btn {
+      background: #1e293b;
+      color: var(--sky);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
     .container {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 20px 16px;
     }
     .station-bar {
       display: flex;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
       overflow-x: auto;
       padding-bottom: 6px;
     }
@@ -86,10 +132,67 @@
       color: #fff;
       border-color: var(--primary);
     }
+
+    /* Filter Controls Bar */
+    .filter-controls-bar {
+      background: #141b2d;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .filter-search {
+      flex: 1;
+      min-width: 220px;
+    }
+    .filter-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #fff;
+      font-size: 0.85rem;
+    }
+    .filter-select {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .filter-reset-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .filter-reset-btn:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+
     .board-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
     }
     .board-column {
       background: var(--card-bg);
@@ -98,7 +201,7 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      max-height: 80vh;
+      max-height: 82vh;
     }
     .col-header {
       font-size: 1rem;
@@ -120,32 +223,170 @@
     .token-card {
       background: #0f172a;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    .token-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
     }
     .token-code {
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 900;
       color: var(--primary);
+      letter-spacing: -0.02em;
     }
+    .token-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .badge-fresh { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-normal { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-delayed { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-qty { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+
     .token-meta {
       font-size: 0.8rem;
       color: var(--text-muted);
-      margin: 4px 0 10px;
+      margin: 4px 0 8px;
+    }
+    .token-items-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 12px;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .token-item-pill {
+      font-size: 0.76rem;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .token-item-pill strong {
+      color: var(--primary);
+      margin-right: 3px;
     }
     .btn {
       width: 100%;
-      padding: 8px;
-      border-radius: 6px;
+      padding: 9px;
+      border-radius: 7px;
       border: none;
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.82rem;
+      font-weight: 800;
       cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
     }
     .btn-prep { background: var(--warning); color: #000; }
     .btn-ready { background: var(--success); color: #fff; }
-    .btn-serve { background: var(--primary); color: #fff; }
+    .btn-serve { background: linear-gradient(135deg, #ff6600, #ea580c); color: #fff; }
+
+    /* Voice Modals */
+    .voice-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .voice-modal-content {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+    }
+    .voice-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .voice-wave {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      height: 40px;
+      margin: 16px 0;
+    }
+    .voice-wave span {
+      width: 6px;
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      animation: waveAnim 1s ease-in-out infinite;
+    }
+    .voice-wave span:nth-child(2) { animation-delay: 0.15s; }
+    .voice-wave span:nth-child(3) { animation-delay: 0.3s; height: 120%; }
+    .voice-wave span:nth-child(4) { animation-delay: 0.45s; }
+    .voice-wave span:nth-child(5) { animation-delay: 0.6s; }
+    @keyframes waveAnim {
+      0%, 100% { transform: scaleY(0.3); }
+      50% { transform: scaleY(1); }
+    }
+    .voice-transcript {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 50px;
+      font-size: 0.95rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .voice-hints {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    .voice-hints ul {
+      margin: 6px 0 0;
+      padding-left: 18px;
+    }
+    .voice-hints li {
+      margin-bottom: 4px;
+    }
+    .hint-title {
+      font-weight: 700;
+      color: #e2e8f0;
+    }
   </style>
 </head>
 <body>
@@ -160,6 +401,19 @@
       <a href="/staff.html" class="nav-link active" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
       <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+
+      <!-- Waiter Multi-Lingual Voice Controls -->
+      <button id="btnWaiterVoice" class="voice-btn" onclick="toggleWaiterVoice()" title="Waiter Voice Assistant (English, Telugu, Hindi)">
+        🎙️ Waiter Voice
+      </button>
+      <select id="waiterLangSelect" class="lang-select" onchange="setWaiterVoiceLang(this.value)" title="Voice Language">
+        <option value="en-IN">🇬🇧 English</option>
+        <option value="te-IN">🇮🇳 తెలుగు (Telugu)</option>
+        <option value="hi-IN">🇮🇳 हिंदी (Hindi)</option>
+      </select>
+      <button class="voice-log-btn" onclick="openWaiterVoiceLogModal()" title="View Waiter Voice Command History">
+        📜 Voice Log
+      </button>
     </div>
   </nav>
 
@@ -173,7 +427,40 @@
       <button class="station-chip" onclick="setStation('COFFEE', this)" role="tab" aria-selected="false" aria-label="Filter Coffee (F)">Coffee & Chai (F)</button>
     </div>
 
-    <!-- Token Kanban Columns (Cases 59-67) -->
+    <!-- Multi-Dimensional Token & Item Filter Bar -->
+    <div class="filter-controls-bar">
+      <div class="filter-group filter-search">
+        <input type="text" id="searchTokenInput" class="filter-input" placeholder="🔍 Search Token #, Table, or Dish..." oninput="applyTokenFilters()">
+      </div>
+      <div class="filter-group">
+        <label for="filterTokenTime">Time:</label>
+        <select id="filterTokenTime" class="filter-select" onchange="applyTokenFilters()">
+          <option value="ALL">All Times</option>
+          <option value="FRESH">⚡ Fresh (&lt; 10m)</option>
+          <option value="NORMAL">⏳ 10 - 20 mins</option>
+          <option value="DELAYED">⚠️ Delayed (&gt; 20m)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterTokenQty">Qty:</label>
+        <select id="filterTokenQty" class="filter-select" onchange="applyTokenFilters()">
+          <option value="ALL">All Quantities</option>
+          <option value="SINGLE">Single Item (1)</option>
+          <option value="STANDARD">Standard (2 - 3)</option>
+          <option value="BULK">Bulk (4+ items)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="sortTokenOrder">Sort:</label>
+        <select id="sortTokenOrder" class="filter-select" onchange="applyTokenFilters()">
+          <option value="FIFO">FIFO (Oldest First)</option>
+          <option value="LIFO">LIFO (Newest First)</option>
+        </select>
+      </div>
+      <button class="filter-reset-btn" onclick="resetTokenFilters()">↺ Reset</button>
+    </div>
+
+    <!-- Token Kanban Columns -->
     <div class="board-grid">
       <!-- Column 1: QUEUED -->
       <section class="board-column" aria-labelledby="colQueuedTitle">
@@ -204,8 +491,49 @@
     </div>
   </main>
 
+  <!-- Waiter Voice Assistant Modal -->
+  <div id="waiterVoiceModal" class="voice-modal" onclick="closeWaiterVoiceOnBackdrop(event)">
+    <div class="voice-modal-content">
+      <div class="voice-modal-header">
+        <span style="font-weight:800; font-size:1.1rem; color:#fff;">🎙️ Waiter Voice Assistant</span>
+        <button class="modal-close-btn" onclick="stopWaiterVoice()">✕</button>
+      </div>
+      <div class="voice-wave">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div id="waiterVoiceTranscript" class="voice-transcript">Listening for waiter voice command...</div>
+      <div class="voice-hints">
+        <div class="hint-title">Recognized Voice Commands (EN, TE, HI):</div>
+        <ul>
+          <li><strong>Token Given:</strong> "Token 101 given" • "టోకెన్ 101 ఇచ్చాను" • "टोकन 101 दे दिया"</li>
+          <li><strong>Item Given:</strong> "Masala Dosa given" • "దోస ఇచ్చాం" • "मसाला डोसा सर्व"</li>
+          <li><strong>Filter by Qty:</strong> "Show large orders" • "పెద్ద ఆర్డర్లు" • "बड़े आर्डर"</li>
+          <li><strong>Filter by Time:</strong> "Show delayed tokens" • "లేట్ ఆర్డర్లు" • "ताजा आर्डर"</li>
+        </ul>
+      </div>
+      <button class="btn btn-prep" style="margin-top:14px; width:auto; padding:8px 24px; margin-inline:auto;" onclick="stopWaiterVoice()">Done / Close</button>
+    </div>
+  </div>
+
+  <!-- Voice Log Modal -->
+  <div id="waiterVoiceLogModal" class="voice-modal" onclick="closeWaiterVoiceLogModal(event)">
+    <div class="voice-modal-content" style="max-width:540px;">
+      <div class="voice-modal-header">
+        <span style="font-weight:800; font-size:1.1rem; color:#fff;">📜 Waiter Voice Command History</span>
+        <button class="modal-close-btn" onclick="document.getElementById('waiterVoiceLogModal').style.display='none'">✕</button>
+      </div>
+      <div id="waiterVoiceLogList" style="max-height:360px; overflow-y:auto; margin-top:12px;"></div>
+    </div>
+  </div>
+
   <script>
     let currentStation = 'ALL';
+    let rawTokensCache = [];
+
+    // Initialize voice language dropdown
+    const savedVoiceLang = localStorage.getItem('abiruchi_waiter_voice_lang') || 'en-IN';
+    const langSelectEl = document.getElementById('waiterLangSelect');
+    if (langSelectEl) langSelectEl.value = savedVoiceLang;
 
     function setStation(station, btn) {
       document.querySelectorAll('.station-chip').forEach(b => {
@@ -218,54 +546,129 @@
       loadBoard();
     }
 
+    function resetTokenFilters() {
+      document.getElementById('searchTokenInput').value = '';
+      document.getElementById('filterTokenTime').value = 'ALL';
+      document.getElementById('filterTokenQty').value = 'ALL';
+      document.getElementById('sortTokenOrder').value = 'FIFO';
+      applyTokenFilters();
+    }
+
+    function applyTokenFilters() {
+      const search = (document.getElementById('searchTokenInput').value || '').trim().toLowerCase();
+      const timeFilter = document.getElementById('filterTokenTime').value;
+      const qtyFilter = document.getElementById('filterTokenQty').value;
+      const sortOrder = document.getElementById('sortTokenOrder').value;
+
+      const now = Date.now();
+
+      let filtered = rawTokensCache.filter(t => {
+        // Search text matching (Token code, table number, dish name)
+        if (search) {
+          const codeMatch = (t.token_code || t.code || '').toLowerCase().includes(search);
+          const tableMatch = (t.tableNumber || '').toLowerCase().includes(search);
+          const itemMatch = (t.items || []).some(i => (i.name || '').toLowerCase().includes(search));
+          if (!codeMatch && !tableMatch && !itemMatch) return false;
+        }
+
+        // Time filtering
+        const createdAt = new Date(t.createdAt || t.created_at || now).getTime();
+        const elapsedMins = (now - createdAt) / (1000 * 60);
+
+        if (timeFilter === 'FRESH' && elapsedMins >= 10) return false;
+        if (timeFilter === 'NORMAL' && (elapsedMins < 10 || elapsedMins > 20)) return false;
+        if (timeFilter === 'DELAYED' && elapsedMins <= 20) return false;
+
+        // Quantity filtering
+        const qty = t.itemCount !== undefined ? t.itemCount : (t.items || []).reduce((s, i) => s + (i.quantity || 1), 0);
+        if (qtyFilter === 'SINGLE' && qty !== 1) return false;
+        if (qtyFilter === 'STANDARD' && (qty < 2 || qty > 3)) return false;
+        if (qtyFilter === 'BULK' && qty < 4) return false;
+
+        return true;
+      });
+
+      // Sorting
+      filtered.sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.created_at || 0).getTime();
+        const timeB = new Date(b.createdAt || b.created_at || 0).getTime();
+        return sortOrder === 'LIFO' ? timeB - timeA : timeA - timeB;
+      });
+
+      renderKanbanColumns(filtered);
+    }
+
+    // Expose for waiter-voice.js
+    window.applyTokenFilters = applyTokenFilters;
+
+    function renderKanbanColumns(tokens) {
+      const now = Date.now();
+      const queued = tokens.filter(t => t.state === 'QUEUED');
+      const preparing = tokens.filter(t => t.state === 'PREPARING');
+      const ready = tokens.filter(t => t.state === 'READY');
+
+      document.getElementById('countQueued').textContent = queued.length;
+      document.getElementById('countPreparing').textContent = preparing.length;
+      document.getElementById('countReady').textContent = ready.length;
+
+      function renderCard(t, actionBtnHtml) {
+        const createdAt = new Date(t.createdAt || t.created_at || now).getTime();
+        const elapsedMins = Math.max(1, Math.round((now - createdAt) / (1000 * 60)));
+        const elapsedBadge = elapsedMins < 10
+          ? `<span class="badge badge-fresh">🟢 ${elapsedMins}m ago</span>`
+          : elapsedMins <= 20
+          ? `<span class="badge badge-normal">🟡 ${elapsedMins}m ago</span>`
+          : `<span class="badge badge-delayed">🔴 ${elapsedMins}m ago</span>`;
+
+        const totalItems = t.itemCount !== undefined ? t.itemCount : (t.items || []).reduce((s, i) => s + (i.quantity || 1), 0);
+        const qtyBadge = `<span class="badge badge-qty">📦 ${totalItems} item${totalItems === 1 ? '' : 's'}</span>`;
+
+        const itemsListHtml = (t.items && t.items.length > 0)
+          ? `<div class="token-items-list">${t.items.map(i => `<span class="token-item-pill"><strong>${i.quantity || 1}x</strong> ${i.name}</span>`).join('')}</div>`
+          : '';
+
+        const tableText = t.tableNumber ? `Table #${t.tableNumber} • ` : '';
+
+        return `
+          <div class="token-card">
+            <div class="token-header-row">
+              <div class="token-code">${t.token_code || t.code}</div>
+              <div class="token-badges">${elapsedBadge}${qtyBadge}</div>
+            </div>
+            <div class="token-meta">${tableText}Station: ${t.station || t.bucket || 'MAIN'}</div>
+            ${itemsListHtml}
+            ${actionBtnHtml}
+          </div>
+        `;
+      }
+
+      // Render Queued
+      document.getElementById('colQueued').innerHTML = queued.map(t =>
+        renderCard(t, `<button class="btn btn-prep" onclick="updateState('${t.id}', 'PREPARING')" aria-label="Start cooking token ${t.token_code || t.code}">🔥 Start Prep</button>`)
+      ).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No queued tokens</div>';
+
+      // Render Preparing
+      document.getElementById('colPreparing').innerHTML = preparing.map(t =>
+        renderCard(t, `<button class="btn btn-ready" onclick="updateState('${t.id}', 'READY')" aria-label="Mark token ${t.token_code || t.code} ready">✅ Mark Ready</button>`)
+      ).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No cooking in progress</div>';
+
+      // Render Ready
+      document.getElementById('colReady').innerHTML = ready.map(t =>
+        renderCard(t, `<button class="btn btn-serve" onclick="updateState('${t.id}', 'SERVED')" aria-label="Mark token ${t.token_code || t.code} given to guest">🍽️ Token Given / Handed Over</button>`)
+      ).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No ready orders</div>';
+    }
+
     async function loadBoard() {
       try {
-        const url = currentStation === 'ALL' ? '/api/v1/tokens/active' : \`/api/v1/tokens/active?station=\${currentStation}\`;
+        const url = currentStation === 'ALL' ? '/api/v1/tokens/active' : `/api/v1/tokens/active?station=${currentStation}`;
         const res = await fetch(url);
         const data = await res.json();
         const tokens = data.tokens || [];
 
-        const queued = tokens.filter(t => t.state === 'QUEUED');
-        const preparing = tokens.filter(t => t.state === 'PREPARING');
-        const ready = tokens.filter(t => t.state === 'READY');
+        rawTokensCache = tokens;
+        window.activeTokensCache = tokens; // Cached for waiter-voice.js
 
-        document.getElementById('countQueued').textContent = queued.length;
-        document.getElementById('countPreparing').textContent = preparing.length;
-        document.getElementById('countReady').textContent = ready.length;
-
-        // Render Queued
-        document.getElementById('colQueued').innerHTML = queued.map(t => \`
-          <div class="token-card">
-            <div class="token-code">\${t.token_code}</div>
-            <div class="token-meta">Station: \${t.station} • Order #\${t.order_id.slice(-6)}</div>
-            <button class="btn btn-prep" onclick="updateState('\${t.id}', 'PREPARING')" aria-label="Start cooking token \${t.token_code}">
-              🔥 Start Prep
-            </button>
-          </div>
-        \`).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No queued tokens</div>';
-
-        // Render Preparing
-        document.getElementById('colPreparing').innerHTML = preparing.map(t => \`
-          <div class="token-card">
-            <div class="token-code">\${t.token_code}</div>
-            <div class="token-meta">Station: \${t.station} • Order #\${t.order_id.slice(-6)}</div>
-            <button class="btn btn-ready" onclick="updateState('\${t.id}', 'READY')" aria-label="Mark token \${t.token_code} ready for waiter">
-              ✅ Mark Ready
-            </button>
-          </div>
-        \`).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No cooking in progress</div>';
-
-        // Render Ready
-        document.getElementById('colReady').innerHTML = ready.map(t => \`
-          <div class="token-card">
-            <div class="token-code">\${t.token_code}</div>
-            <div class="token-meta">Station: \${t.station} • Ready for service</div>
-            <button class="btn btn-serve" onclick="updateState('\${t.id}', 'SERVED')" aria-label="Mark token \${t.token_code} served to table">
-              🍽️ Mark Served
-            </button>
-          </div>
-        \`).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No ready orders</div>';
-
+        applyTokenFilters();
       } catch (err) {
         console.error('Failed to load token board', err);
       }
@@ -273,7 +676,7 @@
 
     async function updateState(id, state) {
       try {
-        const res = await fetch(\`/api/v1/tokens/\${id}/state\`, {
+        const res = await fetch(`/api/v1/tokens/${id}/state`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ state, waiterId: 'waiter_floor' })
@@ -282,6 +685,14 @@
       } catch (e) {
         alert('Failed to update token state');
       }
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.textContent = msg;
+      toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#1e293b; color:#fff; padding:12px 20px; border-radius:8px; border:1px solid #38bdf8; z-index:10000; font-size:0.85rem; font-weight:700; box-shadow:0 10px 15px -3px rgba(0,0,0,0.5);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
     }
 
     loadBoard();

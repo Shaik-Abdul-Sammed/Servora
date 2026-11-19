@@ -521,6 +521,14 @@ export function createOrderApp() {
           return;
         }
       }
+      if ((pathname === '/staff/waiter-voice.js' || pathname === '/waiter-voice.js') && method === 'GET') {
+        const p = join(repoRoot, 'apps/web-staff/public/waiter-voice.js');
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
 
       // Marketing site routes
       const mktPages = ['', 'for-cafes', 'for-restaurants', 'for-bars', 'pricing'];

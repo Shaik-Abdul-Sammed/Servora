@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Abiruchi Hotel | Floor Waitstaff Terminal</title>
+  <script src="/staff/waiter-voice.js"></script>
   <style>
     :root {
       --bg: #090a0f;
@@ -40,37 +41,62 @@
 
     /* Header */
     header {
-      background: rgba(18, 21, 32, 0.9);
+      background: rgba(18, 21, 32, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
-      padding: 12px 18px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: sticky;
       top: 0;
       z-index: 50;
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    .brand-group { display: flex; align-items: center; gap: 10px; }
+    .brand-group { display: flex; align-items: center; gap: 8px; }
     .staff-badge {
       background: rgba(56, 189, 248, 0.15);
       color: var(--primary);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      padding: 4px 10px;
-      border-radius: 8px;
+      padding: 3px 8px;
+      border-radius: 6px;
       border: 1px solid rgba(56, 189, 248, 0.3);
       letter-spacing: 0.05em;
     }
-    .header-title { font-size: 1.05rem; font-weight: 800; color: #fff; }
+    .header-title { font-size: 0.95rem; font-weight: 800; color: #fff; }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mic-btn {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mic-btn.listening {
+      animation: callPulse 1s infinite;
+    }
+    .lang-pill {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
     }
 
     /* Live Guest Assistance Calls */
@@ -159,6 +185,30 @@
     .table-state-pill.active { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
     .table-state-pill.vacant { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); }
     .table-total { font-size: 0.95rem; font-weight: 800; color: var(--accent); margin-top: 4px; }
+
+    /* Voice Modal */
+    .voice-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .voice-modal-content {
+      background: #121520;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+    }
+    .voice-wave { display: flex; justify-content: center; gap: 5px; height: 32px; margin: 12px 0; }
+    .voice-wave span { width: 4px; height: 100%; background: var(--primary); border-radius: 2px; animation: waveAnim 1s ease-in-out infinite; }
+    @keyframes waveAnim { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
   </style>
 </head>
 <body>
@@ -166,11 +216,17 @@
   <header>
     <div class="brand-group">
       <span class="staff-badge">FLOOR STAFF</span>
-      <h1 class="header-title">Trattoria Abiruchi Hotel</h1>
+      <h1 class="header-title">Abiruchi Hotel</h1>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <div class="status-dot"></div>
-      <span style="font-size:0.78rem; font-weight:700; color:var(--accent);">ONLINE</span>
+    <div class="header-actions">
+      <button id="btnWaiterVoice" class="mic-btn" onclick="toggleWaiterVoice()">
+        🎙️ Voice
+      </button>
+      <select id="waiterLangSelect" class="lang-pill" onchange="setWaiterVoiceLang(this.value)">
+        <option value="en-IN">EN</option>
+        <option value="te-IN">తెలుగు</option>
+        <option value="hi-IN">हिंदी</option>
+      </select>
     </div>
   </header>
 
@@ -185,7 +241,7 @@
     </div>
   </section>
 
-  <!-- P0 Achievement 47: First-Order Staff Confirmation Queue -->
+  <!-- First-Order Staff Confirmation Queue -->
   <section style="padding:14px 18px; background:#121724; border-bottom:1px solid rgba(56,189,248,0.3);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-weight:800; color:#93c5fd; font-size:0.92rem;">
       <span>⏳ First-Order Approvals Required</span>
@@ -206,33 +262,59 @@
       <div class="table-box occupied">
         <div class="table-num">Table 14</div>
         <div class="table-state-pill active">Dining (Active)</div>
-        <div class="table-total">$58.88</div>
+        <div class="table-total">₹580.00</div>
       </div>
       <div class="table-box">
         <div class="table-num">Table 7</div>
         <div class="table-state-pill vacant">Vacant</div>
-        <div class="table-total">$0.00</div>
+        <div class="table-total">₹0.00</div>
       </div>
       <div class="table-box occupied">
         <div class="table-num">Table 4</div>
         <div class="table-state-pill active">Ordered</div>
-        <div class="table-total">$29.70</div>
+        <div class="table-total">₹290.00</div>
       </div>
       <div class="table-box">
         <div class="table-num">Table 2</div>
         <div class="table-state-pill vacant">Vacant</div>
-        <div class="table-total">$0.00</div>
+        <div class="table-total">₹0.00</div>
       </div>
     </div>
   </main>
+
+  <!-- Waiter Voice Modal -->
+  <div id="waiterVoiceModal" class="voice-modal" onclick="closeWaiterVoiceOnBackdrop(event)">
+    <div class="voice-modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-weight:800; font-size:1rem; color:#fff;">🎙️ Waiter Voice Command</span>
+        <button style="background:transparent; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;" onclick="stopWaiterVoice()">✕</button>
+      </div>
+      <div class="voice-wave">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div id="waiterVoiceTranscript" style="background:#090a0f; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:0.85rem; text-align:center; color:#fff; margin-bottom:10px;">Listening...</div>
+      <button onclick="stopWaiterVoice()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:800; width:100%;">Close</button>
+    </div>
+  </div>
 
   <script>
     const API_BASE = window.location.origin;
     let pendingCalls = [];
     let pendingApprovals = [];
 
+    const savedVoiceLang = localStorage.getItem('abiruchi_waiter_voice_lang') || 'en-IN';
+    const langSelectEl = document.getElementById('waiterLangSelect');
+    if (langSelectEl) langSelectEl.value = savedVoiceLang;
+
     async function loadInitialData() {
       try {
+        // Load active tokens for voice matching
+        const tokensRes = await fetch(`${API_BASE}/api/v1/tokens/active`);
+        if (tokensRes.ok) {
+          const tdata = await tokensRes.json();
+          window.activeTokensCache = tdata.tokens || [];
+        }
+
         // Load pending table calls
         const callsRes = await fetch(`${API_BASE}/api/v1/tables/calls/pending`);
         if (callsRes.ok) {
@@ -300,7 +382,7 @@
           <div>
             <div style="font-size:1.05rem; font-weight:800; color:#fff;">Table ${order.tableNumber} <span style="font-size:0.75rem; color:#93c5fd;">#${order.id}</span></div>
             <div style="font-size:0.82rem; color:#cbd5e1; margin-top:2px;">${order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</div>
-            <div style="font-size:0.82rem; color:#4ade80; font-weight:700; margin-top:2px;">$${(order.totalCents / 100).toFixed(2)}</div>
+            <div style="font-size:0.82rem; color:#4ade80; font-weight:700; margin-top:2px;">₹${(order.totalCents / 100).toFixed(2)}</div>
           </div>
           <button onclick="approveOrder('${order.id}', ${idx})" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:800; cursor:pointer;">
             Approve Order ✓

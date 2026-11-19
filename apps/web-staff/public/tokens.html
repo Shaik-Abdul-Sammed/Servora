@@ -4,8 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Token Board — Abiruchi Hotel Staff</title>
+  <script src="/staff/waiter-voice.js"></script>
   <style>
-    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    :root {
+      --bg:#090a0f;
+      --card:#12151f;
+      --border:rgba(255,255,255,0.08);
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --primary:#e11d48;
+      --accent:#10b981;
+      --sky:#38bdf8;
+      --amber:#f59e0b;
+    }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
     .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
@@ -14,40 +25,218 @@
     .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
     .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
     .main-content { flex:1; padding:24px; overflow-y:auto; }
-    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:20px; letter-spacing:-0.02em; }
-    .columns-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
-    .token-col { background:#0f121b; border:1px solid var(--border); border-radius:16px; padding:16px; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; letter-spacing:-0.02em; }
+    
+    .top-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .voice-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .voice-btn {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .voice-btn.listening {
+      background: #ef4444;
+      animation: pulseMic 1.2s infinite;
+    }
+    @keyframes pulseMic {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+    .lang-select {
+      background: #12151f;
+      color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .voice-log-btn {
+      background: #12151f;
+      color: var(--sky);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Filter Controls */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #0f121b;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .filter-input {
+      background: #090a0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #fff;
+      font-size: 0.82rem;
+      flex: 1;
+      min-width: 200px;
+    }
+    .filter-select {
+      background: #090a0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: #fff;
+      font-size: 0.8rem;
+    }
+
+    .columns-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+    .token-col { background:#0f121b; border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; max-height:80vh; }
     .col-title { font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
-    .token-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
+    .badge { font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700; }
+    .token-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; }
+    .token-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
     .token-code { font-size:1.4rem; font-weight:900; color:#fff; }
-    .token-bucket { font-size:0.75rem; color:var(--sky); font-weight:700; margin-top:2px; }
-    .btn { padding:6px 12px; border-radius:8px; border:none; font-size:0.8rem; font-weight:700; cursor:pointer; margin-top:8px; width:100%; }
+    .token-bucket { font-size:0.75rem; color:var(--sky); font-weight:700; }
+    .token-items-list { display:flex; flex-wrap:wrap; gap:4px; margin:8px 0; }
+    .token-item-pill { font-size:0.75rem; background:rgba(255,255,255,0.05); color:#cbd5e1; padding:2px 6px; border-radius:4px; border:1px solid var(--border); }
+    .btn { padding:7px 12px; border-radius:8px; border:none; font-size:0.8rem; font-weight:700; cursor:pointer; margin-top:8px; width:100%; }
     .btn-ready { background:linear-gradient(135deg,#38bdf8,#0284c7); color:#fff; }
     .btn-served { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+
+    /* Modals */
+    .voice-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .voice-modal-content {
+      background: #12151f;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+    }
+    .voice-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .voice-wave { display:flex; justify-content:center; gap:6px; height:36px; margin:14px 0; }
+    .voice-wave span { width:5px; height:100%; background:var(--primary); border-radius:3px; animation:waveAnim 1s ease-in-out infinite; }
+    @keyframes waveAnim { 0%, 100% { transform:scaleY(0.3); } 50% { transform:scaleY(1); } }
+    .voice-transcript { background:#090a0f; border:1px solid var(--border); border-radius:8px; padding:12px; font-size:0.9rem; text-align:center; color:#fff; margin-bottom:12px; }
+
     @media(max-width:768px) { body{flex-direction:column} .sidebar{width:100%;min-height:auto;flex-direction:row;flex-wrap:wrap;padding:12px} .sidebar-brand{display:none} }
   </style>
 </head>
 <body>
   <div id="navContainer"></div>
   <div class="main-content">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h1 class="page-title">🎟️ Queue & Token Engine (C1 & C2)</h1>
-      <button class="btn btn-served" style="width:auto;padding:8px 16px;" onclick="spawnToken()">+ New Token</button>
+    <div class="top-controls-bar">
+      <div>
+        <h1 class="page-title">🎟️ Queue & Token Engine (C1 & C2)</h1>
+      </div>
+      <div class="voice-group">
+        <button id="btnWaiterVoice" class="voice-btn" onclick="toggleWaiterVoice()" title="Waiter Voice Assistant">
+          🎙️ Waiter Voice
+        </button>
+        <select id="waiterLangSelect" class="lang-select" onchange="setWaiterVoiceLang(this.value)">
+          <option value="en-IN">🇬🇧 English</option>
+          <option value="te-IN">🇮🇳 తెలుగు</option>
+          <option value="hi-IN">🇮🇳 हिंदी</option>
+        </select>
+        <button class="voice-log-btn" onclick="openWaiterVoiceLogModal()">📜 Logs</button>
+        <button class="btn btn-served" style="width:auto;padding:7px 14px;margin-top:0;" onclick="spawnToken()">+ New Token</button>
+      </div>
+    </div>
+
+    <!-- Token Filters -->
+    <div class="filter-bar">
+      <input type="text" id="searchTokenInput" class="filter-input" placeholder="🔍 Search Token #, Table, or Dish..." oninput="applyTokenFilters()">
+      <select id="filterTokenTime" class="filter-select" onchange="applyTokenFilters()">
+        <option value="ALL">All Times</option>
+        <option value="FRESH">⚡ Fresh (&lt; 10m)</option>
+        <option value="NORMAL">⏳ 10 - 20 mins</option>
+        <option value="DELAYED">⚠️ Delayed (&gt; 20m)</option>
+      </select>
+      <select id="filterTokenQty" class="filter-select" onchange="applyTokenFilters()">
+        <option value="ALL">All Quantities</option>
+        <option value="SINGLE">Single Item (1)</option>
+        <option value="STANDARD">Standard (2 - 3)</option>
+        <option value="BULK">Bulk (4+ items)</option>
+      </select>
+      <select id="sortTokenOrder" class="filter-select" onchange="applyTokenFilters()">
+        <option value="FIFO">FIFO (Oldest First)</option>
+        <option value="LIFO">LIFO (Newest First)</option>
+      </select>
     </div>
 
     <div class="columns-grid">
       <div class="token-col">
         <div class="col-title"><span>⏳ QUEUED</span><span id="countQueued" class="badge">0</span></div>
-        <div id="listQueued"></div>
+        <div id="listQueued" style="overflow-y:auto; flex:1;"></div>
       </div>
       <div class="token-col">
         <div class="col-title"><span>🍳 PREPARING</span><span id="countPrep" class="badge">0</span></div>
-        <div id="listPrep"></div>
+        <div id="listPrep" style="overflow-y:auto; flex:1;"></div>
       </div>
       <div class="token-col">
         <div class="col-title"><span>🔔 READY TO PICKUP</span><span id="countReady" class="badge">0</span></div>
-        <div id="listReady"></div>
+        <div id="listReady" style="overflow-y:auto; flex:1;"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Waiter Voice Modal -->
+  <div id="waiterVoiceModal" class="voice-modal" onclick="closeWaiterVoiceOnBackdrop(event)">
+    <div class="voice-modal-content">
+      <div class="voice-modal-header">
+        <span style="font-weight:800; font-size:1.05rem; color:#fff;">🎙️ Waiter Voice Assistant</span>
+        <button style="background:transparent; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;" onclick="stopWaiterVoice()">✕</button>
+      </div>
+      <div class="voice-wave">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div id="waiterVoiceTranscript" class="voice-transcript">Listening for waiter voice command...</div>
+      <button class="btn btn-ready" style="margin-top:10px; width:auto; padding:6px 20px; margin-inline:auto; display:block;" onclick="stopWaiterVoice()">Close</button>
+    </div>
+  </div>
+
+  <!-- Voice Log Modal -->
+  <div id="waiterVoiceLogModal" class="voice-modal" onclick="closeWaiterVoiceLogModal(event)">
+    <div class="voice-modal-content" style="max-width:520px;">
+      <div class="voice-modal-header">
+        <span style="font-weight:800; font-size:1.05rem; color:#fff;">📜 Waiter Voice Command History</span>
+        <button style="background:transparent; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;" onclick="document.getElementById('waiterVoiceLogModal').style.display='none'">✕</button>
+      </div>
+      <div id="waiterVoiceLogList" style="max-height:340px; overflow-y:auto; margin-top:10px;"></div>
     </div>
   </div>
 
@@ -55,44 +244,100 @@
   <script>
     document.getElementById('navContainer').innerHTML = renderStaffNav('tokens');
     const OUTLET_ID = 'b0000000-0000-0000-0000-000000000001';
+    let rawTokens = [];
+
+    const savedVoiceLang = localStorage.getItem('abiruchi_waiter_voice_lang') || 'en-IN';
+    const langSelectEl = document.getElementById('waiterLangSelect');
+    if (langSelectEl) langSelectEl.value = savedVoiceLang;
+
+    function applyTokenFilters() {
+      const search = (document.getElementById('searchTokenInput').value || '').trim().toLowerCase();
+      const timeFilter = document.getElementById('filterTokenTime').value;
+      const qtyFilter = document.getElementById('filterTokenQty').value;
+      const sortOrder = document.getElementById('sortTokenOrder').value;
+
+      const now = Date.now();
+
+      let filtered = rawTokens.filter(t => {
+        if (search) {
+          const codeMatch = (t.code || t.token_code || '').toLowerCase().includes(search);
+          const tableMatch = (t.tableNumber || '').toLowerCase().includes(search);
+          const itemMatch = (t.items || []).some(i => (i.name || '').toLowerCase().includes(search));
+          if (!codeMatch && !tableMatch && !itemMatch) return false;
+        }
+
+        const createdAt = new Date(t.createdAt || t.created_at || now).getTime();
+        const elapsedMins = (now - createdAt) / (1000 * 60);
+
+        if (timeFilter === 'FRESH' && elapsedMins >= 10) return false;
+        if (timeFilter === 'NORMAL' && (elapsedMins < 10 || elapsedMins > 20)) return false;
+        if (timeFilter === 'DELAYED' && elapsedMins <= 20) return false;
+
+        const qty = t.itemCount !== undefined ? t.itemCount : (t.items || []).reduce((s, i) => s + (i.quantity || 1), 0);
+        if (qtyFilter === 'SINGLE' && qty !== 1) return false;
+        if (qtyFilter === 'STANDARD' && (qty < 2 || qty > 3)) return false;
+        if (qtyFilter === 'BULK' && qty < 4) return false;
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.created_at || 0).getTime();
+        const timeB = new Date(b.createdAt || b.created_at || 0).getTime();
+        return sortOrder === 'LIFO' ? timeB - timeA : timeA - timeB;
+      });
+
+      renderTokensList(filtered);
+    }
+    window.applyTokenFilters = applyTokenFilters;
+
+    function renderTokensList(tokens) {
+      const queued = tokens.filter(t => t.state === 'QUEUED');
+      const prep = tokens.filter(t => t.state === 'PREPARING');
+      const ready = tokens.filter(t => t.state === 'READY');
+
+      document.getElementById('countQueued').textContent = queued.length;
+      document.getElementById('countPrep').textContent = prep.length;
+      document.getElementById('countReady').textContent = ready.length;
+
+      function card(t, btnHtml) {
+        const items = t.items || [];
+        const itemsHtml = items.length ? `<div class="token-items-list">${items.map(i => `<span class="token-item-pill"><strong>${i.quantity || 1}x</strong> ${i.name}</span>`).join('')}</div>` : '';
+        const qty = t.itemCount !== undefined ? t.itemCount : items.reduce((s, i) => s + (i.quantity || 1), 0);
+        return `
+          <div class="token-card">
+            <div class="token-card-header">
+              <span class="token-code">${t.code || t.token_code}</span>
+              <span style="font-size:0.75rem; color:var(--sky); font-weight:700;">📦 ${qty}</span>
+            </div>
+            <div class="token-bucket">${t.bucket || t.station || 'FOOD'}</div>
+            ${itemsHtml}
+            ${btnHtml}
+          </div>
+        `;
+      }
+
+      document.getElementById('listQueued').innerHTML = queued.map(t =>
+        card(t, `<button class="btn btn-ready" onclick="advanceToken('${t.id}', 'PREPARING')">Start Prep →</button>`)
+      ).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+
+      document.getElementById('listPrep').innerHTML = prep.map(t =>
+        card(t, `<button class="btn btn-ready" onclick="advanceToken('${t.id}', 'READY')">Mark Ready 🔔</button>`)
+      ).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+
+      document.getElementById('listReady').innerHTML = ready.map(t =>
+        card(t, `<button class="btn btn-served" onclick="advanceToken('${t.id}', 'SERVED')">🍽️ Token Given (Hand to Guest)</button>`)
+      ).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+    }
 
     async function loadTokens() {
       try {
         const res = await fetch(`/api/v1/tokens/active?outletId=${OUTLET_ID}`);
         if (!res.ok) return;
         const tokens = await res.json();
-
-        const queued = tokens.filter(t => t.state === 'QUEUED');
-        const prep = tokens.filter(t => t.state === 'PREPARING');
-        const ready = tokens.filter(t => t.state === 'READY');
-
-        document.getElementById('countQueued').textContent = queued.length;
-        document.getElementById('countPrep').textContent = prep.length;
-        document.getElementById('countReady').textContent = ready.length;
-
-        document.getElementById('listQueued').innerHTML = queued.map(t => `
-          <div class="token-card">
-            <div class="token-code">${t.code}</div>
-            <div class="token-bucket">${t.bucket}</div>
-            <button class="btn btn-ready" onclick="advanceToken('${t.id}', 'PREPARING')">Start Prep →</button>
-          </div>
-        `).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
-
-        document.getElementById('listPrep').innerHTML = prep.map(t => `
-          <div class="token-card">
-            <div class="token-code">${t.code}</div>
-            <div class="token-bucket">${t.bucket}</div>
-            <button class="btn btn-ready" onclick="advanceToken('${t.id}', 'READY')">Mark Ready 🔔</button>
-          </div>
-        `).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
-
-        document.getElementById('listReady').innerHTML = ready.map(t => `
-          <div class="token-card" style="border-color:#38bdf8;">
-            <div class="token-code" style="color:#38bdf8;">${t.code}</div>
-            <div class="token-bucket">${t.bucket}</div>
-            <button class="btn btn-served" onclick="advanceToken('${t.id}', 'SERVED')">Hand to Guest ✓</button>
-          </div>
-        `).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+        rawTokens = tokens;
+        window.activeTokensCache = tokens;
+        applyTokenFilters();
       } catch (e) {}
     }
 
@@ -100,7 +345,7 @@
       const res = await fetch(`/api/v1/tokens/${tokenId}/state`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: newState })
+        body: JSON.stringify({ state: newState, waiterId: 'waiter_voice' })
       });
       if (res.ok) {
         showToast(`Token updated to ${newState}`);
@@ -122,7 +367,7 @@
     }
 
     loadTokens();
-    setInterval(loadTokens, 3000);
+    setInterval(loadTokens, 4000);
   </script>
 </body>
 </html>

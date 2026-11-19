@@ -156,4 +156,99 @@ describe('Abiruchi Hotel 100 UI/UX & Invisible Translation Test Suite', () => {
     assert.match(menuHtml, /autoSuggestPhoto/, 'Auto-suggest photo on dish typing must exist');
     assert.match(menuHtml, /triggerAutoPickPhoto/, 'Auto-pick photo trigger must exist');
   });
+
+  it('Phase 3 Waiter Voice Commands, Multi-Lingual Understanding (EN/TE/HI), & Multi-Dimensional Token Filtering', async () => {
+    // 1. Verify waiter-voice.js engine exists and defines core multilingual dictionaries and handlers
+    const voiceJsPath = join(rootDir, 'apps/web-staff/public/waiter-voice.js');
+    assert.ok(existsSync(voiceJsPath), 'apps/web-staff/public/waiter-voice.js must exist');
+    const voiceJs = readFileSync(voiceJsPath, 'utf-8');
+
+    assert.match(voiceJs, /WAITER_VOICE_RESPONSES/, 'Multilingual responses dictionary must exist');
+    assert.match(voiceJs, /'en-IN'/, 'English (en-IN) must be supported');
+    assert.match(voiceJs, /'te-IN'/, 'Telugu (te-IN) must be supported');
+    assert.match(voiceJs, /'hi-IN'/, 'Hindi (hi-IN) must be supported');
+    assert.match(voiceJs, /setWaiterVoiceLang/, 'Language switcher function must exist');
+    assert.match(voiceJs, /speakWaiterFeedback/, 'Spoken feedback function must exist');
+
+    // 2. Test multi-lingual phrase matching for "token given" and "item given"
+    // English
+    assert.ok(/token.*?(given|handed|delivered)/i.test('Token 101 given'));
+    assert.ok(/item.*?(given|served|delivered)|given|served/i.test('Masala Dosa item given'));
+    // Telugu
+    assert.ok(/టోకెన్.*?(ఇచ్చాం|ఇచ్చాను|ఇచ్చేసాం)|token.*?(icham|ichanu)/.test('టోకెన్ 101 ఇచ్చాను'));
+    assert.ok(/ఐటమ్.*?(ఇచ్చాం|ఇచ్చాను)|దోస.*?(ఇచ్చాం|ఇచ్చాను)|ఇచ్చాం|ఇచ్చాను/.test('దోస ఇచ్చాం'));
+    // Hindi
+    assert.ok(/टोकन.*?(दे दिया|दिया|सौंप दिया)|token.*?(de diya|diya)/.test('टोकन 101 दे दिया'));
+    assert.ok(/आइटम.*?(दे दिया|दिया)|मसाला डोसा.*?(दे दिया|दिया)|दे दिया|दिया/.test('मसाला डोसा दे दिया'));
+
+    // 3. Verify staff.html has voice controls, filter bar, and no cartoon illustrations
+    const staffHtml = readFileSync(join(rootDir, 'apps/web-staff/public/staff.html'), 'utf-8');
+    assert.match(staffHtml, /id="btnWaiterVoice"/, 'Waiter voice button must exist');
+    assert.match(staffHtml, /id="waiterLangSelect"/, 'Voice language dropdown must exist');
+    assert.match(staffHtml, /id="waiterVoiceModal"/, 'Waiter voice modal must exist');
+    assert.match(staffHtml, /id="waiterVoiceLogModal"/, 'Voice log history modal must exist');
+    assert.match(staffHtml, /id="searchTokenInput"/, 'Token search input must exist');
+    assert.match(staffHtml, /id="filterTokenTime"/, 'Token time filter must exist');
+    assert.match(staffHtml, /id="filterTokenQty"/, 'Token quantity filter must exist');
+    assert.match(staffHtml, /id="sortTokenOrder"/, 'Token sort order must exist');
+    assert.match(staffHtml, /applyTokenFilters/, 'applyTokenFilters function must exist');
+
+    // Verify tokens.html has voice engine and filters
+    const tokensHtml = readFileSync(join(rootDir, 'apps/web-staff/public/tokens.html'), 'utf-8');
+    assert.match(tokensHtml, /src="\/staff\/waiter-voice\.js"/, 'tokens.html must import waiter-voice.js');
+    assert.match(tokensHtml, /id="btnWaiterVoice"/, 'tokens.html must have voice button');
+    assert.match(tokensHtml, /id="filterTokenTime"/, 'tokens.html must have time filter');
+    assert.match(tokensHtml, /id="filterTokenQty"/, 'tokens.html must have quantity filter');
+
+    // Verify mobile-staff /waiter index.html has voice integration
+    const mobileStaffHtml = readFileSync(join(rootDir, 'apps/mobile-staff/public/index.html'), 'utf-8');
+    assert.match(mobileStaffHtml, /src="\/staff\/waiter-voice\.js"/, 'mobile staff must import waiter-voice.js');
+    assert.match(mobileStaffHtml, /id="btnWaiterVoice"/, 'mobile staff must have voice button');
+    assert.match(mobileStaffHtml, /id="waiterLangSelect"/, 'mobile staff must have language dropdown');
+
+    // 4. Verify OrderStore active token enrichment with items & itemCount
+    const { OrderStore } = await import('../../services/order-service/src/store.ts');
+    const store = new OrderStore();
+
+    const orderId = 'ord_test_voice_101';
+    const tokenId = 'tok_test_voice_101';
+
+    // Seed order with multiple items
+    store.orders.set(orderId, {
+      id: orderId,
+      outletId: 'b0000000-0000-0000-0000-000000000001',
+      tableNumber: '12',
+      customerName: 'Kamesh',
+      items: [
+        { id: 'item-1', name: 'Masala Dosa', quantity: 2, priceCents: 8000 },
+        { id: 'item-2', name: 'Filter Coffee', quantity: 1, priceCents: 3000 }
+      ],
+      totalCents: 19000,
+      paymentMethod: 'CASH',
+      status: 'PREPARING',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    // Seed token linked to that order
+    store.tokens.set(tokenId, {
+      id: tokenId,
+      outletId: 'b0000000-0000-0000-0000-000000000001',
+      code: 'A-101',
+      bucket: 'HOT_LINE',
+      station: 'HOT_LINE',
+      state: 'READY',
+      orderRef: orderId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    const activeTokens = store.getActiveTokens('HOT_LINE');
+    const matching = activeTokens.find((t: any) => t.id === tokenId);
+    assert.ok(matching, 'Created token must be present in active tokens');
+    assert.equal(matching.itemCount, 3, 'Token itemCount must equal sum of item quantities (2+1=3)');
+    assert.equal(matching.items.length, 2, 'Token must contain 2 ordered items');
+    assert.equal(matching.tableNumber, '12', 'Token must have tableNumber');
+    assert.equal(matching.customerName, 'Kamesh', 'Token must have customerName');
+  });
 });

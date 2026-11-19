@@ -293,11 +293,14 @@ export class OrderStore {
       'INSERT OR REPLACE INTO service_tokens (id, outlet_id, code, bucket, state, order_ref, guest_phone, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     this.tokens = new PersistentMap<string, ServiceToken>((k, v) => {
-      upsertToken.run(v.id, v.outletId, v.code, v.bucket, v.state, v.orderRef || null, v.guestPhone || null, JSON.stringify(v), v.createdAt, v.updatedAt);
+      const now = new Date().toISOString();
+      const createdAt = v.createdAt || now;
+      const updatedAt = v.updatedAt || createdAt;
+      upsertToken.run(v.id, v.outletId, v.code, v.bucket, v.state, v.orderRef || null, v.guestPhone || null, JSON.stringify(v), createdAt, updatedAt);
       if (this.turso?.isConnected) {
         this.turso.getClient()?.execute({
           sql: 'INSERT OR REPLACE INTO service_tokens (id, outlet_id, code, bucket, state, order_ref, guest_phone, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          args: [v.id, v.outletId, v.code, v.bucket, v.state, v.orderRef || null, v.guestPhone || null, JSON.stringify(v), v.createdAt, v.updatedAt],
+          args: [v.id, v.outletId, v.code, v.bucket, v.state, v.orderRef || null, v.guestPhone || null, JSON.stringify(v), createdAt, updatedAt],
         }).catch((e: any) => console.error('[Turso Sync] service_tokens:', e.message));
       }
     });
@@ -1923,10 +1926,21 @@ export class OrderStore {
         if (station && t.bucket !== station) return false;
         return t.state !== 'CLOSED' && t.state !== 'SERVED';
       })
-      .map((t: any) => ({
-        ...t,
-        token_code: t.code,
-      }))
+      .map((t: any) => {
+        const orderId = t.orderRef || t.order_id;
+        const order = orderId ? this.orders.get(orderId) : null;
+        const items = order?.items || t.items || [];
+        const itemCount = items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
+        return {
+          ...t,
+          token_code: t.code,
+          items,
+          itemCount,
+          tableNumber: order?.tableNumber || t.tableNumber || '',
+          customerName: order?.customerName || t.customerName || '',
+          totalCents: order?.totalCents || t.totalCents || 0,
+        };
+      })
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }
 
@@ -6065,10 +6079,21 @@ export class OrderStore {
         if (station && t.station && t.station !== station && t.bucket !== station) return false;
         return t.state !== 'CLOSED' && t.state !== 'SERVED';
       })
-      .map((t: any) => ({
-        ...t,
-        token_code: t.token_code || t.code,
-      }))
+      .map((t: any) => {
+        const orderId = t.orderRef || t.order_id;
+        const order = orderId ? this.orders.get(orderId) : null;
+        const items = order?.items || t.items || [];
+        const itemCount = items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
+        return {
+          ...t,
+          token_code: t.token_code || t.code,
+          items,
+          itemCount,
+          tableNumber: order?.tableNumber || t.tableNumber || '',
+          customerName: order?.customerName || t.customerName || '',
+          totalCents: order?.totalCents || t.totalCents || 0,
+        };
+      })
       .sort((a, b) => new Date(a.createdAt || a.created_at).getTime() - new Date(b.createdAt || b.created_at).getTime());
     return inMem;
   }
