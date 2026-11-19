@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Abiruchi Hotel Owner</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+    .sidebar-brand { font-size:1.1rem; font-weight:800; color:#fff; padding:12px 12px 20px; letter-spacing:-0.02em; }
+    .nav-link { display:block; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:600; transition:all 0.15s ease; }
+    .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
+    .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
+    .main-content { flex:1; padding:24px; overflow-y:auto; max-width:720px; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:20px; letter-spacing:-0.02em; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; }
+    .card-title { font-size:0.92rem; font-weight:700; color:#fff; margin-bottom:4px; }
+    .card-desc { font-size:0.8rem; color:var(--muted); margin-bottom:16px; }
+    .btn { padding:10px 18px; border-radius:10px; border:none; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s ease; }
+    .btn-primary { background:linear-gradient(135deg,#f43f5e,#be123c); color:#fff; }
+    .btn-secondary { background:rgba(255,255,255,0.08); color:#fff; border:1px solid var(--border); }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    @media(max-width:768px) { body{flex-direction:column} .sidebar{width:100%;min-height:auto;flex-direction:row;flex-wrap:wrap;padding:12px} .sidebar-brand{display:none} }
+    .setting-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+    .setting-row:last-child { border-bottom:none; padding-bottom:0; }
+    .setting-label { font-size:0.9rem; font-weight:600; color:#fff; }
+    .setting-sub { font-size:0.78rem; color:var(--muted); margin-top:2px; }
+    .toggle { position:relative; width:44px; height:24px; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#374151; border-radius:24px; transition:0.3s; }
+    .slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.3s; }
+    input:checked + .slider { background:#10b981; }
+    input:checked + .slider:before { transform:translateX(20px); }
+    .pill-group { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .opt-pill { padding:8px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .opt-pill.active { background:rgba(225,29,72,0.15); color:#fb7185; border-color:rgba(225,29,72,0.3); }
+    .opt-pill:hover { color:#fff; background:rgba(255,255,255,0.05); }
+    .outlet-info { font-size:0.8rem; color:var(--muted); font-family:monospace; white-space:pre-line; background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; border:1px solid var(--border); }
+    .eta-row { display:flex; align-items:center; gap:8px; margin-top:10px; }
+    .eta-input { width:70px; padding:6px 10px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; color:#fff; font-size:0.88rem; }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">🍽️ Abiruchi Hotel</div>
+    <a href="/owner" class="nav-link">📊 Dashboard</a>
+    <a href="/owner/orders" class="nav-link">🎫 Orders</a>
+    <a href="/owner/availability" class="nav-link">🔴 Availability</a>
+    <a href="/owner/payments" class="nav-link">💳 Payments</a>
+    <a href="/owner/tokens" class="nav-link">🎟️ Tokens</a>
+    <a href="/owner/bookings" class="nav-link">📅 Bookings</a>
+    <a href="/owner/staff" class="nav-link">👥 Staff</a>
+    <a href="/owner/settings" class="nav-link active">⚙️ Settings</a>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <h1 class="page-title">Settings</h1>
+
+    <div class="card">
+      <div class="card-title">Outlet Information</div>
+      <div class="card-desc">Your outlet configuration details.</div>
+      <div class="outlet-info" id="outletInfo">Loading...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💳 Payment Mode</div>
+      <div class="card-desc">Control when guests are required to pay.</div>
+      <div class="pill-group" id="payModePills">
+        <button class="opt-pill" onclick="setPayMode('PAY_FIRST', this)">💳 Pay First</button>
+        <button class="opt-pill active" onclick="setPayMode('PAY_LATER', this)">🧾 Pay Later</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⏸ Kitchen Surge Pause</div>
+      <div class="card-desc">Temporarily halt new online orders during peak times.</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Pause New Orders</div>
+          <div class="setting-sub">Shows surge banner to guests with estimated wait.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="surgeToggle" onchange="setSurgePause(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div id="surgePauseEta" style="display:none;">
+        <div class="eta-row">
+          <span style="font-size:0.82rem; color:var(--muted);">ETA (minutes):</span>
+          <input type="number" id="surgeEtaMinutes" class="eta-input" value="15" min="5" max="90">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✅ First-Order Approval</div>
+      <div class="card-desc">Require staff approval for new guests' first order.</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Require Approval for New Guests</div>
+          <div class="setting-sub">First orders go to /staff/confirm queue before kitchen.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="approvalToggle" onchange="setApprovalMode(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎨 Venue Segment Preset</div>
+      <div class="card-desc">Apply an optimized configuration for your venue type.</div>
+      <div class="pill-group">
+        <button class="opt-pill" onclick="applyPreset('COFFEE_SHOP')">☕ Coffee Shop</button>
+        <button class="opt-pill" onclick="applyPreset('RESTAURANT')">🍽️ Restaurant</button>
+        <button class="opt-pill" onclick="applyPreset('BAR')">🍸 Bar</button>
+        <button class="opt-pill" onclick="applyPreset('FOOD_COURT')">🏪 Food Court</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const OUTLET_ID = 'b0000000-0000-0000-0000-000000000001';
+
+    function showBanner(msg, type='success') {
+      const el = document.createElement('div');
+      el.style.cssText = `position:fixed;top:16px;right:16px;padding:12px 20px;border-radius:12px;font-weight:700;font-size:0.88rem;z-index:1000;background:${type==='error'?'#dc2626':'#059669'};color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.5);`;
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }
+
+    async function setPayMode(mode, el) {
+      document.querySelectorAll('#payModePills .opt-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      try {
+        await fetch(`/api/v1/outlets/${OUTLET_ID}/payment-mode`, {
+          method:'PATCH', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ paymentMode: mode })
+        });
+        showBanner('Payment mode updated');
+      } catch(e) { showBanner('Failed', 'error'); }
+    }
+
+    async function setSurgePause(paused) {
+      document.getElementById('surgePauseEta').style.display = paused ? 'block' : 'none';
+      const etaMins = paused ? parseInt(document.getElementById('surgeEtaMinutes').value)||15 : 0;
+      try {
+        await fetch(`/api/v1/outlets/${OUTLET_ID}/pause-orders`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ paused, etaMinutes: etaMins })
+        });
+        showBanner(paused ? `Orders paused (~${etaMins}m)` : 'Orders resumed');
+      } catch(e) { showBanner('Failed', 'error'); }
+    }
+
+    async function setApprovalMode(enabled) {
+      try {
+        await fetch(`/api/v1/outlets/${OUTLET_ID}/settings`, {
+          method:'PATCH', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ requireFirstOrderApproval: enabled })
+        });
+        showBanner(enabled ? 'Approval mode enabled' : 'Approval mode disabled');
+      } catch(e) { showBanner('Failed', 'error'); }
+    }
+
+    async function applyPreset(preset) {
+      if (!confirm(`Apply "${preset}" preset?`)) return;
+      try {
+        const res = await fetch(`/api/v1/outlets/${OUTLET_ID}/apply-preset`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ preset })
+        });
+        showBanner(res.ok ? `${preset} preset applied!` : 'Failed', res.ok ? 'success' : 'error');
+      } catch(e) { showBanner('Failed', 'error'); }
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await fetch(`/api/v1/outlets/${OUTLET_ID}`);
+        if (res.ok) {
+          const data = await res.json();
+          const o = data.outlet || data;
+          document.getElementById('outletInfo').textContent =
+            `ID: ${o.id||OUTLET_ID}\nName: ${o.name||'—'}\nPayment Mode: ${o.paymentMode||o.settings?.paymentMode||'PAY_LATER'}\nOrders Paused: ${o.ordersPaused||o.settings?.ordersPaused||false}\nFirst-Order Approval: ${o.requireFirstOrderApproval||o.settings?.requireFirstOrderApproval||false}`;
+        }
+      } catch(e) { document.getElementById('outletInfo').textContent = `ID: ${OUTLET_ID}`; }
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "segment": "COFFEE",
+  "displayMode": "TOKEN",
+  "tokenMode": true,
+  "tableNumbers": false,
+  "bookingEnabled": false,
+  "payFirst": true,
+  "requireFirstOrderApproval": false,
+  "tokenPrefix": "A",
+  "tippingEnabled": false,
+  "categoryPresets": ["HOT_DRINKS", "COLD_DRINKS", "PASTRIES", "SANDWICHES"],
+  "categories": ["Hot Drinks", "Cold Drinks", "Pastries", "Sandwiches"]
+}

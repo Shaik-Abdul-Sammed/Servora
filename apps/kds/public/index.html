@@ -3,36 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Servora | Kitchen Display System (KDS)</title>
+  <title>Abiruchi Hotel | Kitchen Display System (KDS)</title>
   <style>
     :root {
-      --bg: #0c0a09;
-      --card-bg: #1c1917;
-      --border: #292524;
+      --bg: #090a0f;
+      --card-bg: #121520;
+      --border: rgba(255, 255, 255, 0.08);
       --primary: #f97316;
-      --green: #22c55e;
-      --yellow: #eab308;
+      --primary-gradient: linear-gradient(135deg, #f97316, #ea580c);
+      --green: #10b981;
+      --yellow: #f59e0b;
       --red: #ef4444;
-      --blue: #3b82f6;
-      --text: #fafaf9;
-      --text-muted: #a8a29e;
+      --blue: #38bdf8;
+      --purple: #a855f7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
       --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --spring: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: var(--font);
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      max-width: 100vw;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Keyframe Animations */
+    @keyframes ticketFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes criticalPulse {
+      0%, 100% { box-shadow: 0 0 0 1px var(--red), 0 4px 20px rgba(239, 68, 68, 0.25); }
+      50% { box-shadow: 0 0 0 2px var(--red), 0 8px 30px rgba(239, 68, 68, 0.45); }
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
     }
 
     /* Top KDS Navigation Bar */
     header {
-      background: #1c1917;
-      border-bottom: 2px solid var(--border);
+      background: rgba(18, 21, 32, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
       padding: 12px 24px;
       display: flex;
       justify-content: space-between;
@@ -40,157 +62,255 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      gap: 16px;
     }
-    .brand-section { display: flex; align-items: center; gap: 14px; }
+    .brand-section { display: flex; align-items: center; gap: 12px; }
     .kds-tag {
-      background: var(--primary);
-      color: #000;
+      background: var(--primary-gradient);
+      color: #fff;
       font-weight: 900;
-      font-size: 0.85rem;
-      padding: 3px 8px;
-      border-radius: 4px;
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border-radius: 8px;
       letter-spacing: 0.5px;
+      box-shadow: 0 2px 10px rgba(249, 115, 22, 0.4);
     }
-    .venue-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .venue-title { font-size: 1.15rem; font-weight: 800; color: #fff; }
 
-    .header-actions { display: flex; align-items: center; gap: 20px; }
+    .header-actions { display: flex; align-items: center; gap: 16px; }
     .status-indicator {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.82rem;
+      font-weight: 700;
       color: var(--green);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
     .live-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--green);
       box-shadow: 0 0 8px var(--green);
-      animation: pulse 2s infinite;
+      animation: pulseDot 2s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.9); }
-    }
-    .clock-display { font-family: monospace; font-size: 1.1rem; color: #fff; font-weight: 700; }
 
-    /* Filter Bar */
+    .audio-toggle-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .audio-toggle-btn.active {
+      color: var(--yellow);
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .recall-btn {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--blue);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .clock-display {
+      font-family: monospace;
+      font-size: 1.15rem;
+      color: #fff;
+      font-weight: 800;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* Station Filters Bar */
     .filter-bar {
-      background: #141210;
+      background: #0d0f17;
       border-bottom: 1px solid var(--border);
       padding: 10px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      overflow-x: auto;
+      gap: 12px;
     }
-    .filter-tabs { display: flex; gap: 10px; }
+    .filter-tabs { display: flex; gap: 8px; }
     .tab-btn {
-      background: #292524;
+      background: #171a26;
       color: var(--text-muted);
-      border: 1px solid transparent;
-      padding: 6px 14px;
-      border-radius: 6px;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 12px;
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s var(--spring);
+      white-space: nowrap;
     }
+    .tab-btn:hover { background: #202434; color: #fff; }
     .tab-btn.active {
-      background: #44403c;
+      background: var(--primary-gradient);
       color: #fff;
-      border-color: #78716c;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
     }
-    .ticket-count { font-weight: 700; font-size: 0.95rem; color: var(--primary); }
+    .tab-badge {
+      background: rgba(255, 255, 255, 0.18);
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+    .hotkey-hint {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
 
     /* Ticket Grid */
     main {
       flex: 1;
-      padding: 24px;
+      padding: 20px 24px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
+      gap: 18px;
       align-content: start;
     }
 
     /* Ticket Card */
     .ticket-card {
       background: var(--card-bg);
-      border: 2px solid var(--border);
-      border-radius: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      transition: border-color 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      animation: ticketFadeIn 0.3s var(--spring) backwards;
+      transition: all 0.2s ease;
     }
-    .ticket-card.confirmed { border-color: var(--blue); }
-    .ticket-card.preparing { border-color: var(--yellow); }
-    .ticket-card.ready { border-color: var(--green); }
+    .ticket-card.sla-normal { border-top: 4px solid var(--green); }
+    .ticket-card.sla-warning { border-top: 4px solid var(--yellow); }
+    .ticket-card.sla-critical {
+      border-top: 4px solid var(--red);
+      animation: criticalPulse 2s infinite ease-in-out;
+    }
 
     .ticket-header {
       padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #24201d;
-      border-bottom: 1px solid var(--border);
     }
-    .table-callout {
-      font-size: 1.35rem;
+    .table-badge {
+      font-size: 1.15rem;
       font-weight: 900;
       color: #fff;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .timer-badge {
+    .order-id-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
       font-family: monospace;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
-      background: #44403c;
-      color: #fff;
     }
-    .timer-alert { background: #7f1d1d; color: #fca5a5; }
+
+    .timer-badge {
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: monospace;
+    }
+    .timer-badge.normal { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .timer-badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--yellow); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .timer-badge.critical { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: 900; }
 
     .ticket-body {
-      padding: 16px;
-      flex: 1;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      flex: 1;
     }
-    .order-item-line {
+    .ticket-item {
       display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
       gap: 10px;
-      font-size: 1.05rem;
-      line-height: 1.3;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .ticket-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .item-qty-name {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex: 1;
     }
     .item-qty {
-      font-weight: 800;
+      font-size: 1rem;
+      font-weight: 900;
       color: var(--primary);
-      min-width: 28px;
+      background: rgba(249, 115, 22, 0.12);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
-    .item-details { flex: 1; }
-    .item-title { font-weight: 700; color: #fff; }
-    .item-modifier { font-size: 0.85rem; color: #fdba74; margin-top: 2px; }
-    .item-notes { font-size: 0.85rem; color: #93c5fd; font-style: italic; margin-top: 2px; }
+    .item-details { display: flex; flex-direction: column; gap: 2px; }
+    .item-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+    .item-mods { font-size: 0.78rem; color: #38bdf8; font-weight: 600; }
+    .item-notes { font-size: 0.75rem; color: #fcd34d; font-style: italic; }
 
     .guest-note-box {
-      background: #262626;
-      border-left: 3px solid #f59e0b;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 8px;
       padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      color: #fef3c7;
-      margin-top: auto;
+      font-size: 0.8rem;
+      color: #fed7aa;
     }
 
     .ticket-footer {
       padding: 12px 16px;
-      background: #191614;
+      background: rgba(0, 0, 0, 0.2);
       border-top: 1px solid var(--border);
       display: flex;
       gap: 8px;
@@ -198,191 +318,280 @@
     .action-btn {
       flex: 1;
       padding: 10px;
-      border: none;
-      border-radius: 8px;
+      border-radius: 10px;
+      font-size: 0.88rem;
       font-weight: 800;
-      font-size: 0.9rem;
       cursor: pointer;
-      text-align: center;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
     }
-    .btn-prepare { background: var(--yellow); color: #000; }
-    .btn-ready { background: var(--green); color: #000; }
-    .btn-bump { background: #292524; color: var(--text-muted); border: 1px solid #44403c; }
-    .btn-bump:hover { background: #44403c; color: #fff; }
-
-    /* Empty state */
-    .empty-state {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 80px 20px;
-      color: var(--text-muted);
-    }
+    .action-btn:active { transform: scale(0.96); }
+    .btn-prepare { background: var(--primary-gradient); color: #fff; }
+    .btn-ready { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+    .btn-bump { background: linear-gradient(135deg, #38bdf8, #0284c7); color: #fff; }
   </style>
 </head>
 <body>
 
+  <!-- Top Navigation -->
   <header>
     <div class="brand-section">
-      <div class="kds-tag">KDS</div>
-      <div class="venue-title">Trattoria Servora &bull; Downtown Flagship</div>
+      <span class="kds-tag">KDS PRO</span>
+      <h1 class="venue-title">Trattoria Abiruchi Hotel — Kitchen Display System</h1>
     </div>
+
     <div class="header-actions">
+      <button id="audioToggle" class="audio-toggle-btn active" onclick="toggleAudioChime()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <span id="audioStateText">Bell Sound ON</span>
+      </button>
+
+      <button class="recall-btn" onclick="recallLastBumped()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Recall (R)</span>
+      </button>
+
       <div class="status-indicator">
         <div class="live-dot" id="liveDot"></div>
         <span id="liveText">LIVE SSE</span>
       </div>
-      <div class="clock-display" id="clockDisplay">--:--:--</div>
+
+      <div class="clock-display" id="kdsClock">00:00:00</div>
     </div>
   </header>
 
+  <!-- Station Filter Tabs -->
   <div class="filter-bar">
     <div class="filter-tabs">
-      <button class="tab-btn active" onclick="setFilter('ALL', this)">All Active</button>
-      <button class="tab-btn" onclick="setFilter('CONFIRMED', this)">New (Confirmed)</button>
-      <button class="tab-btn" onclick="setFilter('PREPARING', this)">Preparing</button>
-      <button class="tab-btn" onclick="setFilter('READY_FOR_PICKUP', this)">Ready for Dispatch</button>
+      <button class="tab-btn active" onclick="switchStation('ALL', this)">
+        <span>✨ All Stations</span>
+        <span class="tab-badge" id="badgeAll">0</span>
+        <span class="hotkey-hint">1</span>
+      </button>
+      <button class="tab-btn" onclick="switchStation('BAR', this)">
+        <span>🍸 Bar / Drinks</span>
+        <span class="tab-badge" id="badgeBar">0</span>
+        <span class="hotkey-hint">2</span>
+      </button>
+      <button class="tab-btn" onclick="switchStation('PIZZA_OVEN', this)">
+        <span>🍕 Pizza Oven</span>
+        <span class="tab-badge" id="badgePizza">0</span>
+        <span class="hotkey-hint">3</span>
+      </button>
+      <button class="tab-btn" onclick="switchStation('HOT_LINE', this)">
+        <span>🔥 Grill & Hot Line</span>
+        <span class="tab-badge" id="badgeHot">0</span>
+        <span class="hotkey-hint">4</span>
+      </button>
+      <button class="tab-btn" onclick="switchStation('COLD_PREP', this)">
+        <span>🥗 Cold Prep</span>
+        <span class="tab-badge" id="badgeCold">0</span>
+        <span class="hotkey-hint">5</span>
+      </button>
+      <button class="tab-btn" onclick="switchStation('COFFEE', this)">
+        <span>☕ Coffee & Bakery</span>
+        <span class="tab-badge" id="badgeCoffee">0</span>
+        <span class="hotkey-hint">6</span>
+      </button>
+      <button class="tab-btn" onclick="switchStation('DESSERT', this)">
+        <span>🍰 Dessert Station</span>
+        <span class="tab-badge" id="badgeDessert">0</span>
+        <span class="hotkey-hint">7</span>
+      </button>
     </div>
-    <div class="ticket-count" id="ticketCountDisplay">0 Active Orders</div>
+
+    <div style="font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:8px;">
+      <span>Hotkeys:</span>
+      <span class="hotkey-hint">Space</span> <span>Bump Top Ticket</span>
+    </div>
   </div>
 
+  <!-- Ticket Grid -->
   <main id="ticketGrid">
-    <div class="empty-state">
-      <h2>Kitchen Board Clear</h2>
-      <p style="margin-top: 8px;">Waiting for new QR table orders...</p>
-    </div>
+    <!-- Rendered dynamically -->
   </main>
 
   <script>
     const API_BASE = window.location.origin;
     let orders = [];
-    let currentFilter = 'ALL';
+    let currentStation = 'ALL';
+    let audioChimeEnabled = true;
+    let bumpedHistory = [];
 
-    // Clock
-    setInterval(() => {
-      document.getElementById('clockDisplay').textContent = new Date().toLocaleTimeString();
-    }, 1000);
-
-    // Fetch active tickets
-    async function loadTickets() {
+    // Web Audio Synthesized Kitchen Bell Chime
+    let audioCtx = null;
+    function playKdsChime() {
+      if (!audioChimeEnabled) return;
       try {
-        const res = await fetch(`${API_BASE}/api/v1/kds/orders`);
-        if (res.ok) {
-          orders = await res.json();
-          renderTickets();
-        }
-      } catch (err) {
-        console.error('Failed to load tickets:', err);
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.35); // A4
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.36);
+      } catch (e) {}
+    }
+
+    function toggleAudioChime() {
+      audioChimeEnabled = !audioChimeEnabled;
+      const btn = document.getElementById('audioToggle');
+      const text = document.getElementById('audioStateText');
+      if (audioChimeEnabled) {
+        btn.classList.add('active');
+        text.textContent = 'Bell Sound ON';
+        playKdsChime();
+      } else {
+        btn.classList.remove('active');
+        text.textContent = 'Bell Sound OFF';
       }
     }
 
-    function setFilter(filter, btn) {
-      currentFilter = filter;
+    // Live Clock
+    function updateClock() {
+      document.getElementById('kdsClock').textContent = new Date().toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Fetch Active Tickets
+    async function loadTickets() {
+      try {
+        const url = currentStation === 'ALL'
+          ? `${API_BASE}/api/v1/kds/orders`
+          : `${API_BASE}/api/v1/kds/orders?station=${encodeURIComponent(currentStation)}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          orders = await res.json();
+          updateBadges();
+          renderTickets();
+        }
+      } catch (e) {}
+    }
+
+    function updateBadges() {
+      document.getElementById('badgeAll').textContent = orders.length;
+      document.getElementById('badgeBar').textContent = orders.filter(o => o.items.some(i => i.station === 'BAR')).length;
+      document.getElementById('badgePizza').textContent = orders.filter(o => o.items.some(i => i.station === 'PIZZA_OVEN')).length;
+      document.getElementById('badgeHot').textContent = orders.filter(o => o.items.some(i => i.station === 'HOT_LINE')).length;
+      document.getElementById('badgeCold').textContent = orders.filter(o => o.items.some(i => i.station === 'COLD_PREP')).length;
+      const bCoffee = document.getElementById('badgeCoffee');
+      if (bCoffee) bCoffee.textContent = orders.filter(o => o.items.some(i => i.station === 'COFFEE')).length;
+      const bDessert = document.getElementById('badgeDessert');
+      if (bDessert) bDessert.textContent = orders.filter(o => o.items.some(i => i.station === 'DESSERT')).length;
+    }
+
+    function switchStation(station, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderTickets();
+      if (btn) btn.classList.add('active');
+      currentStation = station;
+      loadTickets();
     }
 
-    function getMinutesAgo(dateStr) {
-      const ms = Date.now() - new Date(dateStr).getTime();
-      return Math.floor(ms / (1000 * 60));
-    }
-
+    // Render Tickets
     function renderTickets() {
       const grid = document.getElementById('ticketGrid');
-      const filtered = currentFilter === 'ALL'
-        ? orders
-        : orders.filter(o => o.status === currentFilter);
+      if (!grid) return;
 
-      document.getElementById('ticketCountDisplay').textContent = `${orders.length} Active Order${orders.length !== 1 ? 's' : ''}`;
-
-      if (filtered.length === 0) {
+      if (orders.length === 0) {
         grid.innerHTML = `
-          <div class="empty-state">
-            <h2>Kitchen Board Clear</h2>
-            <p style="margin-top: 8px;">No active orders matching '${currentFilter.replace('_', ' ')}'.</p>
+          <div style="grid-column: 1 / -1; text-align:center; padding: 60px 20px; color:var(--text-muted);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px; display:block; opacity:0.4;"><polyline points="20 6 9 17 4 12"/></svg>
+            <h2 style="color:#fff; font-size:1.15rem; font-weight:800;">All Clear on the Line!</h2>
+            <p style="font-size:0.85rem; margin-top:4px;">No active tickets for the selected station.</p>
           </div>
         `;
         return;
       }
 
-      let html = '';
-      for (const order of filtered) {
-        const mins = getMinutesAgo(order.createdAt);
-        const timerClass = mins >= 15 ? 'timer-badge timer-alert' : 'timer-badge';
-
-        let statusClass = 'confirmed';
-        if (order.status === 'PREPARING') statusClass = 'preparing';
-        else if (order.status === 'READY_FOR_PICKUP') statusClass = 'ready';
-
-        let itemsHtml = '';
-        for (const item of order.items) {
-          let modHtml = '';
-          if (item.selectedModifiers && item.selectedModifiers.length > 0) {
-            modHtml = item.selectedModifiers.map(m => `<div class="item-modifier">&bull; ${m.optionName}</div>`).join('');
-          }
-          const noteHtml = item.notes ? `<div class="item-notes">"${item.notes}"</div>` : '';
-
-          itemsHtml += `
-            <div class="order-item-line">
-              <div class="item-qty">${item.quantity}x</div>
-              <div class="item-details">
-                <div class="item-title">${item.name}</div>
-                ${modHtml}
-                ${noteHtml}
-              </div>
-            </div>
-          `;
+      grid.innerHTML = orders.map(order => {
+        const mins = order.elapsedMinutes || Math.max(0, Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000));
+        let slaClass = 'sla-normal';
+        let timerClass = 'normal';
+        if (mins >= 15) {
+          slaClass = 'sla-critical';
+          timerClass = 'critical';
+        } else if (mins >= 10) {
+          slaClass = 'sla-warning';
+          timerClass = 'warning';
         }
 
-        const guestNoteHtml = order.guestNotes
-          ? `<div class="guest-note-box"><b>Table Note:</b> ${order.guestNotes}</div>`
-          : '';
+        // Filter items for current station
+        const itemsToDisplay = currentStation === 'ALL'
+          ? order.items
+          : order.items.filter(i => (i.station || 'HOT_LINE') === currentStation);
 
-        let actionsHtml = '';
-        if (order.status === 'CONFIRMED') {
-          actionsHtml = `
-            <button class="action-btn btn-prepare" onclick="updateStatus('${order.id}', 'PREPARING')">
-              Start Cooking &rarr;
-            </button>
-          `;
-        } else if (order.status === 'PREPARING') {
-          actionsHtml = `
-            <button class="action-btn btn-ready" onclick="updateStatus('${order.id}', 'READY_FOR_PICKUP')">
-              Mark Ready &check;
-            </button>
-          `;
-        } else if (order.status === 'READY_FOR_PICKUP') {
-          actionsHtml = `
-            <button class="action-btn btn-bump" onclick="updateStatus('${order.id}', 'SERVED')">
-              Bump / Served &check;&check;
-            </button>
-          `;
-        }
-
-        html += `
-          <div class="ticket-card ${statusClass}">
+        return `
+          <div class="ticket-card ${slaClass}" id="ticket-${order.id}">
             <div class="ticket-header">
-              <div class="table-callout">
-                <span>🍽️</span>
+              <div class="table-badge">
                 <span>Table ${order.tableNumber}</span>
+                <span class="order-id-label">#${order.id.slice(-4)}</span>
               </div>
-              <div class="${timerClass}">${mins}m ago</div>
+              <div class="timer-badge ${timerClass}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>${mins}m</span>
+              </div>
             </div>
+
             <div class="ticket-body">
-              ${itemsHtml}
-              ${guestNoteHtml}
+              ${itemsToDisplay.map(item => `
+                <div class="ticket-item">
+                  <div class="item-qty-name">
+                    <span class="item-qty">${item.quantity}</span>
+                    <div class="item-details">
+                      <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="item-name">${item.name}</span>
+                        ${item.course ? `<span style="font-size:0.65rem; background:rgba(255,255,255,0.08); color:var(--text-muted); padding:1px 5px; border-radius:4px; font-weight:700;">${item.course}</span>` : ''}
+                      </div>
+                      ${(item.selectedModifiers || []).map(m => `<span class="item-mods">• ${m.optionName}</span>`).join('')}
+                      ${(item.allergens && item.allergens.length > 0) ? `<div style="font-size:0.7rem; color:#ef4444; font-weight:700; margin-top:2px;">⚠️ Allergens: ${item.allergens.join(', ')}</div>` : ''}
+                      ${item.notes ? `<span class="item-notes">Note: "${item.notes}"</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+
+              ${order.guestNotes ? `
+                <div class="guest-note-box">
+                  <b>Table Note:</b> "${order.guestNotes}"
+                </div>
+              ` : ''}
             </div>
+
             <div class="ticket-footer">
-              ${actionsHtml}
+              ${order.status === 'CONFIRMED' ? `
+                <button class="action-btn btn-prepare" onclick="advanceOrderStatus('${order.id}', 'PREPARING')">
+                  Start Cooking →
+                </button>
+              ` : order.status === 'PREPARING' ? `
+                <button class="action-btn btn-ready" onclick="advanceOrderStatus('${order.id}', 'READY_FOR_PICKUP')">
+                  Ready for Pass ✓
+                </button>
+              ` : `
+                <button class="action-btn btn-bump" onclick="bumpTicket('${order.id}')">
+                  Bump Ticket ✓✓
+                </button>
+              `}
             </div>
           </div>
         `;
-      }
-
-      grid.innerHTML = html;
+      }).join('');
     }
 
-    async function updateStatus(orderId, nextStatus) {
+    // Status Flow
+    async function advanceOrderStatus(orderId, nextStatus) {
       try {
         const res = await fetch(`${API_BASE}/api/v1/kds/orders/${orderId}/status`, {
           method: 'PATCH',
@@ -393,33 +602,74 @@
           const updated = await res.json();
           const idx = orders.findIndex(o => o.id === orderId);
           if (idx !== -1) {
-            if (nextStatus === 'SERVED' || nextStatus === 'CANCELLED') {
-              orders.splice(idx, 1);
-            } else {
-              orders[idx] = updated;
-            }
+            orders[idx] = updated;
             renderTickets();
           }
         }
-      } catch (err) {
-        console.error('Failed to update status:', err);
+      } catch (e) {}
+    }
+
+    // Bump Ticket
+    async function bumpTicket(orderId) {
+      const idx = orders.findIndex(o => o.id === orderId);
+      if (idx !== -1) {
+        const [removed] = orders.splice(idx, 1);
+        bumpedHistory.push(removed);
+        renderTickets();
+        updateBadges();
+
+        try {
+          await fetch(`${API_BASE}/api/v1/kds/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'SERVED' })
+          });
+        } catch (e) {}
       }
     }
 
-    // Connect to Server-Sent Events (SSE) for Real-Time Streaming
+    // Undo / Recall Last Bumped
+    function recallLastBumped() {
+      if (bumpedHistory.length > 0) {
+        const recalled = bumpedHistory.pop();
+        recalled.status = 'READY_FOR_PICKUP';
+        orders.unshift(recalled);
+        renderTickets();
+        updateBadges();
+      }
+    }
+
+    // Keyboard Shortcuts (Space to bump top ticket, 1-5 for station tabs, R to recall)
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (orders.length > 0) {
+          const top = orders[0];
+          if (top.status === 'CONFIRMED') advanceOrderStatus(top.id, 'PREPARING');
+          else if (top.status === 'PREPARING') advanceOrderStatus(top.id, 'READY_FOR_PICKUP');
+          else bumpTicket(top.id);
+        }
+      } else if (e.key === 'r' || e.key === 'R') {
+        recallLastBumped();
+      } else if (['1', '2', '3', '4', '5'].includes(e.key)) {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const idx = parseInt(e.key) - 1;
+        if (tabs[idx]) tabs[idx].click();
+      }
+    });
+
+    // SSE Realtime Subscription
     function initEventStream() {
       const evtSource = new EventSource(`${API_BASE}/api/v1/events`);
-
-      evtSource.onopen = () => {
-        document.getElementById('liveDot').style.background = 'var(--green)';
-        document.getElementById('liveText').textContent = 'LIVE SSE';
-      };
 
       evtSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'ORDER_CREATED') {
             orders.push(data.payload);
+            playKdsChime();
+            updateBadges();
             renderTickets();
           } else if (data.type === 'ORDER_STATUS_CHANGED') {
             const idx = orders.findIndex(o => o.id === data.payload.id);
@@ -429,15 +679,11 @@
               } else {
                 orders[idx] = data.payload;
               }
+              updateBadges();
               renderTickets();
             }
           }
         } catch (e) {}
-      };
-
-      evtSource.onerror = () => {
-        document.getElementById('liveDot').style.background = 'var(--yellow)';
-        document.getElementById('liveText').textContent = 'RECONNECTING...';
       };
     }
 

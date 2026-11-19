@@ -1,5 +1,5 @@
 # ============================================================================
-# Servora Multi-Tenant Platform Containerfile
+# Abiruchi Hotel Multi-Tenant Platform Containerfile
 # High-performance lightweight Node.js runtime
 # ============================================================================
 FROM node:24-alpine AS base

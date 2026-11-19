@@ -72,6 +72,8 @@ kubeconfig*
 # -----------------------------------------------------------------------------
 *.log
 logs/
+data/*.db
+data/agent-runs/
 coverage/
 .nyc_output/
 test-results/

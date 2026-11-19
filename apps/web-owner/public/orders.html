@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders Management & KDS Routing — Abiruchi Hotel Owner</title>
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card: #12151f;
+      --card-hover: #181d2a;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #fc8019;
+      --primary-hover: #e06d0c;
+      --accent: #10b981;
+      --sky: #38bdf8;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --purple: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+    
+    .sidebar { width: 230px; min-height: 100vh; background: #0d1017; border-right: 1px solid var(--border); padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+    .sidebar-brand { font-size: 1.15rem; font-weight: 800; color: #fff; padding: 12px 12px 20px; display: flex; align-items: center; gap: 8px; }
+    .sidebar-brand .logo-box { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; color: #fff; }
+    .nav-link { display: block; padding: 10px 12px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.15s ease; }
+    .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .nav-link.active { background: rgba(252, 128, 25, 0.15); color: var(--primary); }
+    
+    .main-content { flex: 1; padding: 24px; overflow-y: auto; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .page-title { font-size: 1.5rem; font-weight: 800; color: #fff; }
+    
+    .btn { padding: 9px 16px; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+    
+    .filter-bar { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .filter-search { flex: 1; min-width: 220px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 0.88rem; }
+    .filter-select { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; }
+    
+    .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; overflow-x: auto; padding-bottom: 2px; }
+    .filter-pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .filter-pill.active { background: rgba(252, 128, 25, 0.15); color: var(--primary); border-color: rgba(252, 128, 25, 0.4); }
+    
+    .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .ticket { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s ease, border-color 0.15s ease; }
+    .ticket:hover { border-color: rgba(252, 128, 25, 0.3); transform: translateY(-2px); }
+    
+    .ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .ticket-id { font-weight: 800; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .ticket-meta { font-size: 0.8rem; color: var(--muted); margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; }
+    .badge-green { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .badge-amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .badge-rose { background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.3); }
+    .badge-sky { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .badge-purple { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+    
+    .ticket-items { font-size: 0.85rem; color: #e2e8f0; line-height: 1.6; margin-bottom: 14px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .ticket-item-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    
+    .ticket-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .ticket-total { font-weight: 800; font-size: 1.05rem; color: var(--primary); }
+    .ticket-actions { display: flex; gap: 6px; }
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 99; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 600px; padding: 24px; max-height: 90vh; overflow-y: auto; }
+    
+    .receipt-preview { font-family: monospace; background: #fff; color: #111; padding: 20px; border-radius: 8px; font-size: 0.82rem; white-space: pre-wrap; line-height: 1.4; border: 1px solid #ccc; max-height: 380px; overflow-y: auto; }
+    @media(max-width: 768px) { body { flex-direction: column; } .sidebar { width: 100%; min-height: auto; flex-direction: row; flex-wrap: wrap; } .sidebar-brand { display: none; } }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-box">S</div>
+      <span>Abiruchi Hotel</span>
+    </div>
+    <a href="/owner" class="nav-link">📊 Dashboard</a>
+    <a href="/owner/orders" class="nav-link active">🎫 Orders</a>
+    <a href="/owner/tokens" class="nav-link">🎟️ QR Studio</a>
+    <a href="/owner/staff" class="nav-link">👥 Staff & RBAC</a>
+    <a href="/owner/menu" class="nav-link">🍕 Menu & Photos</a>
+    <a href="/owner/availability" class="nav-link">🔴 Availability</a>
+    <a href="/owner/payments" class="nav-link">💳 Payments</a>
+    <a href="/owner/bookings" class="nav-link">📅 Bookings</a>
+    <a href="/owner/settings" class="nav-link">⚙️ Settings</a>
+    <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
+      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Orders Management & KDS Dispatch</h1>
+        <p style="font-size:0.85rem; color:var(--muted); margin-top:4px;" id="refreshInfo">Auto-refreshes every 5s</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" onclick="exportOrdersCsv()">
+          <span>📥 Export CSV</span>
+        </button>
+        <button class="btn btn-primary" onclick="fetchOrders()">
+          <span>🔄 Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="filter-bar">
+      <div class="filter-row">
+        <input type="text" id="orderSearchInput" class="filter-search" placeholder="🔍 Search by Order ID, Table #, Guest Name..." oninput="applyFilters()" />
+        
+        <select id="stationFilter" class="filter-select" onchange="applyFilters()">
+          <option value="ALL">All Stations</option>
+          <option value="PIZZA_OVEN">🍕 Pizza Oven</option>
+          <option value="HOT_LINE">🔥 Hot Line</option>
+          <option value="COLD_PREP">🥗 Cold Prep</option>
+          <option value="BAR">🍸 Bar / Cocktails</option>
+          <option value="COFFEE">☕ Coffee / Dessert</option>
+        </select>
+
+        <select id="paymentFilter" class="filter-select" onchange="applyFilters()">
+          <option value="ALL">All Payments</option>
+          <option value="PAID">Paid</option>
+          <option value="PENDING">Pending / Cash</option>
+        </select>
+      </div>
+
+      <!-- Status Pills -->
+      <div class="filter-pills">
+        <button class="filter-pill active" onclick="setStatusFilter('ALL', this)">All Orders</button>
+        <button class="filter-pill" onclick="setStatusFilter('CONFIRMED', this)">Confirmed</button>
+        <button class="filter-pill" onclick="setStatusFilter('PREPARING', this)">Preparing</button>
+        <button class="filter-pill" onclick="setStatusFilter('READY', this)">Ready for Service</button>
+        <button class="filter-pill" onclick="setStatusFilter('SERVED', this)">Served / Completed</button>
+        <button class="filter-pill" onclick="setStatusFilter('PENDING_STAFF_APPROVAL', this)">Pending Approval</button>
+      </div>
+    </div>
+
+    <!-- Orders Grid -->
+    <div class="tickets-grid" id="ticketsGrid">
+      <div style="text-align:center; padding:48px; color:var(--muted); grid-column:1/-1;">Loading active orders...</div>
+    </div>
+  </main>
+
+  <!-- Receipt Printing Modal -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-weight:800; font-size:1.15rem; color:#fff;" id="receiptModalTitle">Order Receipt</h3>
+        <button class="btn btn-secondary" onclick="closeReceiptModal()" style="padding:4px 8px;">✕</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button class="btn btn-secondary active" id="btnFmtStandard" onclick="loadReceiptPreview('standard')">Standard A4</button>
+        <button class="btn btn-secondary" id="btnFmtThermal80" onclick="loadReceiptPreview('thermal80')">Thermal 80mm</button>
+        <button class="btn btn-secondary" id="btnFmtThermal58" onclick="loadReceiptPreview('thermal58')">Thermal 58mm</button>
+        <button class="btn btn-secondary" id="btnFmtTakeaway" onclick="loadReceiptPreview('takeaway')">Takeaway Token</button>
+      </div>
+
+      <div class="receipt-preview" id="receiptContent">Generating formatted receipt...</div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeReceiptModal()">Close</button>
+        <button class="btn btn-primary" onclick="printReceiptDirect()">🖨️ Print Receipt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Station Tickets Breakdown Modal -->
+  <div class="modal-overlay" id="stationTicketsModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-weight:800; font-size:1.15rem; color:#fff;" id="stationTicketsModalTitle">Kitchen Station Tickets</h3>
+        <button class="btn btn-secondary" onclick="closeStationTicketsModal()" style="padding:4px 8px;">✕</button>
+      </div>
+      <div id="stationTicketsContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
+      <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeStationTicketsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const OUTLET_ID = 'b0000000-0000-0000-0000-000000000001';
+    let currentStatusFilter = 'ALL';
+    let allOrders = [];
+    let currentActiveOrderForReceipt = null;
+
+    function setStatusFilter(status, el) {
+      currentStatusFilter = status;
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      applyFilters();
+    }
+
+    function elapsed(ts) {
+      const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+      if (diff < 60) return diff + 's ago';
+      if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+      return Math.floor(diff/3600) + 'h ago';
+    }
+
+    function formatINR(cents) {
+      return '₹' + ((cents || 0) / 100).toFixed(2);
+    }
+
+    function statusBadge(s) {
+      const map = {
+        CONFIRMED: { cls: 'badge-sky', text: 'Confirmed' },
+        PREPARING: { cls: 'badge-amber', text: 'Preparing' },
+        READY: { cls: 'badge-green', text: 'Ready' },
+        SERVED: { cls: 'badge-green', text: 'Served' },
+        COMPLETED: { cls: 'badge-green', text: 'Completed' },
+        CANCELLED: { cls: 'badge-rose', text: 'Cancelled' },
+        PENDING_STAFF_APPROVAL: { cls: 'badge-rose', text: 'Approval Needed' }
+      };
+      const b = map[s] || { cls: 'badge-purple', text: s };
+      return `<span class="badge ${b.cls}">${b.text}</span>`;
+    }
+
+    function applyFilters() {
+      const search = (document.getElementById('orderSearchInput')?.value || '').toLowerCase().trim();
+      const station = document.getElementById('stationFilter')?.value || 'ALL';
+      const payment = document.getElementById('paymentFilter')?.value || 'ALL';
+
+      const filtered = allOrders.filter(o => {
+        // Status filter
+        if (currentStatusFilter !== 'ALL' && o.status !== currentStatusFilter) return false;
+        
+        // Search filter
+        if (search) {
+          const id = (o.id || '').toLowerCase();
+          const table = String(o.tableNumber || o.table?.number || '').toLowerCase();
+          const guest = (o.guestPhone || o.guestName || '').toLowerCase();
+          if (!id.includes(search) && !table.includes(search) && !guest.includes(search)) return false;
+        }
+
+        // Payment filter
+        if (payment === 'PAID' && o.paymentStatus !== 'PAID' && o.payment_status !== 'PAID') return false;
+        if (payment === 'PENDING' && (o.paymentStatus === 'PAID' || o.payment_status === 'PAID')) return false;
+
+        return true;
+      });
+
+      renderTickets(filtered);
+    }
+
+    function renderTickets(orders) {
+      const grid = document.getElementById('ticketsGrid');
+      if (!orders.length) {
+        grid.innerHTML = '<div style="text-align:center; padding:48px; color:var(--muted); grid-column:1/-1;">No matching orders found.</div>';
+        return;
+      }
+
+      grid.innerHTML = orders.map(o => {
+        const orderId = (o.id || '').slice(-6).toUpperCase();
+        const tableNum = o.tableNumber || o.table?.number || '—';
+        const isPaid = o.paymentStatus === 'PAID' || o.payment_status === 'PAID';
+
+        return `
+          <div class="ticket">
+            <div>
+              <div class="ticket-header">
+                <div>
+                  <div class="ticket-id">#${orderId}</div>
+                  <div class="ticket-meta">
+                    <span>🪑 Table ${tableNum}</span>
+                    <span>•</span>
+                    <span style="color:${isPaid ? '#10b981' : '#f59e0b'}; font-weight:700;">${isPaid ? '✓ Paid' : '⏳ Pending'}</span>
+                  </div>
+                </div>
+                ${statusBadge(o.status)}
+              </div>
+
+              <div class="ticket-items">
+                ${(o.items || []).map(i => `
+                  <div class="ticket-item-row">
+                    <span>${i.quantity || 1}× ${i.name || i.menuItemName || 'Dish'}</span>
+                    <span style="color:var(--muted); font-size:0.8rem;">${formatINR(i.priceCents || i.basePriceCents || 0)}</span>
+                  </div>
+                `).join('') || '<div style="color:var(--muted)">No items</div>'}
+              </div>
+            </div>
+
+            <div class="ticket-footer">
+              <div>
+                <span style="font-size:0.75rem; color:var(--muted); display:block;">⏱ ${elapsed(o.createdAt || o.created_at || new Date())}</span>
+                <span class="ticket-total">${formatINR(o.totalCents || o.total_cents || 0)}</span>
+              </div>
+              <div class="ticket-actions">
+                ${!isPaid ? `
+                  <button class="btn btn-primary" onclick="verifyOrderPayment('${o.id}', '${tableNum}', '${formatINR(o.totalCents || o.total_cents || 0)}')" title="Manager 1-Click Payment Verification" style="padding:6px 12px; font-size:0.75rem; background:rgba(16,185,129,0.2); color:#10b981; border:1px solid rgba(16,185,129,0.4);">
+                    ✓ Verify Pay
+                  </button>
+                ` : ''}
+                <button class="btn btn-secondary" onclick="viewStationTickets('${o.id}')" title="Split Station Tickets" style="padding:6px 10px; font-size:0.75rem;">
+                  🍳 Stations
+                </button>
+                <button class="btn btn-secondary" onclick="openReceiptModal('${o.id}')" title="Print Receipt" style="padding:6px 10px; font-size:0.75rem;">
+                  🖨️ Receipt
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function fetchOrders() {
+      try {
+        const res = await fetch(`/api/v1/orders/active?outletId=${OUTLET_ID}`);
+        if (res.ok) {
+          const data = await res.json();
+          allOrders = Array.isArray(data) ? data : (data.orders || data.data || []);
+          applyFilters();
+          document.getElementById('refreshInfo').textContent = `Last updated: ${new Date().toLocaleTimeString()} · Auto-refreshes every 5s`;
+        }
+      } catch(e) {
+        console.error('Orders fetch failed:', e);
+      }
+    }
+
+    async function verifyOrderPayment(orderId, tableNum, totalFormatted) {
+      const defaultNote = `Customer at Table ${tableNum} paid ${totalFormatted}`;
+      const customerNote = prompt(`Verify payment on click for Order #${orderId.slice(-6).toUpperCase()}?\nEnter note of customer who paid:`, defaultNote);
+      if (customerNote === null) return; // user cancelled
+
+      try {
+        const res = await fetch('/api/v1/payments/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            customerNote: customerNote || defaultNote,
+            verifiedBy: 'manager'
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`✓ Payment verified! Note: "${data.customerNote || customerNote}"`);
+          await fetchOrders();
+        } else {
+          alert('Verification failed: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('Network error verifying payment');
+      }
+    }
+
+    function showToast(msg) {
+      const el = document.createElement('div');
+      el.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:12px;font-weight:700;font-size:0.88rem;z-index:9999;background:#059669;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    // Receipt Modal logic
+    async function openReceiptModal(orderId) {
+      currentActiveOrderForReceipt = orderId;
+      document.getElementById('receiptModal').classList.add('active');
+      document.getElementById('receiptModalTitle').textContent = `Order Receipt #${orderId.slice(-6).toUpperCase()}`;
+      loadReceiptPreview('standard');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.remove('active');
+    }
+
+    async function loadReceiptPreview(format) {
+      ['btnFmtStandard', 'btnFmtThermal80', 'btnFmtThermal58', 'btnFmtTakeaway'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.remove('active');
+      });
+      if (format === 'standard') document.getElementById('btnFmtStandard')?.classList.add('active');
+      if (format === 'thermal80') document.getElementById('btnFmtThermal80')?.classList.add('active');
+      if (format === 'thermal58') document.getElementById('btnFmtThermal58')?.classList.add('active');
+      if (format === 'takeaway') document.getElementById('btnFmtTakeaway')?.classList.add('active');
+
+      const container = document.getElementById('receiptContent');
+      container.textContent = 'Fetching formatted receipt...';
+
+      try {
+        const res = await fetch(`/api/v1/orders/${currentActiveOrderForReceipt}/receipt?format=${format}`);
+        if (res.ok) {
+          const text = await res.text();
+          container.textContent = text;
+        } else {
+          container.textContent = 'Could not load receipt format.';
+        }
+      } catch(e) {
+        container.textContent = 'Receipt load error: ' + e.message;
+      }
+    }
+
+    function printReceiptDirect() {
+      const content = document.getElementById('receiptContent').textContent;
+      const win = window.open('', '_blank');
+      win.document.write(`<pre style="font-family:monospace; font-size:12px; padding:20px;">${content}</pre>`);
+      win.document.close();
+      win.focus();
+      win.print();
+    }
+
+    // Station Tickets Modal
+    async function viewStationTickets(orderId) {
+      const modal = document.getElementById('stationTicketsModal');
+      const container = document.getElementById('stationTicketsContainer');
+      document.getElementById('stationTicketsModalTitle').textContent = `Station Split: #${orderId.slice(-6).toUpperCase()}`;
+      modal.classList.add('active');
+      container.innerHTML = '<div style="color:var(--muted); padding:16px;">Splitting order to KDS stations...</div>';
+
+      try {
+        const res = await fetch(`/api/v1/orders/${orderId}/station-tickets`);
+        if (res.ok) {
+          const tickets = await res.json();
+          if (!tickets.length) {
+            container.innerHTML = '<div style="color:var(--muted);">No station tickets found for this order.</div>';
+            return;
+          }
+          container.innerHTML = tickets.map(t => `
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-weight:800; color:var(--primary); font-size:0.95rem;">🎯 Station: ${t.station}</span>
+                <span class="badge badge-sky">${t.status}</span>
+              </div>
+              <div style="font-size:0.85rem; color:#cbd5e1; line-height:1.5;">
+                ${t.items.map(i => `<div>• ${i.quantity}× ${i.name}</div>`).join('')}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div style="color:var(--rose);">Failed to load station tickets.</div>';
+        }
+      } catch(e) {
+        container.innerHTML = '<div style="color:var(--rose);">Error loading station tickets.</div>';
+      }
+    }
+
+    function closeStationTicketsModal() {
+      document.getElementById('stationTicketsModal').classList.remove('active');
+    }
+
+    // Export CSV
+    function exportOrdersCsv() {
+      if (!allOrders.length) {
+        alert('No orders available to export.');
+        return;
+      }
+      const headers = ['Order ID', 'Table', 'Status', 'Payment Status', 'Total (INR)', 'Item Count', 'Created At'];
+      const rows = allOrders.map(o => [
+        o.id,
+        o.tableNumber || o.table?.number || '',
+        o.status,
+        o.paymentStatus || o.payment_status || 'PENDING',
+        ((o.totalCents || o.total_cents || 0)/100).toFixed(2),
+        (o.items || []).length,
+        o.createdAt || o.created_at || ''
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' 
+        + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `abiruchi_orders_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    fetchOrders();
+    setInterval(fetchOrders, 5000);
+  </script>
+</body>
+</html>

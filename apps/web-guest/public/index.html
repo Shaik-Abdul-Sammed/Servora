@@ -1,971 +1,735 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#e11d48">
+  <meta name="theme-color" content="#fc8019">
   <link rel="manifest" href="/manifest.json">
-  <title>Servora | Table Ordering</title>
+  <link rel="stylesheet" href="/guest/styles.css">
+  <title>Abiruchi Hotel | The taste of the land, served smartly.</title>
+  <script>
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('abiruchi_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } catch (e) {}
+    })();
+  </script>
   <style>
-    :root {
-      --primary: #e11d48;
-      --primary-hover: #be123c;
-      --bg: #09090b;
-      --card-bg: #18181b;
-      --card-border: #27272a;
-      --text: #f4f4f5;
-      --text-muted: #a1a1aa;
-      --accent: #22c55e;
-      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--font);
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding-bottom: 110px;
-    }
-
-    /* Header */
-    header {
-      position: sticky;
-      top: 0;
-      background: rgba(9, 9, 11, 0.95);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--card-border);
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 40;
-    }
-    .brand { font-size: 1.05rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
-    .header-controls { display: flex; align-items: center; gap: 8px; }
-    .lang-select {
-      background: #27272a;
-      color: #fff;
-      border: 1px solid #3f3f46;
-      border-radius: 6px;
-      padding: 4px 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .table-badge {
-      background: #27272a;
-      color: #38bdf8;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 9999px;
-      border: 1px solid #0284c7;
-    }
-
-    /* Loyalty Promo Banner */
-    .loyalty-banner {
-      background: linear-gradient(90deg, #831843, #500724);
-      border-bottom: 1px solid #be185d;
-      padding: 8px 16px;
-      font-size: 0.8rem;
-      color: #fce7f3;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-    }
-
-    /* Quick Action Buttons Bar */
-    .quick-actions-bar {
-      display: flex;
-      gap: 8px;
-      padding: 10px 16px 4px;
-      overflow-x: auto;
-    }
-    .quick-action-btn {
-      flex: 1;
-      background: #27272a;
-      color: #fff;
-      border: 1px solid #3f3f46;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    /* Categories */
-    .categories-bar {
-      position: sticky;
-      top: 54px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--card-border);
-      padding: 10px 16px;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      white-space: nowrap;
-      z-index: 30;
-      scrollbar-width: none;
-    }
-    .categories-bar::-webkit-scrollbar { display: none; }
-    .cat-pill {
-      background: #27272a;
-      color: var(--text-muted);
-      border: 1px solid transparent;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .cat-pill.active {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    /* Menu container */
-    main { max-width: 600px; margin: 0 auto; padding: 16px; }
-    .section-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin: 16px 0 10px;
-      color: #fff;
-    }
-
-    /* Item Card */
-    .menu-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-      display: flex;
-      gap: 12px;
-      cursor: pointer;
-      transition: transform 0.15s ease, border-color 0.15s ease;
-    }
-    .menu-card:active { transform: scale(0.98); }
-    .item-info { flex: 1; }
-    .item-name { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .item-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
-    .item-price { font-size: 0.95rem; font-weight: 700; color: #fff; }
-    .item-allergens { font-size: 0.7rem; color: #fbbf24; margin-top: 4px; }
-    .add-btn {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      align-self: flex-end;
-    }
-
-    /* Floating Cart Bar */
-    .cart-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(24, 24, 27, 0.98);
-      border-top: 1px solid var(--card-border);
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 50;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
-    }
-    .cart-summary { display: flex; flex-direction: column; }
-    .cart-count { font-size: 0.8rem; color: var(--text-muted); }
-    .cart-total { font-size: 1.15rem; font-weight: 800; color: #fff; }
-    .view-cart-btn {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* Modals */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      display: none;
-      justify-content: center;
-      align-items: flex-end;
-      z-index: 100;
-    }
-    .modal-content {
-      background: #18181b;
-      border-top: 1px solid var(--card-border);
-      border-radius: 20px 20px 0 0;
-      width: 100%;
-      max-width: 600px;
-      max-height: 85vh;
-      overflow-y: auto;
-      padding: 20px;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 12px;
-    }
-    .close-btn {
-      background: #27272a;
-      border: none;
-      color: #fff;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      font-size: 1.1rem;
-      cursor: pointer;
-    }
-    .cart-item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #27272a;
-    }
-    .qty-controls { display: flex; align-items: center; gap: 10px; }
-    .qty-btn {
-      background: #27272a;
-      border: none;
-      color: #fff;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .tip-selector { display: flex; gap: 8px; margin: 12px 0; }
-    .tip-btn {
-      flex: 1;
-      background: #27272a;
-      color: #fff;
-      border: 1px solid transparent;
-      padding: 8px 0;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-    .tip-btn.active { border-color: var(--primary); background: #3f121e; }
-    .submit-order-btn {
-      width: 100%;
-      background: var(--accent);
-      color: #000;
-      font-weight: 800;
-      border: none;
-      padding: 14px;
-      border-radius: 12px;
-      font-size: 1.05rem;
-      cursor: pointer;
-      margin-top: 16px;
-    }
-
-    /* Waiter Call Options */
-    .call-option-btn {
-      width: 100%;
-      background: #27272a;
-      color: #fff;
-      border: 1px solid #3f3f46;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-    .call-option-btn:hover { background: #3f3f46; }
-
-    /* Bill Splitter */
-    .split-pills { display: flex; gap: 8px; margin: 12px 0; }
-    .split-pill {
-      flex: 1;
-      background: #27272a;
-      color: #fff;
-      border: 1px solid #3f3f46;
-      padding: 8px;
-      border-radius: 8px;
-      text-align: center;
-      cursor: pointer;
-      font-weight: 700;
-    }
-    .split-pill.active { background: #1e3a8a; border-color: #38bdf8; color: #fff; }
+    /* Critical CSS Invariants for Accessibility & Test Compliance */
+    :root { --primary: #fc8019; --card-bg: #ffffff; }
+    * { box-sizing: border-box; }
+    html, body { max-width: 100vw; overflow-x: hidden; }
+    header { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes cartBadgeBounce { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
   </style>
 </head>
 <body>
+  <!-- Floating Call Waiter Button -->
+  <button id="floatingCallWaiterBtn" class="floating-waiter-btn" onclick="openWaiterModal()" title="Call Waiter for Table Assistance">
+    <span style="font-size:1.15rem;">🔔</span>
+    <span id="floatCallWaiterLabel">Call Waiter</span>
+  </button>
 
-  <!-- Header -->
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60b246" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMsg">Order submitted to kitchen!</span>
+  </div>
+
+  <!-- Abiruchi Hotel Modern Header -->
   <header>
     <div class="brand">
-      <span>🍽️</span>
-      <span id="venueName">Trattoria Servora</span>
+      <div class="abiruchi-logo-mark">
+        <span class="abiruchi-logo-letter">A</span>
+      </div>
+      <div>
+        <div class="brand-text" id="venueName">Abiruchi Hotel</div>
+        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700;" id="venueSubtitle">The taste of the land, served smartly.</div>
+      </div>
     </div>
+
     <div class="header-controls">
-      <!-- Multilingual Switcher -->
-      <select class="lang-select" id="langSelector" onchange="changeLanguage(this.value)">
-        <option value="en">English 🇺🇸</option>
-        <option value="hi">हिन्दी 🇮🇳</option>
-        <option value="te">తెలుగు 🇮🇳</option>
-      </select>
-      <div class="table-badge" id="tableBadge">Table T-01</div>
+      <!-- Light / Dark / System Theme Toggle -->
+      <div class="theme-switch-group" title="Switch Theme">
+        <button type="button" class="theme-btn active" id="btnThemeLight" onclick="setTheme('light')">☀️</button>
+        <button type="button" class="theme-btn" id="btnThemeDark" onclick="setTheme('dark')">🌙</button>
+        <button type="button" class="theme-btn" id="btnThemeSystem" onclick="setTheme('system')">💻</button>
+      </div>
+
+      <!-- Table Badge -->
+      <div class="table-badge" id="tableBadgeContainer">
+        <div class="table-dot"></div>
+        <span id="tableBadge">Table 14</span>
+      </div>
+
+      <!-- Table Reservation Link -->
+      <a href="/booking" style="text-decoration:none; background:rgba(252,128,25,0.1); color:var(--primary); font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:18px; border:1px solid rgba(252,128,25,0.3); display:flex; align-items:center; gap:4px;">
+        📅 <span id="headerBookLabel">Reserve</span>
+      </a>
+
+      <!-- Optional Profile / Preferences Button -->
+      <button onclick="openLoginModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); padding:5px 10px; border-radius:18px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+        👤 <span id="userLoginLabel">Guest</span>
+      </button>
+
+      <!-- Multilingual Dropdown (English, Telugu, Hindi) -->
+      <div class="lang-wrapper">
+        <div class="lang-icon-pos">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <select id="langSelect" class="lang-select" onchange="switchLanguage(this.value)">
+          <option value="en">English (India)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="hi">हिंदी (Hindi)</option>
+        </select>
+      </div>
     </div>
   </header>
 
-  <!-- Loyalty Retention Banner -->
-  <div class="loyalty-banner" id="loyaltyBanner">
-    <span>🎁 <b id="loyaltyText">Returning Customer Offer: Use code SERVORA50 for $5 off!</b></span>
+  <!-- Kitchen Surge Rush Alert Banner -->
+  <div id="surgePauseBanner" style="display:none; background:#dc2626; color:#fff; font-size:0.85rem; font-weight:700; text-align:center; padding:10px 14px; border-bottom:1px solid #ef4444; z-index:39; position:sticky; top:61px;">
+    ⏸ Kitchen Rush: New online orders are temporarily paused (<span id="pauseEtaText">~15m</span>).
   </div>
 
-  <!-- Quick Actions Bar -->
-  <div class="quick-actions-bar">
-    <button class="quick-action-btn" onclick="openCallWaiterModal()">
-      <span id="lblCallWaiter">🛎️ Call Waiter</span>
-    </button>
-    <button class="quick-action-btn" onclick="openSplitBillModal()">
-      <span id="lblSplitBill">💳 Split Bill</span>
-    </button>
-    <button class="quick-action-btn" onclick="openAiConciergeModal()">
-      <span id="lblAiConcierge">🤖 AI Concierge</span>
-    </button>
-  </div>
-
-  <!-- Categories -->
-  <div class="categories-bar" id="categoriesBar">
-    <button class="cat-pill active" onclick="filterCategory('ALL')" id="lblAllDishes">All Dishes</button>
-  </div>
-
-  <!-- Menu Content -->
-  <main id="menuContainer">
-    <div style="text-align: center; padding: 40px; color: var(--text-muted)">
-      Loading restaurant menu...
+  <!-- Abiruchi Hotel Restaurant Showcase Card -->
+  <div class="abiruchi-hero-container">
+    <div class="abiruchi-hero-card">
+      <div class="hero-title-row">
+        <div>
+          <h1 class="hero-title" id="heroRestaurantTitle">Abiruchi Hotel</h1>
+          <div class="hero-meta" style="margin-top:2px;" id="heroMetaSubtitle">Traditional South Indian Tiffins, Meals, Biryanis, Curries & Coolers</div>
+        </div>
+        <div class="hero-rating-badge">
+          <span>★ 4.4</span>
+          <span style="font-size:0.65rem; opacity:0.85;">(1.2K+)</span>
+        </div>
+      </div>
+      <div class="hero-pills">
+        <div style="display:flex; align-items:center; gap:5px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fc8019" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>20-25 mins</span>
+        </div>
+        <span>•</span>
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span>₹350 for two</span>
+        </div>
+        <span>•</span>
+        <div style="display:flex; align-items:center; gap:5px; color:#267e3e;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Table Service</span>
+        </div>
+      </div>
     </div>
-  </main>
-
-  <!-- Floating Cart -->
-  <div class="cart-bar" id="cartBar" style="display: none;">
-    <div class="cart-summary">
-      <div class="cart-count" id="cartItemCount">0 items</div>
-      <div class="cart-total" id="cartTotalDisplay">$0.00</div>
-    </div>
-    <button class="view-cart-btn" id="lblReviewOrder" onclick="openCartModal()">Review Order &rarr;</button>
   </div>
 
-  <!-- Cart / Checkout Modal -->
-  <div class="modal-overlay" id="cartModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 style="color: #fff" id="lblYourDiningTab">Your Dining Tab</h3>
-        <button class="close-btn" onclick="closeCartModal()">&times;</button>
+  <!-- Human Service Bridge & Cross-Contamination Safety Banner -->
+  <div style="max-width:900px; margin:0 auto 10px; padding:0 16px;">
+    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted);">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1rem;">👋</span>
+        <span>Prefer human service? Tap <strong>Call Staff</strong> anytime to order directly through a server.</span>
       </div>
-
-      <div id="cartItemsList"></div>
-
-      <div style="margin-top: 14px;">
-        <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;" id="lblKitchenNote">
-          Add Kitchen Note (e.g. less spicy, extra sauce):
-        </label>
-        <input type="text" id="guestNotesInput" placeholder="Special dining requests"
-          style="width: 100%; background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 10px; border-radius: 8px;">
-      </div>
-
-      <!-- Coupon Promo Code -->
-      <div style="margin-top: 12px; display: flex; gap: 8px;">
-        <input type="text" id="promoCodeInput" placeholder="Promo code (e.g. SERVORA50)"
-          style="flex: 1; background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
-        <button onclick="applyPromoCode()" style="background: #be185d; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
-          Apply
-        </button>
-      </div>
-
-      <div style="margin-top: 14px;">
-        <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;" id="lblGratuity">
-          Select Gratuity:
-        </label>
-        <div class="tip-selector">
-          <button class="tip-btn" onclick="selectTip(0, this)">No Tip</button>
-          <button class="tip-btn" onclick="selectTip(10, this)">10%</button>
-          <button class="tip-btn active" onclick="selectTip(15, this)">15%</button>
-          <button class="tip-btn" onclick="selectTip(20, this)">20%</button>
-        </div>
-      </div>
-
-      <div style="margin-top: 14px; border-top: 1px solid #27272a; padding-top: 12px; font-size: 0.9rem;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span style="color: var(--text-muted)" id="lblSubtotal">Subtotal:</span>
-          <span id="modalSubtotal">$0.00</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;" id="discountRow" style="display: none;">
-          <span style="color: #f43f5e">Loyalty Promo:</span>
-          <span id="modalDiscount" style="color: #f43f5e">-$5.00</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span style="color: var(--text-muted)" id="lblTax">Estimated Tax (8.25%):</span>
-          <span id="modalTax">$0.00</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span style="color: var(--text-muted)" id="lblTip">Gratuity:</span>
-          <span id="modalTip">$0.00</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; margin-top: 8px; color: #fff;">
-          <span id="lblTotal">Total:</span>
-          <span id="modalTotal" style="color: #4ade80">$0.00</span>
-        </div>
-      </div>
-
-      <button class="submit-order-btn" id="submitOrderBtn" onclick="submitOrder()">
-        Send Order to Kitchen &rarr;
+      <button onclick="openWaiterModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--primary); font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:14px; cursor:pointer; flex-shrink:0;">
+        Call Staff
       </button>
     </div>
   </div>
 
-  <!-- Call Waiter Modal -->
-  <div class="modal-overlay" id="waiterModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 style="color: #fff">🛎️ Call Your Server</h3>
-        <button class="close-btn" onclick="closeWaiterModal()">&times;</button>
-      </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
-        Tap a request below and waitstaff will be alerted immediately:
-      </p>
-      <button class="call-option-btn" onclick="sendWaiterCall('Bring Fresh Water')">
-        <span>💧</span> <span id="callWaterText">Bring Fresh Water</span>
+  <!-- 4 Global Customer Journeys (Meituan / Toast Standard) -->
+  <div class="journeys-container" style="max-width:900px; margin:0 auto; padding:0 16px 10px;">
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:6px; box-shadow:var(--shadow-sm);">
+      <button type="button" class="journey-tab active" id="journeyOrderNow" onclick="switchCustomerJourney('ORDER_NOW')">
+        <span style="font-size:1.15rem;">⚡</span>
+        <span style="font-size:0.75rem; font-weight:800;">Order Now</span>
       </button>
-      <button class="call-option-btn" onclick="sendWaiterCall('Request Bill / Check')">
-        <span>🧾</span> <span id="callBillText">Request Bill / Check</span>
+      <button type="button" class="journey-tab" id="journeyOrderLater" onclick="switchCustomerJourney('ORDER_LATER')">
+        <span style="font-size:1.15rem;">🕒</span>
+        <span style="font-size:0.75rem; font-weight:800;">For Later</span>
       </button>
-      <button class="call-option-btn" onclick="sendWaiterCall('Extra Cutlery & Napkins')">
-        <span>🍴</span> <span id="callCutleryText">Extra Cutlery & Napkins</span>
+      <button type="button" class="journey-tab" id="journeyBookTable" onclick="switchCustomerJourney('BOOK_TABLE')">
+        <span style="font-size:1.15rem;">📅</span>
+        <span style="font-size:0.75rem; font-weight:800;">Reserve</span>
       </button>
-      <button class="call-option-btn" onclick="sendWaiterCall('Need Waiter Assistance')">
-        <span>🙋</span> <span id="callAssistText">Need Waiter Assistance</span>
+      <button type="button" class="journey-tab" id="journeyDineIn" onclick="switchCustomerJourney('DINE_IN')">
+        <span style="font-size:1.15rem;">🍽️</span>
+        <span style="font-size:0.75rem; font-weight:800;">Dine-In QR</span>
       </button>
     </div>
   </div>
 
-  <!-- Bill Splitter Modal -->
-  <div class="modal-overlay" id="splitModal">
-    <div class="modal-content" style="text-align: center;">
-      <div class="modal-header">
-        <h3 style="color: #fff">💳 Split Dining Tab</h3>
-        <button class="close-btn" onclick="closeSplitModal()">&times;</button>
-      </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-        Divide total evenly among diners at your table:
-      </p>
-      <div class="split-pills">
-        <div class="split-pill active" onclick="calculateSplit(2, this)">2 People</div>
-        <div class="split-pill" onclick="calculateSplit(3, this)">3 People</div>
-        <div class="split-pill" onclick="calculateSplit(4, this)">4 People</div>
-        <div class="split-pill" onclick="calculateSplit(5, this)">5 People</div>
-      </div>
-      <div style="background: #27272a; border-radius: 12px; padding: 20px; margin: 16px 0;">
-        <div style="font-size: 0.85rem; color: var(--text-muted);">Amount per diner:</div>
-        <div style="font-size: 2rem; font-weight: 800; color: #4ade80; margin-top: 4px;" id="splitPerPersonDisplay">
-          $0.00
-        </div>
-      </div>
-    </div>
+  <!-- QR Inactive Banner (410 Gone) -->
+  <div id="qrInactiveBanner" style="display:none; background:#dc2626; color:#fff; padding:12px 16px; text-align:center; font-weight:700; margin:10px auto; max-width:900px; border-radius:10px;" role="alert">
+    ⚠️ This QR is no longer active. Please ask staff.
   </div>
 
-  <!-- AI Food Concierge Modal -->
-  <div class="modal-overlay" id="aiModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 style="color: #fff">🤖 AI Dining Concierge</h3>
-        <button class="close-btn" onclick="closeAiModal()">&times;</button>
-      </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-        Ask about allergies, vegan options, or drink pairings:
-      </p>
-      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-        <input type="text" id="aiQueryInput" placeholder="e.g. Gluten-free dishes or wine pairing?"
-          style="flex: 1; background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 10px; border-radius: 8px;">
-        <button onclick="askAiConcierge()" style="background: var(--primary); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer;">
-          Ask
-        </button>
-      </div>
-      <div id="aiAnswerBox" style="background: #27272a; border-radius: 8px; padding: 14px; font-size: 0.9rem; display: none;"></div>
+  <!-- Repeat My Last Order (Case 31) -->
+  <div id="repeatLastOrderBanner" style="display:none; background:#fff7ed; border:1px solid #fed7aa; padding:12px 16px; margin:10px auto; max-width:900px; border-radius:12px; justify-content:space-between; align-items:center;" aria-label="Repeat last order">
+    <div>
+      <strong style="color:#c2410c; display:block; font-size:14px;">🔁 Welcome back!</strong>
+      <span id="repeatOrderSummary" style="font-size:12px; color:#6b7280;">Reorder your recent favorites</span>
     </div>
+    <button onclick="repeatLastOrder()" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" aria-label="Reorder now">Reorder</button>
   </div>
 
-  <!-- Live Order Tracking Modal -->
-  <div class="modal-overlay" id="trackingModal">
-    <div class="modal-content" style="text-align: center; padding: 32px 20px;">
-      <div style="font-size: 3rem; margin-bottom: 12px;">👨‍🍳</div>
-      <h2 style="color: #fff; margin-bottom: 6px;" id="lblOrderPlaced">Order Sent to Kitchen!</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;" id="lblOrderPlacedSub">
-        Your order is being received by the culinary team.
-      </p>
-      <div style="display: inline-block; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; margin-bottom: 12px; background: #1e3a8a; color: #93c5fd;" id="trackStatusBadge">
-        CONFIRMED
-      </div>
-      <div style="background: #27272a; border-radius: 12px; padding: 16px; text-align: left; margin: 20px 0;">
-        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Order Reference:</div>
-        <div style="font-weight: 700; font-family: monospace; color: #fff;" id="trackOrderId">-</div>
-        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">Table: <b id="trackTableNum" style="color: #fff">-</b></div>
-      </div>
-      <button class="close-btn" style="width: auto; height: auto; border-radius: 8px; padding: 8px 20px;" onclick="closeTrackingModal()">
-        Order More Items
-      </button>
-    </div>
-  </div>
-
-  <script>
-    const API_BASE = window.location.origin;
-    let currentLang = 'en';
-    let menuData = { categories: [], items: [] };
-    let currentCategory = 'ALL';
-    let cart = [];
-    let selectedTipPercent = 15;
-    let appliedDiscountCents = 0;
-    let activeTable = { id: 'c0000000-0000-0000-0000-000000000001', number: 'T-01' };
-    let activeOrderId = null;
-    let pollInterval = null;
-
-    // Multilingual Dictionaries
-    const i18n = {
-      en: {
-        allDishes: 'All Dishes',
-        add: '+ Add',
-        reviewOrder: 'Review Order →',
-        callWaiter: '🛎️ Call Waiter',
-        splitBill: '💳 Split Bill',
-        aiConcierge: '🤖 AI Concierge',
-        loyalty: 'Returning Customer Offer: Use code SERVORA50 for $5 off!',
-        subtotal: 'Subtotal:',
-        tax: 'Estimated Tax (8.25%):',
-        tip: 'Gratuity:',
-        total: 'Total:',
-        sendOrder: 'Send Order to Kitchen →',
-        water: 'Bring Fresh Water',
-        bill: 'Request Bill / Check',
-        cutlery: 'Extra Cutlery & Napkins',
-        assistance: 'Need Waiter Assistance',
-      },
-      hi: {
-        allDishes: 'सभी व्यंजन',
-        add: '+ जोड़ें',
-        reviewOrder: 'ऑर्डर देखें →',
-        callWaiter: '🛎️ वेटर को बुलाएं',
-        splitBill: '💳 बिल बांटें (Split)',
-        aiConcierge: '🤖 AI वेटर',
-        loyalty: 'विशेष ग्राहक छूट: SERVORA50 कोड से ₹50 की छूट पाएं!',
-        subtotal: 'उप-कुल (Subtotal):',
-        tax: 'अनुमानित कर (Tax 8.25%):',
-        tip: 'टिप / उपहार:',
-        total: 'कुल राशि (Total):',
-        sendOrder: 'रसोई में ऑर्डर भेजें →',
-        water: 'पीने का पानी लाएं',
-        bill: 'बिल / चेक लाएं',
-        cutlery: 'चम्मच और नैपकिन',
-        assistance: 'सहायता के लिए वेटर',
-      },
-      te: {
-        allDishes: 'అన్ని వంటకాలు',
-        add: '+ జోడించు',
-        reviewOrder: 'ఆర్డర్ సమీక్షించండి →',
-        callWaiter: '🛎️ వెయిటర్‌ని పిలవండి',
-        splitBill: '💳 బిల్లు పంచుకోండి',
-        aiConcierge: '🤖 AI వెయిటర్',
-        loyalty: 'ప్రత్యేక ఆఫర్: SERVORA50 కోడ్‌తో ₹50 తగ్గింపు పొందండి!',
-        subtotal: 'ఉప మొత్తం (Subtotal):',
-        tax: 'అంచనా పన్ను (Tax 8.25%):',
-        tip: 'చిట్కా (Tip):',
-        total: 'మొత్తం బిల్లు (Total):',
-        sendOrder: 'వంటగదికి ఆర్డర్ పంపండి →',
-        water: 'మంచినీరు తీసుకురండి',
-        bill: 'బిల్లు తీసుకురండి',
-        cutlery: 'స్పూన్లు & న్యాప్‌కిన్లు',
-        assistance: 'సహాయం కోసం వెయిటర్',
-      }
-    };
-
-    function changeLanguage(lang) {
-      currentLang = lang;
-      const dict = i18n[lang] || i18n.en;
-
-      document.getElementById('lblAllDishes').textContent = dict.allDishes;
-      document.getElementById('lblCallWaiter').textContent = dict.callWaiter;
-      document.getElementById('lblSplitBill').textContent = dict.splitBill;
-      document.getElementById('lblAiConcierge').textContent = dict.aiConcierge;
-      document.getElementById('loyaltyText').textContent = dict.loyalty;
-      document.getElementById('lblReviewOrder').textContent = dict.reviewOrder;
-      document.getElementById('lblSubtotal').textContent = dict.subtotal;
-      document.getElementById('lblTax').textContent = dict.tax;
-      document.getElementById('lblTip').textContent = dict.tip;
-      document.getElementById('lblTotal').textContent = dict.total;
-      document.getElementById('submitOrderBtn').textContent = dict.sendOrder;
-
-      document.getElementById('callWaterText').textContent = dict.water;
-      document.getElementById('callBillText').textContent = dict.bill;
-      document.getElementById('callCutleryText').textContent = dict.cutlery;
-      document.getElementById('callAssistText').textContent = dict.assistance;
-
-      renderCategories();
-      renderMenu();
-    }
-
-    async function initSession() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const tableId = urlParams.get('tableId') || activeTable.id;
-
-      try {
-        const query = token ? `token=${token}` : `tableId=${tableId}`;
-        const res = await fetch(`${API_BASE}/api/v1/qr/session?${query}`);
-        if (res.ok) {
-          const session = await res.json();
-          if (session.table) {
-            activeTable = { id: session.table.id, number: session.table.tableNumber };
-            document.getElementById('tableBadge').textContent = `Table ${activeTable.number}`;
-          }
-          if (session.tenant) {
-            document.getElementById('venueName').textContent = session.tenant.name;
-          }
-        }
-      } catch (err) {}
-
-      loadMenu();
-    }
-
-    async function loadMenu() {
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/menu`);
-        menuData = await res.json();
-        renderCategories();
-        renderMenu();
-      } catch (err) {}
-    }
-
-    function renderCategories() {
-      const bar = document.getElementById('categoriesBar');
-      const dict = i18n[currentLang] || i18n.en;
-      let html = `<button class="cat-pill ${currentCategory === 'ALL' ? 'active' : ''}" onclick="filterCategory('ALL')">${dict.allDishes}</button>`;
-      for (const cat of menuData.categories) {
-        html += `<button class="cat-pill ${currentCategory === cat.id ? 'active' : ''}" onclick="filterCategory('${cat.id}')">${cat.name}</button>`;
-      }
-      bar.innerHTML = html;
-    }
-
-    function filterCategory(catId) {
-      currentCategory = catId;
-      renderCategories();
-      renderMenu();
-    }
-
-    function formatCents(cents) {
-      return '$' + (cents / 100).toFixed(2);
-    }
-
-    function renderMenu() {
-      const container = document.getElementById('menuContainer');
-      const filteredCategories = currentCategory === 'ALL'
-        ? menuData.categories
-        : menuData.categories.filter(c => c.id === currentCategory);
-
-      if (filteredCategories.length === 0) {
-        container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 40px;">No menu items found.</div>';
-        return;
-      }
-
-      let html = '';
-      for (const cat of filteredCategories) {
-        const items = menuData.items.filter(i => i.categoryId === cat.id);
-        if (items.length === 0) continue;
-
-        html += `<div class="section-title">${cat.name}</div>`;
-        for (const item of items) {
-          const allergenText = item.allergens && item.allergens.length > 0
-            ? `⚠️ Contains: ${item.allergens.join(', ')}`
-            : '';
-
-          html += `
-            <div class="menu-card" onclick="addToCart('${item.id}')">
-              <div class="item-info">
-                <div class="item-name">${item.name}</div>
-                <div class="item-desc">${item.description}</div>
-                <div class="item-price">${formatCents(item.basePriceCents)}</div>
-                ${allergenText ? `<div class="item-allergens">${allergenText}</div>` : ''}
-              </div>
-              <button class="add-btn" onclick="event.stopPropagation(); addToCart('${item.id}')">${(i18n[currentLang] || i18n.en).add}</button>
-            </div>
-          `;
-        }
-      }
-
-      container.innerHTML = html;
-    }
-
-    function addToCart(itemId) {
-      const item = menuData.items.find(i => i.id === itemId);
-      if (!item) return;
-
-      const existing = cart.find(c => c.item.id === itemId);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({ item, quantity: 1, selectedModifiers: [] });
-      }
-
-      updateCartBar();
-    }
-
-    function updateCartBar() {
-      const bar = document.getElementById('cartBar');
-      const totalCount = cart.reduce((sum, c) => sum + c.quantity, 0);
-
-      if (totalCount === 0) {
-        bar.style.display = 'none';
-        return;
-      }
-
-      bar.style.display = 'flex';
-      document.getElementById('cartItemCount').textContent = `${totalCount} items`;
-      
-      const subtotalCents = cart.reduce((sum, c) => sum + (c.item.basePriceCents * c.quantity), 0);
-      document.getElementById('cartTotalDisplay').textContent = formatCents(subtotalCents);
-    }
-
-    function openCartModal() {
-      renderModalCart();
-      document.getElementById('cartModal').style.display = 'flex';
-    }
-
-    function closeCartModal() {
-      document.getElementById('cartModal').style.display = 'none';
-    }
-
-    function applyPromoCode() {
-      const code = document.getElementById('promoCodeInput').value.trim().toUpperCase();
-      if (code === 'SERVORA50') {
-        appliedDiscountCents = 500; // $5.00 discount
-        alert('Promo code SERVORA50 applied! $5.00 discount activated.');
-        document.getElementById('discountRow').style.display = 'flex';
-        renderModalCart();
-      } else {
-        alert('Invalid promo code. Try SERVORA50');
-      }
-    }
-
-    function renderModalCart() {
-      const list = document.getElementById('cartItemsList');
-      if (cart.length === 0) {
-        list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Your cart is empty.</p>';
-        closeCartModal();
-        return;
-      }
-
-      let subtotalCents = 0;
-      let html = '';
-
-      cart.forEach((entry, idx) => {
-        const itemTotal = entry.item.basePriceCents * entry.quantity;
-        subtotalCents += itemTotal;
-
-        html += `
-          <div class="cart-item-row">
-            <div>
-              <div style="font-weight: 600; color: #fff;">${entry.item.name}</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted);">${formatCents(entry.item.basePriceCents)} each</div>
-            </div>
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="modifyQty(${idx}, -1)">&minus;</button>
-              <span style="font-weight: bold; width: 20px; text-align: center;">${entry.quantity}</span>
-              <button class="qty-btn" onclick="modifyQty(${idx}, 1)">&plus;</button>
-            </div>
+  <!-- Scheduled Food Ordering Panel (Live when journey === 'ORDER_LATER') -->
+  <div id="scheduledOrderPanel" style="display:none; max-width:900px; margin:0 auto 12px; padding:0 16px;">
+    <div style="background:var(--card-bg); border:1px solid var(--primary); border-radius:16px; padding:16px; box-shadow:var(--shadow-md);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.3rem;">🕒</span>
+          <div>
+            <h3 style="font-weight:900; font-size:0.95rem; color:var(--text-title);">Scheduled Pickup Ordering</h3>
+            <p style="font-size:0.75rem; color:var(--text-muted);">Advance kitchen capacity management. Ticket releases ~25m before arrival.</p>
           </div>
-        `;
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted);">Pickup Date:</label>
+          <input type="date" id="pickupDatePicker" onchange="onPickupDateChange(this.value)" style="background:var(--surface); color:var(--text); border:1px solid var(--card-border); padding:6px 10px; border-radius:8px; font-weight:700; font-size:0.8rem;" />
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.72rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Select 15-Minute Pickup Slot (Capacity Managed):</label>
+        <div id="pickupSlotsGrid" style="display:flex; gap:8px; overflow-x:auto; padding:8px 0; scrollbar-width:none;">
+          <span style="font-size:0.8rem; color:var(--text-muted);">Loading available slots...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abiruchi Hotel Promotions & Coupons Carousel -->
+  <div class="deals-carousel-wrap">
+    <div class="deals-carousel" id="dealsCarousel">
+      <div class="deal-coupon-card" onclick="applyCoupon('ABIRUCHI20')">
+        <div class="deal-icon-box">🏷️</div>
+        <div>
+          <div class="deal-text-primary">20% OFF UPTO ₹100</div>
+          <div class="deal-text-sub">USE CODE ABIRUCHI20 | ABOVE ₹299</div>
+        </div>
+      </div>
+      <div class="deal-coupon-card" onclick="applyCoupon('BOGO')">
+        <div class="deal-icon-box" style="background:rgba(96,178,70,0.12);">🍕</div>
+        <div>
+          <div class="deal-text-primary">BUY 1 GET 1 FREE</div>
+          <div class="deal-text-sub">ON ALL WOOD-FIRED PIZZAS</div>
+        </div>
+      </div>
+      <div class="deal-coupon-card" onclick="applyCoupon('FLAT50')">
+        <div class="deal-icon-box" style="background:rgba(2,132,199,0.12);">⚡</div>
+        <div>
+          <div class="deal-text-primary">FLAT ₹50 OFF</div>
+          <div class="deal-text-sub">ON ORDERS ABOVE ₹399</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offers & Smart Combos Live Applied Alert -->
+  <div id="offerBanner" style="display:none; padding:10px 16px; background:linear-gradient(90deg, rgba(96,178,70,0.15), rgba(96,178,70,0.05)); border-bottom:1px solid rgba(96,178,70,0.25); color:#267e3e; font-weight:800; font-size:0.86rem; justify-content:space-between; align-items:center; max-width:900px; margin:0 auto 10px; border-radius:12px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span>🏷️</span>
+      <span id="offerBannerText">Offer Unlocked!</span>
+    </div>
+    <span style="background:#60b246; color:#fff; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:900;">AUTO-APPLIED</span>
+  </div>
+
+  <!-- Search & Dietary Preference Filters -->
+  <div class="filter-search-container">
+    <div class="search-box">
+      <div class="search-icon-pos">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search for dishes, cuisines, ingredients..." oninput="handleSearch(this.value)">
+      <button id="searchClear" class="search-clear" onclick="clearSearch()">✕</button>
+    </div>
+
+    <!-- Abiruchi Hotel Dietary Filters (Veg / Non-Veg / Bestseller) -->
+    <div class="abiruchi-toggles-row">
+      <button class="abiruchi-pill-toggle active" id="filterAllBtn" onclick="toggleDietFilter('ALL', this)">
+        <span>All</span>
+      </button>
+      <button class="abiruchi-pill-toggle" id="filterVegBtn" onclick="toggleDietFilter('VEG', this)">
+        <span class="fssai-symbol fssai-veg"><span class="fssai-veg-dot"></span></span>
+        <span>Veg</span>
+      </button>
+      <button class="abiruchi-pill-toggle" id="filterNonVegBtn" onclick="toggleDietFilter('NON_VEG', this)">
+        <span class="fssai-symbol fssai-nonveg"><span class="fssai-nonveg-dot"></span></span>
+        <span>Non-Veg</span>
+      </button>
+      <button class="abiruchi-pill-toggle" id="filterBestsellerBtn" onclick="toggleDietFilter('BESTSELLER', this)">
+        <span>⭐ Bestseller</span>
+      </button>
+      <button class="abiruchi-pill-toggle" onclick="toggleDietFilter('GLUTEN_FREE', this)">
+        <span>🌾 Gluten-Free</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sticky Category Navigation -->
+  <div class="category-scroll-wrapper">
+    <nav class="category-nav" id="categoryNav"></nav>
+  </div>
+
+  <!-- Menu Content View (Abiruchi Hotel Dish Presentation) -->
+  <main class="menu-container" id="menuContainer"></main>
+
+  <!-- Collapsible About Abiruchi Hotel Panel (Case 7) -->
+  <section class="about-abiruchi-panel" id="aboutPanel" style="max-width:900px; margin:20px auto 100px; background:#fff; border-radius:12px; border:1px solid #e5e7eb; padding:16px;" aria-label="About Abiruchi Hotel">
+    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAboutPanel()" role="button" tabindex="0" aria-expanded="false" id="aboutPanelHeader">
+      <h3 style="font-size:16px; font-weight:700; color:#1f2937; margin:0;" id="aboutHotelTitle">About Abiruchi Hotel</h3>
+      <span id="aboutPanelChevron" style="font-size:18px; color:#ea580c; transition:transform 0.2s;">▼</span>
+    </div>
+    <div id="aboutPanelContent" style="display:none; margin-top:14px; font-size:13px; color:#4b5563; line-height:1.6;">
+      <p id="aboutStory" style="margin-bottom:10px;">The taste of the land, served smartly.</p>
+      <div style="background:#fff7ed; padding:10px; border-radius:8px; margin-bottom:10px; border-left:4px solid #ea580c;">
+        <strong style="color:#c2410c;">Today's Chef Special:</strong> <span id="aboutTodaySpecial">Gongura Mutton & Rayalaseema Ragi Sangati</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr; gap:6px; margin-bottom:12px;">
+        <div>📍 <strong>Address:</strong> <span id="aboutAddress">12-4-89 Main Road, Near Clock Tower, Anantapur, AP</span></div>
+        <div>⏰ <strong>Hours:</strong> <span id="aboutHours">11:00 AM - 11:00 PM (Daily)</span></div>
+        <div>📞 <strong>Phone:</strong> <a id="aboutPhone" href="tel:+919876543210" style="color:#ea580c; text-decoration:none;">+91 9876543210</a></div>
+        <div>🗺️ <a id="aboutMapLink" href="https://maps.google.com" target="_blank" rel="noopener" style="color:#ea580c; font-weight:600; text-decoration:underline;">View on Google Maps</a></div>
+      </div>
+      <div style="font-size:11px; color:#9ca3af; border-top:1px solid #f3f4f6; padding-top:8px;">
+        <span>GSTIN: <span id="aboutGstin">37AAAAA0000A1Z5</span></span> | <span>FSSAI Lic: <span id="aboutFssai">10123999000123</span></span>
+      </div>
+      <div style="margin-top:12px; text-align:right;">
+        <button onclick="forgetGuestSession()" style="background:none; border:1px solid #e5e7eb; color:#9ca3af; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;" aria-label="Forget my device data">🔒 Forget My Device Data</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abiruchi Hotel Floating Action Cart Bar -->
+  <div class="abiruchi-floating-cart-bar" id="abiruchiFloatingCart" onclick="openCartModal()">
+    <div class="floating-cart-items-total">
+      <span class="floating-cart-count" id="cartCountBadge">0 ITEMS</span>
+      <span class="floating-cart-amount" id="cartFloatingTotal">₹0</span>
+    </div>
+    <div class="floating-cart-cta">
+      <span>VIEW CART</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+
+  <!-- Bottom Bar for Waiter Call / Quick Actions (Compatibility) -->
+  <div class="bottom-bar" style="display:none;" id="legacyBottomBar">
+    <button class="waiter-call-btn" onclick="openWaiterCallModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="callStaffLabel">Call Staff</span>
+    </button>
+    <button class="cart-pill-btn" onclick="openCartModal()">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="cart-badge-count" id="cartCount">0</span>
+        <span id="viewCartLabel">View Order</span>
+      </div>
+      <span id="cartSubtotal">₹0</span>
+    </button>
+  </div>
+
+  <!-- Water & Beverage Hospitality Prompt Modal -->
+  <div id="waterModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'waterModal')">
+    <div class="bottom-sheet" style="text-align:center;">
+      <div class="sheet-handle"></div>
+      <div style="font-size:2.2rem; margin-top:6px;">💧</div>
+      <h3 class="sheet-title" style="margin-top:4px;">May We Offer You Drinking Water?</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin:6px 0 16px;">
+        Complimentary fresh table water is provided with our compliments. Sealed packaged water is also available.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <button class="opt-pill active" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('COMPLIMENTARY')">
+          <span style="font-weight:800; font-size:0.9rem;">💧 Fresh Water</span>
+          <span style="font-size:0.75rem; color:#267e3e; font-weight:700;">Complimentary (Free)</span>
+        </button>
+        <button class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_500ML')">
+          <span style="font-weight:800; font-size:0.9rem;">🍶 Packaged 500ml</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">₹25 added to bill</span>
+        </button>
+        <button class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_1L')">
+          <span style="font-weight:800; font-size:0.9rem;">🍾 Packaged 1 Liter</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">₹40 added to bill</span>
+        </button>
+        <button class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('NO_WATER')">
+          <span style="font-weight:800; font-size:0.9rem;">🚫 No Water</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Skip selection</span>
+        </button>
+      </div>
+      <button class="submit-order-btn" style="background:var(--chip-bg); color:var(--text); border:1px solid var(--chip-border);" onclick="closeWaterModal()">Confirm Selection</button>
+    </div>
+  </div>
+
+  <!-- Cart / Checkout Drawer Bottom Sheet -->
+  <div id="cartModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'cartModal')">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="orderSummaryTitle">Your Table Order</h3>
+        <button class="sheet-close" onclick="closeCartModal()">✕</button>
+      </div>
+      <div class="cart-items" id="cartItemsList"></div>
+
+      <!-- Coursing Options -->
+      <div class="option-accordion">
+        <div class="accordion-title"><span id="courseStageLabel">Serve This Batch As</span></div>
+        <div class="pill-group">
+          <button class="opt-pill active" onclick="setCourse(this, 'ALL_TOGETHER')">All Together</button>
+          <button class="opt-pill" onclick="setCourse(this, 'STARTER')">Starters First</button>
+          <button class="opt-pill" onclick="setCourse(this, 'MAIN')">Mains Course</button>
+          <button class="opt-pill" onclick="setCourse(this, 'DESSERT')">Desserts &amp; Beverages</button>
+        </div>
+      </div>
+
+      <!-- Tip Selector in Indian Rupees (Group O) -->
+      <div class="option-accordion">
+        <div class="accordion-title"><span id="tipLabel">Add Server Gratuity (Tip)</span></div>
+        <div class="pill-group" id="tipPillGroup">
+          <button class="opt-pill" onclick="setTipPreset(this, 0)">0%</button>
+          <button class="opt-pill" onclick="setTipPreset(this, 5)">5%</button>
+          <button class="opt-pill active" onclick="setTipPreset(this, 10)">10%</button>
+          <button class="opt-pill" onclick="setTipPreset(this, 15)">15%</button>
+          <button class="opt-pill" onclick="setTipCustom(this)">Custom ₹</button>
+        </div>
+      </div>
+
+      <!-- Split Bill -->
+      <div class="option-accordion">
+        <div class="accordion-title">
+          <span id="splitBillTitle">Split Bill</span>
+          <span id="splitSummaryText" style="font-size:0.8rem; color:var(--primary); font-weight:800;">1 Guest (₹0)</span>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
+          <span style="font-size:0.82rem; color:var(--text-muted);" id="splitGuestsLabel">Number of Guests:</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="step-btn" onclick="adjustSplitGuests(-1)">-</button>
+            <span id="guestCountDisplay" style="font-weight:800; font-size:0.95rem;">1</span>
+            <button class="step-btn" onclick="adjustSplitGuests(1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="option-accordion">
+        <div class="accordion-title"><span id="paymentMethodTitle">Payment Method</span></div>
+        <div class="pill-group">
+          <button class="opt-pill active" onclick="setPaymentMethod(this, 'UPI')">UPI / GPay / PhonePe</button>
+          <button class="opt-pill" onclick="setPaymentMethod(this, 'CARD')">Credit / Debit Card</button>
+          <button class="opt-pill" onclick="setPaymentMethod(this, 'CASH')">Cash to Server</button>
+        </div>
+
+        <!-- Dynamic UPI QR & App Intent (Indian Commerce Standard - 9010150809) -->
+        <div id="upiPaymentBox" style="margin-top:10px; padding:12px; background:rgba(252,128,25,0.06); border:1px dashed var(--primary); border-radius:12px; text-align:center;">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--text-title); text-transform:uppercase; margin-bottom:4px;">Instant UPI Checkout</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">Scan with Google Pay, PhonePe, Paytm, or BHIM (UPI: 9010150809@ybl)</div>
+          <div style="display:flex; justify-content:center; margin:8px 0;">
+            <img id="upiQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9010150809%40ybl%26pn%3DAbiruchi%2BHotel%26cu%3DINR"
+                 style="width:130px; height:130px; border-radius:10px; border:2px solid #fff; background:#fff; padding:6px;" alt="UPI QR"
+                 onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi%3A%2F%2Fpay%3Fpa%3D9010150809%40ybl%26pn%3DAbiruchi%2BHotel%26cu%3DINR';" />
+          </div>
+          <div style="display:flex; justify-content:center; gap:8px; margin-top:6px;">
+            <a id="upiIntentLink" href="upi://pay?pa=9010150809@ybl&pn=Abiruchi+Hotel&cu=INR" style="text-decoration:none; background:var(--primary); color:#fff; font-size:0.8rem; font-weight:800; padding:8px 16px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;">
+              📱 Pay via UPI App
+            </a>
+            <button type="button" onclick="navigator.clipboard.writeText('9010150809@ybl'); showToast('UPI ID Copied: 9010150809@ybl');" style="font-size:0.78rem; font-weight:700; padding:8px 12px; border-radius:8px; border:1px solid var(--chip-border); background:var(--chip-bg); color:var(--text); cursor:pointer;">
+              📋 Copy VPA
+            </button>
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">
+            🔒 Zero-Trust: Payments verified by floor staff & reconciliation
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Box in INR -->
+      <div class="summary-box">
+        <div class="summary-line"><span id="lblSubtotal">Item Total:</span><span id="sumSubtotal">₹0</span></div>
+        <div class="summary-line"><span id="lblDiscount">Offer Savings:</span><span id="sumDiscount" style="color:#267e3e; font-weight:800;">-₹0</span></div>
+        <div class="summary-line"><span id="lblTax">GST (5%):</span><span id="sumTax">₹0</span></div>
+        <div class="summary-line"><span id="lblTip">Tip:</span><span id="sumTip">₹0</span></div>
+        <div class="summary-line total"><span id="lblTotal">To Pay:</span><span id="sumTotal">₹0</span></div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin: 10px 0;">
+        <button type="button" class="opt-pill" style="flex:1; padding:10px; text-align:center; font-weight:700;" onclick="openWaiterModal()">🔔 <span id="cartCallWaiterLabel">Call Waiter</span></button>
+        <button type="button" class="opt-pill" style="flex:1; padding:10px; text-align:center; font-weight:700;" onclick="openPreBillModal()">🧾 <span id="cartViewBillLabel">View Pre-Bill</span></button>
+      </div>
+
+      <button id="submitOrderBtn" class="submit-order-btn" onclick="handlePreOrderCheckout()">Send Order to Kitchen →</button>
+    </div>
+  </div>
+
+  <!-- Waiter Call Modal (Requirement 4) -->
+  <div id="waiterModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'waiterModal')">
+    <div class="bottom-sheet" style="max-width:480px;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="callStaffTitle">How can we assist you?</h3>
+        <button class="sheet-close" onclick="closeWaiterModal()">✕</button>
+      </div>
+
+      <!-- In-flight active call tracker banner -->
+      <div id="activeCallBanner" style="display:none;" class="active-call-banner">
+        <div>
+          <div style="font-weight:800; font-size:0.85rem;" id="activeCallText">Request Sent</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);" id="activeCallTime">Just now</div>
+        </div>
+        <span id="activeCallBadge" class="active-call-status status-pending">PENDING</span>
+      </div>
+
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:12px;" id="callStaffSubtitle">
+        Select a request type below. Our floor waitstaff will be alerted immediately.
+      </p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:6px 0;">
+        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Need assistance', 'ASSISTANCE')">👋 <span id="optAssistanceLabel">Need Assistance</span></button>
+        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Request water', 'WATER')">💧 <span id="optWaterLabel">Request Water</span></button>
+        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Request bill', 'BILL')">🧾 <span id="optBillLabel">Request Bill</span></button>
+        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Need extra plates or cutlery', 'CUTLERY')">🍴 <span id="optCutleryLabel">Extra Cutlery</span></button>
+        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Food-related issue', 'FOOD_ISSUE')">🍲 <span id="optFoodIssueLabel">Food Issue</span></button>
+        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Other assistance', 'OTHER')">💬 <span id="optOtherLabel">Other Help</span></button>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;" id="waiterNoteLabel">Optional message for staff</label>
+        <input type="text" id="waiterNoteInput" placeholder="e.g. Please bring warm water, extra tissues" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--chip-border); background:var(--surface); color:var(--text); font-size:0.88rem; margin-top:4px;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Water Bottle Checkout Upsell Prompt Modal (Requirement 9) -->
+  <div id="waterBottleModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'waterBottleModal')">
+    <div class="bottom-sheet" style="text-align:center; max-width:440px;">
+      <div class="sheet-handle"></div>
+      <div class="water-bottle-icon">💧</div>
+      <h3 class="sheet-title" id="wbPromptTitle" style="margin-top:4px;">Would you like to add a water bottle?</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin:6px 0 16px;" id="wbPromptSubtitle">
+        Chilled 1L sealed packaged mineral water bottle for your table.
+      </p>
+      <div class="water-bottle-card">
+        <div style="font-size:1.15rem; font-weight:800; color:var(--text-title);" id="wbItemName">Packaged Water Bottle (1L)</div>
+        <div style="font-size:1.3rem; font-weight:900; color:var(--primary); margin-top:4px;" id="wbItemPrice">₹20.00</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button class="submit-order-btn" id="wbAcceptBtn" onclick="respondWaterBottle(true)" style="background:#10b981;">
+          ✓ Yes, add 1 bottle (₹20)
+        </button>
+        <button class="opt-pill" id="wbDeclineBtn" onclick="respondWaterBottle(false)" style="padding:12px; font-weight:700; width:100%; text-align:center;">
+          ✕ No, thank you
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-Bill / Request Bill Preview Modal (Requirement 5) -->
+  <div id="billPreviewModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'billPreviewModal')">
+    <div class="bottom-sheet" style="text-align:left; max-height:85vh; overflow-y:auto; max-width:480px;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="billModalTitle">Table Bill Preview</h3>
+        <button class="sheet-close" onclick="closeBillPreviewModal()">✕</button>
+      </div>
+      <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;" id="billHeaderMeta">
+        Abiruchi Hotel • Table 14 • Estimate
+      </div>
+      <div class="bill-breakdown-card" id="billContentContainer">
+        <div style="text-align:center; padding:20px; color:var(--text-muted);">Loading bill details...</div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <button class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="printBillPreview()">
+          🖨️ Print Bill
+        </button>
+        <button class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="openSplitBillFlow()">
+          👥 Split Bill
+        </button>
+        <button class="submit-order-btn" style="flex:1.5; padding:12px; text-align:center;" onclick="initiateUpiFromBill()">
+          💳 Pay via UPI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Order Tracking Stepper Modal -->
+  <div id="orderStatusModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'orderStatusModal')">
+    <div class="bottom-sheet" style="text-align:left; max-width:480px;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="trackerModalTitle">Live Order Tracker</h3>
+        <button class="sheet-close" onclick="closeOrderStatusModal()">✕</button>
+      </div>
+      <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+        Order #<span id="liveOrderId">---</span> • Table <span id="liveOrderTable">--</span>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button type="button" class="opt-pill" style="flex:1; padding:10px; text-align:center; font-weight:700;" onclick="openWaiterModal()">🔔 Call Waiter</button>
+        <button type="button" class="opt-pill" style="flex:1; padding:10px; text-align:center; font-weight:700; background:rgba(255,102,0,0.15); color:var(--primary);" onclick="requestBillDirect()">🧾 Request Bill</button>
+        <button type="button" class="opt-pill" style="flex:1; padding:10px; text-align:center; font-weight:700;" onclick="openPreBillModal()">📄 Bill Preview</button>
+      </div>
+
+      <div id="tokenBadgeContainer" style="display:none; background:rgba(252,128,25,0.1); border:1px solid rgba(252,128,25,0.3); border-radius:10px; padding:10px 14px; margin-bottom:14px; text-align:center;">
+        <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:800;">Your Pickup Token</span>
+        <div id="guestTokenCode" style="font-size:1.8rem; font-weight:900; color:var(--primary); font-family:monospace; margin-top:2px;">A-01</div>
+      </div>
+      <div id="stepperContainer" style="display:flex; flex-direction:column; gap:12px; margin-bottom:18px;"></div>
+      <button class="submit-order-btn" onclick="closeOrderStatusModal()">Done Tracking</button>
+    </div>
+  </div>
+
+  <!-- Post-Order Feedback / Google Reviews Modal -->
+  <div id="reviewModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'reviewModal')">
+    <div class="bottom-sheet" style="text-align:center;">
+      <div class="sheet-handle"></div>
+      <h3 class="sheet-title" id="reviewTitle" style="margin-top:6px;">How was your dining experience?</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;" id="reviewSubtitle">Your feedback directly supports our culinary team.</p>
+      <div class="star-row">
+        <button class="star-btn" onclick="rateExperience(1)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-btn" onclick="rateExperience(2)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-btn" onclick="rateExperience(3)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-btn" onclick="rateExperience(4)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-btn active" onclick="rateExperience(5)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      </div>
+      <button class="submit-order-btn" onclick="submitReviewAction()">Submit Feedback</button>
+    </div>
+  </div>
+
+  <!-- Guest Mobile OTP Login Modal (Indian +91 Phone Format) -->
+  <div id="loginModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'loginModal')">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title">Guest Sign In & Preferences</h3>
+        <button class="sheet-close" onclick="closeLoginModal()">✕</button>
+      </div>
+      <div id="loginOtpStep">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Sign in with your Indian mobile number to save your favorite dishes, spice levels, and dietary preferences.</p>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Indian Mobile Number</label>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <span style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); padding:10px 14px; border-radius:10px; font-weight:800; font-size:0.9rem; display:flex; align-items:center;">🇮🇳 +91</span>
+            <input type="tel" id="guestPhoneInput" placeholder="98765 43210" maxlength="10" style="flex:1; padding:10px 12px; border-radius:10px; border:1px solid var(--chip-border); background:var(--surface); color:var(--text); font-size:0.95rem; font-weight:700;" />
+          </div>
+        </div>
+        <div id="otpInputContainer" style="display:none; margin-bottom:14px;">
+          <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">4-Digit OTP Code</label>
+          <input type="text" id="guestOtpCode" placeholder="1234" maxlength="6" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--chip-border); background:var(--surface); color:var(--text); margin-top:4px; letter-spacing:0.35em; font-weight:800; font-size:1.1rem; text-align:center;" />
+        </div>
+        <button id="sendOtpBtn" class="submit-order-btn" onclick="requestGuestOTP()">Send OTP</button>
+        <button id="verifyOtpBtn" class="submit-order-btn" onclick="verifyGuestOTP()" style="display:none;">Verify &amp; Sign In</button>
+      </div>
+      <div id="prefsStep" style="display:none;">
+        <div style="margin-bottom:14px;">
+          <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Dietary & Allergies</label>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
+            <label style="font-size:0.84rem; display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox" id="prefDairyFree" /> Dairy-Free</label>
+            <label style="font-size:0.84rem; display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox" id="prefGlutenFree" /> Gluten-Free</label>
+            <label style="font-size:0.84rem; display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox" id="prefNutFree" /> Nut-Free</label>
+          </div>
+        </div>
+        <button class="submit-order-btn" onclick="saveGuestPreferences()">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Order Confirmation Modal -->
+  <div id="scheduledOrderModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'scheduledOrderModal')">
+    <div class="bottom-sheet" style="text-align:center;">
+      <div class="sheet-handle"></div>
+      <div style="font-size:2.6rem; margin-top:8px;">🎉</div>
+      <h3 class="sheet-title" style="margin-top:4px;">Scheduled Order Confirmed!</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin:6px 0 14px;">
+        Your order is confirmed and scheduled in our kitchen queue. A ticket will automatically release to the kitchen 25 minutes before pickup.
+      </p>
+
+      <div style="background:rgba(252,128,25,0.08); border:1px solid var(--primary); border-radius:14px; padding:16px; margin-bottom:14px;">
+        <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Pickup Token</div>
+        <div id="scheduledTokenDisplay" style="font-size:2rem; font-weight:900; color:var(--primary); letter-spacing:0.05em; margin:4px 0;">TK-402</div>
+        <div style="font-size:0.88rem; font-weight:700; color:var(--text-title);" id="scheduledPickupSummary">Today at 07:30 PM</div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.8rem; color:#267e3e; font-weight:700; margin-bottom:16px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>WhatsApp updates enabled for this order</span>
+      </div>
+
+      <button class="submit-order-btn" onclick="document.getElementById('scheduledOrderModal').classList.remove('active')">Got It, Return to Menu</button>
+    </div>
+  </div>
+
+  <!-- Dish Detail & Allergen Modal -->
+  <div id="dishDetailModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'dishDetailModal')">
+    <div class="bottom-sheet" style="text-align:left; max-height:85vh; overflow-y:auto;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h3 class="sheet-title" id="dishModalTitle">Dish Details</h3>
+        <button class="sheet-close" onclick="closeDishDetailModal()">✕</button>
+      </div>
+      <div id="dishModalPhotoBox" style="border-radius:14px; overflow:hidden; margin-bottom:14px; max-height:220px; position:relative;">
+        <img id="dishModalImg" src="" alt="Dish detail" style="width:100%; height:100%; object-fit:cover;" />
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span id="dishModalDietBadge"></span>
+          <span style="font-weight:900; font-size:1.2rem; color:var(--text-title);" id="dishModalPrice">₹0</span>
+        </div>
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:700;" id="dishModalPrepTime">⏱ ~15 mins</span>
+      </div>
+      <p style="font-size:0.9rem; color:var(--text); line-height:1.5; margin-bottom:14px;" id="dishModalDesc"></p>
+      
+      <!-- Verified Allergen Notice -->
+      <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:12px; margin-bottom:14px;">
+        <div style="font-size:0.75rem; font-weight:800; color:#f59e0b; text-transform:uppercase; margin-bottom:4px;">⚠️ Allergen Advisory</div>
+        <p style="font-size:0.8rem; color:var(--text); line-height:1.4;" id="dishModalAllergenNotice">
+          Verified restaurant data: Contains dairy, gluten. Prepared in a kitchen handling tree nuts.
+        </p>
+      </div>
+
+      <button class="submit-order-btn" id="dishModalAddBtn" onclick="addCurrentModalDishToCart()">Add to Order</button>
+    </div>
+  </div>
+
+  <!-- Loyalty Rewards Opt-In Modal (Group Q - Cases 136-142) -->
+  <div id="loyaltyModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'loyaltyModal')">
+    <div class="bottom-sheet" style="text-align:center; max-width:440px;">
+      <div class="sheet-handle"></div>
+      <div style="font-size:2.5rem; margin-top:8px;">🌟</div>
+      <h3 class="sheet-title" style="margin-top:4px;">Join Abiruchi Hotel Rewards</h3>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin:6px 0 16px;">
+        Earn a loyalty stamp on every dining visit! Collect 5 stamps to receive a complimentary dish on the house.
+      </p>
+
+      <div style="text-align:left; margin-bottom:12px;">
+        <label for="loyaltyPhone" style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Mobile Number</label>
+        <input type="tel" id="loyaltyPhone" placeholder="10-digit mobile number" maxlength="10" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--chip-border); background:var(--surface); color:var(--text); font-size:0.95rem; font-weight:700; margin-top:4px;" />
+      </div>
+
+      <div style="text-align:left; margin-bottom:16px;">
+        <label for="loyaltyName" style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Your Name (Optional)</label>
+        <input type="text" id="loyaltyName" placeholder="e.g. Anand Sharma" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--chip-border); background:var(--surface); color:var(--text); font-size:0.95rem; font-weight:700; margin-top:4px;" />
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="skipLoyaltyOptIn()">
+          Skip for Now
+        </button>
+        <button type="button" class="submit-order-btn" style="flex:1.5; padding:12px; text-align:center;" onclick="submitLoyaltyOptIn()">
+          Join &amp; Collect Stamp
+        </button>
+      </div>
+
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:12px;">
+        🔒 Privacy Notice: We do not spam. You can opt out and delete your data at any time.
+      </div>
+    </div>
+  </div>
+
+  <script src="/guest/router.js" defer></script>
+  <script src="/guest/app.js" defer></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
-
-      list.innerHTML = html;
-
-      const discountedSubtotal = Math.max(0, subtotalCents - appliedDiscountCents);
-      const taxCents = Math.round(discountedSubtotal * 0.0825);
-      const tipCents = Math.round(discountedSubtotal * (selectedTipPercent / 100));
-      const totalCents = discountedSubtotal + taxCents + tipCents;
-
-      document.getElementById('modalSubtotal').textContent = formatCents(subtotalCents);
-      document.getElementById('modalTax').textContent = formatCents(taxCents);
-      document.getElementById('modalTip').textContent = formatCents(tipCents);
-      document.getElementById('modalTotal').textContent = formatCents(totalCents);
     }
-
-    function modifyQty(index, delta) {
-      if (!cart[index]) return;
-      cart[index].quantity += delta;
-      if (cart[index].quantity <= 0) cart.splice(index, 1);
-      updateCartBar();
-      renderModalCart();
-    }
-
-    function selectTip(percent, btn) {
-      selectedTipPercent = percent;
-      document.querySelectorAll('.tip-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderModalCart();
-    }
-
-    async function submitOrder() {
-      const btn = document.getElementById('submitOrderBtn');
-      btn.disabled = true;
-      btn.textContent = (i18n[currentLang] || i18n.en).sending || 'Sending...';
-
-      const guestNotes = document.getElementById('guestNotesInput').value;
-      const subtotalCents = cart.reduce((sum, c) => sum + (c.item.basePriceCents * c.quantity), 0);
-      const tipCents = Math.round(subtotalCents * (selectedTipPercent / 100));
-
-      const payload = {
-        tenantId: 'a0000000-0000-0000-0000-000000000001',
-        outletId: 'b0000000-0000-0000-0000-000000000001',
-        tableId: activeTable.id,
-        tableNumber: activeTable.number,
-        items: cart.map(c => ({
-          menuItemId: c.item.id,
-          quantity: c.quantity,
-          selectedModifiers: []
-        })),
-        guestNotes,
-        tipCents
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/orders`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-          const order = await res.json();
-          activeOrderId = order.id;
-          cart = [];
-          updateCartBar();
-          closeCartModal();
-          showTrackingScreen(order);
-        } else {
-          alert('Could not submit order');
-        }
-      } catch (err) {
-        alert('Network error: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = (i18n[currentLang] || i18n.en).sendOrder;
-      }
-    }
-
-    function showTrackingScreen(order) {
-      document.getElementById('trackOrderId').textContent = order.id;
-      document.getElementById('trackTableNum').textContent = order.tableNumber;
-      document.getElementById('trackingModal').style.display = 'flex';
-    }
-
-    function closeTrackingModal() {
-      document.getElementById('trackingModal').style.display = 'none';
-    }
-
-    // Call Waiter Modal
-    function openCallWaiterModal() {
-      document.getElementById('waiterModal').style.display = 'flex';
-    }
-    function closeWaiterModal() {
-      document.getElementById('waiterModal').style.display = 'none';
-    }
-    async function sendWaiterCall(reason) {
-      try {
-        await fetch(`${API_BASE}/api/v1/tables/call`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tableNumber: activeTable.number,
-            reason: reason
-          })
-        });
-        alert('🛎️ ' + (i18n[currentLang] || i18n.en).water + ' requested! Waitstaff notified.');
-      } catch (e) {
-        alert('Server notified!');
-      }
-      closeWaiterModal();
-    }
-
-    // Bill Splitter Modal
-    function openSplitBillModal() {
-      calculateSplit(2);
-      document.getElementById('splitModal').style.display = 'flex';
-    }
-    function closeSplitModal() {
-      document.getElementById('splitModal').style.display = 'none';
-    }
-    function calculateSplit(diners, btn) {
-      if (btn) {
-        document.querySelectorAll('.split-pill').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-      }
-      const subtotalCents = cart.reduce((sum, c) => sum + (c.item.basePriceCents * c.quantity), 0);
-      const totalCents = subtotalCents > 0 ? Math.round(subtotalCents * 1.0825 * 1.15) : 4800; // Sample tab if empty
-      const perPerson = Math.round(totalCents / diners);
-      document.getElementById('splitPerPersonDisplay').textContent = formatCents(perPerson);
-    }
-
-    // AI Concierge
-    function openAiConciergeModal() {
-      document.getElementById('aiModal').style.display = 'flex';
-    }
-    function closeAiModal() {
-      document.getElementById('aiModal').style.display = 'none';
-    }
-    async function askAiConcierge() {
-      const q = document.getElementById('aiQueryInput').value;
-      if (!q) return;
-
-      const box = document.getElementById('aiAnswerBox');
-      box.style.display = 'block';
-      box.innerHTML = 'Thinking...';
-
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/ai/concierge`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: q, locale: currentLang })
-        });
-        if (res.ok) {
-          const ans = await res.json();
-          box.innerHTML = `
-            <div style="color: #4ade80; font-weight: 700; margin-bottom: 4px;">AI Waiter:</div>
-            <div>${ans.message}</div>
-            <ul style="margin: 8px 0 0 20px; color: #fff;">
-              ${ans.safeDishes.map(d => `<li>${d}</li>`).join('')}
-            </ul>
-          `;
-        }
-      } catch (e) {
-        box.innerHTML = 'All our pizzas can be prepared on an artisan gluten-free crust upon request.';
-      }
-    }
-
-    initSession();
   </script>
 </body>
 </html>

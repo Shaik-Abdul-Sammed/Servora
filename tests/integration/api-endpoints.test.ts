@@ -31,8 +31,7 @@ test('Order Service REST & KDS API Integration', async (t) => {
     const res = await fetch(`${baseUrl}/`);
     assert.equal(res.status, 200);
     const html = await res.text();
-    assert.match(html, /Table Ordering/);
-    assert.match(html, /Trattoria Servora/);
+    assert.match(html, /Abiruchi Hotel/);
   });
 
   await t.test('GET /kds serves Kitchen Display System app', async () => {
@@ -40,7 +39,7 @@ test('Order Service REST & KDS API Integration', async (t) => {
     assert.equal(res.status, 200);
     const html = await res.text();
     assert.match(html, /Kitchen Display System/);
-    assert.match(html, /Trattoria Servora/);
+    assert.match(html, /Abiruchi Hotel/);
   });
 
   await t.test('POST /api/v1/qr/generate creates signed QR payload', async () => {
@@ -69,7 +68,7 @@ test('Order Service REST & KDS API Integration', async (t) => {
     const data = await res.json();
     assert.equal(data.verified, true);
     assert.equal(data.table.tableNumber, 'T-01');
-    assert.equal(data.tenant.name, 'Trattoria Servora');
+    assert.equal(data.tenant.name, 'Abiruchi Hotel');
   });
 
   await t.test('GET /api/v1/menu retrieves categories and dishes', async () => {

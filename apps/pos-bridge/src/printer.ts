@@ -5,7 +5,7 @@ export class ThermalReceiptFormatter {
   /**
    * Formats a dining order into an ESC/POS binary buffer for thermal printers.
    */
-  public static toEscPos(order: Order, venueName: string = 'TRATTORIA SERVORA'): Buffer {
+  public static toEscPos(order: Order, venueName: string = 'ABIRUCHI HOTEL'): Buffer {
     const ESC = 0x1b;
     const GS = 0x1d;
 
@@ -71,7 +71,7 @@ export class ThermalReceiptFormatter {
   /**
    * Formats receipt as human-readable ASCII text for terminals / preview.
    */
-  public static toAsciiReceipt(order: Order, venueName: string = 'TRATTORIA SERVORA'): string {
+  public static toAsciiReceipt(order: Order, venueName: string = 'ABIRUCHI HOTEL'): string {
     const line = '='.repeat(44);
     const subLine = '-'.repeat(44);
 
@@ -109,5 +109,58 @@ export class ThermalReceiptFormatter {
     receipt += `${line}\n[CUT PAPER]\n`;
 
     return receipt;
+  }
+
+  /**
+   * Generates standard ESC/POS pulse command to kick open the physical cash drawer.
+   * Command: ESC p m t1 t2 (0x1B 0x70 0x00 0x19 0xFA)
+   */
+  public static kickCashDrawer(): Buffer {
+    return Buffer.from([0x1b, 0x70, 0x00, 0x19, 0xfa]);
+  }
+
+  /**
+   * Generates standard ESC/POS sound buzzer alert to notify line cooks of a rush ticket.
+   * Command: ESC B n t (0x1B 0x42 0x03 0x02)
+   */
+  public static soundBuzzer(): Buffer {
+    return Buffer.from([0x1b, 0x42, 0x03, 0x02]);
+  }
+
+  /**
+   * Formats a station-specific order ticket (e.g. Bar station only receives beverage items).
+   */
+  public static toStationEscPos(order: Order, targetStation: string, venueName: string = 'ABIRUCHI HOTEL'): Buffer {
+    const stationItems = order.items.filter((i) => (i.station || 'KITCHEN') === targetStation);
+    const filteredOrder: Order = {
+      ...order,
+      items: stationItems.length ? stationItems : order.items,
+    };
+    return this.toEscPos(filteredOrder, `${venueName} [${targetStation.toUpperCase()}]`);
+  }
+
+  /**
+   * Streams raw ESC/POS binary buffer directly to a physical network thermal printer on TCP port 9100.
+   */
+  public static async printToNetwork(host: string, port = 9100, buffer: Buffer): Promise<boolean> {
+    const { Socket } = await import('node:net');
+    return new Promise((resolve) => {
+      const client = new Socket();
+      client.setTimeout(3000);
+      client.connect(port, host, () => {
+        client.write(buffer, () => {
+          client.end();
+          resolve(true);
+        });
+      });
+      client.on('error', (err) => {
+        console.warn(`[POS Bridge] Direct TCP print error to ${host}:${port}:`, err.message);
+        resolve(false);
+      });
+      client.on('timeout', () => {
+        client.destroy();
+        resolve(false);
+      });
+    });
   }
 }

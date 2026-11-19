@@ -11,7 +11,7 @@ export class PaymentService {
 
   /**
    * Creates a PCI-DSS SAQ-A compliant tokenized payment intent.
-   * Client card details NEVER touch Servora application servers.
+   * Client card details NEVER touch Abiruchi Hotel application servers.
    */
   public createPaymentIntent(params: {
     tenantId: string;

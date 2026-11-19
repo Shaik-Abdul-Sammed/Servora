@@ -21,7 +21,7 @@ export const hi = {
     orderMore: 'और व्यंजन ऑर्डर करें',
     orderRef: 'ऑर्डर संदर्भ संख्या',
     kitchenNote: 'रसोई के लिए विशेष निर्देश (उदा. कम तीखा, अतिरिक्त सॉस):',
-    specialOffer: '🎁 विशेष छूट: कूपन कोड SERVORA50 का उपयोग करें और ₹50 की छूट पाएं!',
+    specialOffer: '🎁 विशेष छूट: कूपन कोड ABIRUCHI HOTEL50 का उपयोग करें और ₹50 की छूट पाएं!',
     aiConcierge: '🤖 AI वेटर से पूछें',
     askAiPlaceholder: 'एलर्जी, सामग्री, या पेय सुझावों के बारे में पूछें...',
     containsAllergens: 'एलर्जी चेतावनी:',

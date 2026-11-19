@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Studio — Abiruchi Hotel Operating System</title>
+  <link rel="stylesheet" href="/guest/styles.css">
+  <style>
+    :root {
+      --primary: #ff6600;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .top-nav {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .nav-link:hover, .nav-link:focus-visible, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 102, 0, 0.15);
+      outline: 2px solid var(--primary);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .header-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .btn:hover, .btn:focus-visible {
+      opacity: 0.9;
+      outline: 2px solid #fff;
+    }
+    .btn-delete {
+      background: var(--danger);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+    .btn-edit {
+      background: #334155;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+    .btn-pdf {
+      background: #2563eb;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+    .table-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .table-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .table-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .table-zone {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255,102,0,0.15);
+      color: var(--primary);
+      margin-top: 4px;
+    }
+    .token-text {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 10px 0;
+      word-break: break-all;
+    }
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      place-items: center;
+      z-index: 1000;
+    }
+    .modal-backdrop.open { display: grid; }
+    .modal-box {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      width: 90%;
+      max-width: 440px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav" aria-label="Main Navigation">
+    <a href="/owner.html" class="brand-title" aria-label="Abiruchi Hotel Home">
+      🍛 ABIRUCHI HOTEL
+    </a>
+    <div class="nav-links">
+      <a href="/owner.html" class="nav-link" aria-label="Owner Dashboard">Dashboard</a>
+      <a href="/manager.html" class="nav-link" aria-label="Manager Operations">Manager Ops</a>
+      <a href="/qr-manager.html" class="nav-link active" aria-label="QR Studio">QR Studio</a>
+      <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
+      <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="header-action">
+      <div>
+        <h1 class="page-title">Manager QR Code Studio</h1>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+          Manage dine-in tables, generate tamper-evident QR standees, download printable PDFs.
+        </div>
+      </div>
+      <button class="btn" onclick="openCreateModal()" aria-label="Create new table QR code">
+        ➕ Create New Table
+      </button>
+    </div>
+
+    <!-- Active Tables Grid (Cases 1, 2, 3, 5) -->
+    <div class="table-grid" id="tablesContainer" role="region" aria-label="Active Restaurant Tables">
+      <div style="color:var(--text-muted); padding:30px; text-align:center;">Loading QR tables...</div>
+    </div>
+  </main>
+
+  <!-- Create / Edit Table Modal -->
+  <div class="modal-backdrop" id="tableModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <h2 id="modalTitle" style="margin-top:0; color:#fff; font-size:1.2rem;">Create Table QR</h2>
+      <input type="hidden" id="editTableId">
+      <div style="margin-bottom:14px;">
+        <label for="tableNameInput" style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:6px;">Table Name / Number</label>
+        <input type="text" id="tableNameInput" placeholder="e.g. Table 15 or Window 15" aria-label="Table name or number"
+               style="width:100%; box-sizing:border-box; padding:10px; border-radius:6px; background:#0f172a; border:1px solid var(--border); color:#fff;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label for="tableZoneInput" style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:6px;">Zone / Floor Section</label>
+        <select id="tableZoneInput" aria-label="Dining Zone Selection"
+                style="width:100%; box-sizing:border-box; padding:10px; border-radius:6px; background:#0f172a; border:1px solid var(--border); color:#fff;">
+          <option value="Main Dining">Main Dining</option>
+          <option value="Family Section">Family Section</option>
+          <option value="Patio">Patio / Outdoor</option>
+          <option value="Window View">Window View</option>
+          <option value="VIP Lounge">VIP Lounge</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-edit" onclick="closeModal()" aria-label="Cancel table edit">Cancel</button>
+        <button class="btn" onclick="saveTable()" aria-label="Save table details">Save Table</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadTables() {
+      try {
+        const res = await fetch('/api/v1/qr/tables');
+        const data = await res.json();
+        const tables = data.tables || [];
+        const container = document.getElementById('tablesContainer');
+
+        if (tables.length === 0) {
+          container.innerHTML = '<div style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:40px;">No active tables found. Click "+ Create New Table" to start.</div>';
+          return;
+        }
+
+        container.innerHTML = tables.map(t => \`
+          <div class="table-card">
+            <div>
+              <div class="table-name">\${t.name}</div>
+              <span class="table-zone">\${t.zone}</span>
+              <div class="token-text">Token: \${t.qr_token || 'N/A'}</div>
+            </div>
+            <div class="card-actions">
+              <a href="/api/v1/qr/tables/\${t.id}/pdf" class="btn btn-pdf" aria-label="Download printable PDF for \${t.name}">
+                🖨️ PDF
+              </a>
+              <button class="btn btn-edit" onclick="openEditModal('\${t.id}', '\${t.name}', '\${t.zone}')" aria-label="Rename or change zone for \${t.name}">
+                ✏️ Edit
+              </button>
+              <button class="btn btn-delete" onclick="deleteTable('\${t.id}', '\${t.name}')" aria-label="Soft delete table \${t.name}">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        \`).join('');
+      } catch (e) {
+        console.error('Failed to load tables', e);
+      }
+    }
+
+    function openCreateModal() {
+      document.getElementById('modalTitle').textContent = 'Create Table QR';
+      document.getElementById('editTableId').value = '';
+      document.getElementById('tableNameInput').value = '';
+      document.getElementById('tableZoneInput').value = 'Main Dining';
+      document.getElementById('tableModal').classList.add('open');
+      document.getElementById('tableNameInput').focus();
+    }
+
+    function openEditModal(id, name, zone) {
+      document.getElementById('modalTitle').textContent = 'Rename / Reassign Zone';
+      document.getElementById('editTableId').value = id;
+      document.getElementById('tableNameInput').value = name;
+      document.getElementById('tableZoneInput').value = zone;
+      document.getElementById('tableModal').classList.add('open');
+      document.getElementById('tableNameInput').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('tableModal').classList.remove('open');
+    }
+
+    async function saveTable() {
+      const id = document.getElementById('editTableId').value;
+      const name = document.getElementById('tableNameInput').value.trim();
+      const zone = document.getElementById('tableZoneInput').value;
+
+      if (!name) {
+        alert('Please enter a table name');
+        return;
+      }
+
+      try {
+        if (id) {
+          // PUT update
+          const res = await fetch(\`/api/v1/qr/tables/\${id}\`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, zone })
+          });
+          if (res.ok) {
+            closeModal();
+            loadTables();
+          }
+        } else {
+          // POST create
+          const res = await fetch('/api/v1/qr/tables', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, zone })
+          });
+          if (res.ok) {
+            closeModal();
+            loadTables();
+          }
+        }
+      } catch (e) {
+        alert('Error saving table');
+      }
+    }
+
+    async function deleteTable(id, name) {
+      if (!confirm(\`Delete \${name}? Scanning this QR will immediately return 410 Gone.\`)) return;
+      try {
+        const res = await fetch(\`/api/v1/qr/tables/\${id}\`, { method: 'DELETE' });
+        if (res.ok) loadTables();
+      } catch (e) {
+        alert('Error deleting table');
+      }
+    }
+
+    loadTables();
+  </script>
+</body>
+</html>

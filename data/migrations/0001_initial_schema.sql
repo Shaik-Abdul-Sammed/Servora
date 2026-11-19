@@ -1,5 +1,5 @@
 -- ============================================================================
--- Servora Database Schema - Initial Migration (0001)
+-- Abiruchi Hotel Database Schema - Initial Migration (0001)
 -- Multi-Tenant QR Restaurant Operating System with Row-Level Security (RLS)
 -- ============================================================================
 

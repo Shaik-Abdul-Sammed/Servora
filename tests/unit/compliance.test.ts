@@ -10,7 +10,7 @@ import {
 test('Compliance & Data Protection Sanitizers', async (t) => {
   await t.test('Masks email addresses appropriately', () => {
     assert.equal(maskEmail('guest@example.com'), 'g***t@example.com');
-    assert.equal(maskEmail('alex@servora.restaurant'), 'a***x@servora.restaurant');
+    assert.equal(maskEmail('alex@abiruchi.restaurant'), 'a***x@abiruchi.restaurant');
   });
 
   await t.test('Masks phone numbers to last 4 digits', () => {

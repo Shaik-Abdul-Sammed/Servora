@@ -1,5 +1,5 @@
 {
-  "name": "@servora/waiter-agent",
+  "name": "@abiruchi/waiter-agent",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,6 +8,6 @@
     "test": "node --experimental-strip-types tests/waiter-agent.test.ts"
   },
   "dependencies": {
-    "@servora/shared-types": "*"
+    "@abiruchi/shared-types": "*"
   }
 }

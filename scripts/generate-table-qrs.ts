@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Servora CLI: Generate and Export Signed Table QR Tokens
+ * Abiruchi Hotel CLI: Generate and Export Signed Table QR Tokens
  * Usage: node --experimental-strip-types scripts/generate-table-qrs.ts
  */
 
@@ -8,8 +8,8 @@ import { createSignedQRSession } from '../packages/utils/src/qr-crypto.ts';
 
 const TENANT_ID = process.env.TENANT_ID || 'a0000000-0000-0000-0000-000000000001';
 const OUTLET_ID = process.env.OUTLET_ID || 'b0000000-0000-0000-0000-000000000001';
-const SECRET_KEY = process.env.QR_SIGNING_SALT || 'servora-dev-qr-secret-key-32-bytes-min';
-const BASE_URL = process.env.SERVORA_PUBLIC_URL || 'https://order.servora.local';
+const SECRET_KEY = process.env.QR_SIGNING_SALT || 'abiruchi-dev-qr-secret-key-32-bytes-min';
+const BASE_URL = process.env.ABIRUCHI HOTEL_PUBLIC_URL || 'https://order.abiruchi.local';
 
 const tables = [
   { id: 'c0000000-0000-0000-0000-000000000001', number: 'T-01', cap: 2, zone: 'Main Dining' },
@@ -20,8 +20,8 @@ const tables = [
 ];
 
 console.log('='.repeat(78));
-console.log('   SERVORA TABLE QR CODE BATCH GENERATOR (HMAC-SHA256 SIGNED)');
-console.log('   Tenant:  Trattoria Servora');
+console.log('   ABIRUCHI HOTEL TABLE QR CODE BATCH GENERATOR (HMAC-SHA256 SIGNED)');
+console.log('   Tenant:  Trattoria Abiruchi Hotel');
 console.log('   Outlet:  Downtown Flagship');
 console.log('='.repeat(78));
 

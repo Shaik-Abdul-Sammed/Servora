@@ -1,0 +1,13 @@
+{
+  "segment": "RESTAURANT",
+  "displayMode": "TABLE",
+  "tokenMode": false,
+  "tableNumbers": true,
+  "bookingEnabled": true,
+  "payFirst": false,
+  "requireFirstOrderApproval": true,
+  "tokenPrefix": "R",
+  "tippingEnabled": true,
+  "categoryPresets": ["STARTER", "MAIN", "DESSERT", "BEVERAGE"],
+  "categories": ["Starters", "Mains", "Desserts", "Beverages"]
+}

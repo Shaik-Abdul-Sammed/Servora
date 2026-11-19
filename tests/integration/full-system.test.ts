@@ -30,7 +30,7 @@ test('Full Multi-Persona System & AI Integration', async (t) => {
     assert.equal(res.status, 200);
     const html = await res.text();
     assert.match(html, /Super-Admin/);
-    assert.match(html, /Trattoria Servora/);
+    assert.match(html, /Abiruchi Hotel/);
   });
 
   await t.test('GET /waiter serves Floor Waitstaff Terminal', async () => {
@@ -45,7 +45,7 @@ test('Full Multi-Persona System & AI Integration', async (t) => {
     const res = await fetch(`${baseUrl}/manifest.json`);
     assert.equal(res.status, 200);
     const manifest = await res.json();
-    assert.equal(manifest.short_name, 'Servora');
+    assert.equal(manifest.short_name, 'Abiruchi');
     assert.equal(manifest.display, 'standalone');
   });
 

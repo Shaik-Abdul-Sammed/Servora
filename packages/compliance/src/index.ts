@@ -1,5 +1,5 @@
 /**
- * Servora Privacy, GDPR, DPDP & PCI-DSS SAQ-A Compliance Utilities
+ * Abiruchi Hotel Privacy, GDPR, DPDP & PCI-DSS SAQ-A Compliance Utilities
  */
 
 export function maskEmail(email: string): string {

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Approvals — Abiruchi Hotel Staff</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+    .sidebar-brand { font-size:1.1rem; font-weight:800; color:#fff; padding:12px 12px 20px; letter-spacing:-0.02em; }
+    .nav-link { display:block; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:600; transition:all 0.15s ease; }
+    .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
+    .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
+    .main-content { flex:1; padding:24px; overflow-y:auto; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:20px; letter-spacing:-0.02em; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+    .btn { padding:10px 18px; border-radius:10px; border:none; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s ease; }
+    .btn-approve { background:linear-gradient(135deg,#10b981,#059669); color:#fff; box-shadow:0 4px 14px rgba(16,185,129,0.4); }
+    .btn-approve:active { transform:scale(0.97); }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+    .badge-amber { background:rgba(245,158,11,0.15); color:#f59e0b; }
+    .empty-state { text-align:center; padding:48px; color:var(--muted); }
+    @media(max-width:768px) { body{flex-direction:column} .sidebar{width:100%;min-height:auto;flex-direction:row;flex-wrap:wrap;padding:12px} .sidebar-brand{display:none} }
+  </style>
+</head>
+<body>
+  <div id="navContainer"></div>
+  <div class="main-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h1 class="page-title">✅ First-Order Confirmation Queue (P0 #47)</h1>
+      <span style="font-size:0.8rem;color:var(--muted);" id="refreshStatus">Auto-refreshing (3s)...</span>
+    </div>
+    <div id="ordersList"></div>
+  </div>
+
+  <script src="/staff/shared.js"></script>
+  <script>
+    document.getElementById('navContainer').innerHTML = renderStaffNav('confirm');
+    const OUTLET_ID = 'b0000000-0000-0000-0000-000000000001';
+
+    async function loadApprovals() {
+      try {
+        const res = await fetch(`/api/v1/orders/active?outletId=${OUTLET_ID}`);
+        if (!res.ok) return;
+        const orders = await res.json();
+        const pending = orders.filter(o => o.status === 'PENDING_STAFF_APPROVAL');
+        const container = document.getElementById('ordersList');
+
+        if (pending.length === 0) {
+          container.innerHTML = `<div class="empty-state"><h3>All clear!</h3><p style="margin-top:6px;font-size:0.85rem;">No new tables waiting for first-order staff approval.</p></div>`;
+          return;
+        }
+
+        container.innerHTML = pending.map(o => `
+          <div class="card">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                <span style="font-size:1.15rem;font-weight:800;color:#fff;">Table ${o.tableNumber}</span>
+                <span class="badge badge-amber">WAITING FIRST APPROVAL</span>
+                <span style="font-size:0.8rem;color:var(--muted);">#${o.id.slice(-6)}</span>
+              </div>
+              <div style="font-size:0.85rem;color:var(--muted);margin-bottom:8px;">
+                ${o.items.map(i => `${i.quantity}x ${i.name}`).join(' • ')}
+              </div>
+              <div style="font-size:0.9rem;font-weight:700;color:var(--accent);">
+                Total: $${(o.totalCents / 100).toFixed(2)}
+              </div>
+            </div>
+            <button class="btn btn-approve" onclick="approveOrder('${o.id}')">✓ Approve & Fire to Kitchen</button>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    async function approveOrder(orderId) {
+      const res = await fetch(`/api/v1/orders/${orderId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId: 'waiter_01' })
+      });
+      if (res.ok) {
+        showToast('Order confirmed and sent to kitchen!');
+        loadApprovals();
+      }
+    }
+
+    loadApprovals();
+    setInterval(loadApprovals, 3000);
+  </script>
+</body>
+</html>

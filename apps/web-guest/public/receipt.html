@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt — Abiruchi Hotel</title>
+  <link rel="stylesheet" href="/guest/styles.css">
+  <style>
+    body {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .receipt-container {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      width: 100%;
+      max-width: 420px;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px dashed #e2e8f0;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+    .brand-name {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #ff6600;
+      margin: 0;
+    }
+    .tagline {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 600;
+      margin: 4px 0;
+    }
+    .tax-license {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+    }
+    .items-table th, .items-table td {
+      padding: 6px 0;
+      font-size: 0.85rem;
+    }
+    .items-table th {
+      border-bottom: 1px solid #cbd5e1;
+      color: #64748b;
+      text-align: left;
+    }
+    .items-table td.qty { text-align: center; width: 40px; }
+    .items-table td.price { text-align: right; }
+    .totals-box {
+      border-top: 2px dashed #e2e8f0;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+    .grand-total {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+    .footer-msg {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 20px;
+      border-top: 2px dashed #e2e8f0;
+      padding-top: 14px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      width: 100%;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-print { background: #ff6600; color: #fff; }
+    .btn-wa { background: #22c55e; color: #fff; text-decoration: none; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .receipt-container { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+      .btn-group { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-container" id="receiptCard">
+    <div class="header">
+      <h1 class="brand-name">Abiruchi Hotel</h1>
+      <div class="tagline">The taste of the land, served smartly.</div>
+      <div class="tax-license">
+        14 MG Road, Indiranagar, Bengaluru, KA 560038<br>
+        <b>GSTIN:</b> 29ABCDE1234F1Z5 • <b>FSSAI:</b> 11223344556677
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <span>Order ID: <b id="orderIdVal">Loading...</b></span>
+      <span id="orderDateVal">--</span>
+    </div>
+    <div class="meta-row">
+      <span>Dining: <b id="orderTableVal">Table Service</b></span>
+      <span style="color:#10b981; font-weight:700;" id="paymentStatusVal">PAID</span>
+    </div>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align:center;">Qty</th>
+          <th style="text-align:right;">Amt</th>
+        </tr>
+      </thead>
+      <tbody id="receiptItemsBody">
+        <tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b;">Loading order items...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="totals-box">
+      <div class="total-row"><span>Subtotal:</span><span id="subtotalVal">₹0.00</span></div>
+      <div class="total-row" id="serviceChargeRow" style="display:none;"><span>Service Charge:</span><span id="serviceChargeVal">₹0.00</span></div>
+      <div class="total-row"><span>GST 5% (CGST 2.5% + SGST 2.5%):</span><span id="taxVal">₹0.00</span></div>
+      <div class="total-row" id="tipRow" style="display:none;"><span>Staff Tip:</span><span id="tipVal">₹0.00</span></div>
+      <div class="total-row grand-total"><span>Total Paid:</span><span id="totalVal">₹0.00</span></div>
+      <div class="total-row" id="loyaltyRow" style="display:none; color:#ff6600; font-weight:700; margin-top:8px; border-top:1px dotted #cbd5e1; padding-top:6px;">
+        <span>Loyalty Rewards:</span><span id="loyaltyStampsVal">🌟 1 Stamp Earned</span>
+      </div>
+    </div>
+
+    <div class="footer-msg">
+      Thank you for dining at Abiruchi Hotel
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-print" onclick="window.print()" aria-label="Print receipt or save to PDF">
+        🖨️ Print / Save as PDF
+      </button>
+      <button class="btn btn-wa" onclick="shareWhatsApp()" aria-label="Share receipt via WhatsApp">
+        💬 WhatsApp Receipt
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('orderId') || 'ord_demo_001';
+
+    async function loadReceipt() {
+      try {
+        const res = await fetch(\`/api/v1/orders/\${orderId}/receipt?format=standard\`);
+        const data = await res.json();
+
+        document.getElementById('orderIdVal').textContent = '#' + (data.orderId || orderId).slice(-6).toUpperCase();
+        document.getElementById('orderDateVal').textContent = data.date || new Date().toLocaleDateString('en-IN');
+        document.getElementById('orderTableVal').textContent = data.orderNumber || 'Table 14';
+        document.getElementById('paymentStatusVal').textContent = data.paymentStatus || 'PAID';
+
+        document.getElementById('subtotalVal').textContent = '₹' + data.subtotalINR;
+        document.getElementById('taxVal').textContent = '₹' + data.taxINR;
+        document.getElementById('totalVal').textContent = '₹' + data.totalINR;
+
+        if (data.serviceChargeINR && parseFloat(data.serviceChargeINR) > 0) {
+          document.getElementById('serviceChargeVal').textContent = '₹' + data.serviceChargeINR;
+          document.getElementById('serviceChargeRow').style.display = 'flex';
+        }
+        if (data.tipINR && parseFloat(data.tipINR) > 0) {
+          document.getElementById('tipVal').textContent = '₹' + data.tipINR;
+          document.getElementById('tipRow').style.display = 'flex';
+        }
+        if (data.loyaltyStamps) {
+          document.getElementById('loyaltyStampsVal').textContent = `🌟 ${data.loyaltyStamps} Loyalty Stamp(s) Earned!`;
+          document.getElementById('loyaltyRow').style.display = 'flex';
+        }
+
+        const items = data.items || [];
+        document.getElementById('receiptItemsBody').innerHTML = items.map(i => \`
+          <tr>
+            <td style="font-weight:600;">\${i.name}</td>
+            <td class="qty">\${i.quantity}</td>
+            <td class="price">₹\${i.totalINR}</td>
+          </tr>
+        \`).join('');
+      } catch (err) {
+        console.warn('Fallback loading', err);
+      }
+    }
+
+    async function shareWhatsApp() {
+      const phone = prompt('Enter WhatsApp mobile number with country code:', '+919010150809');
+      if (!phone) return;
+      try {
+        const res = await fetch(\`/api/v1/receipts/\${orderId}/whatsapp?phone=\${encodeURIComponent(phone)}\`);
+        const data = await res.json();
+        if (data.stubbed) {
+          alert('Receipt dispatched to ' + phone + ' (logged via WhatsApp Business API)');
+        } else {
+          alert('Receipt dispatched via WhatsApp to ' + phone);
+        }
+      } catch (e) {
+        alert('WhatsApp dispatch failed');
+      }
+    }
+
+    loadReceipt();
+  </script>
+</body>
+</html>

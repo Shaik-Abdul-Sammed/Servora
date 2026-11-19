@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Dashboard — Abiruchi Hotel Operating System</title>
+  <link rel="stylesheet" href="/guest/styles.css">
+  <style>
+    :root {
+      --primary: #ff6600;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .top-nav {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link:focus-visible, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 102, 0, 0.15);
+      outline: 2px solid var(--primary);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .filter-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      background: #334155;
+      color: var(--text);
+      border: 1px solid transparent;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip:hover, .chip:focus-visible {
+      outline: 2px solid var(--primary);
+    }
+    .chip.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .metric-val {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 4px;
+    }
+    .metric-lbl {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .metric-sub {
+      font-size: 0.75rem;
+      color: #10b981;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover, .btn:focus-visible {
+      opacity: 0.9;
+      outline: 2px solid #fff;
+    }
+    .btn-secondary {
+      background: #334155;
+    }
+    .adoption-box {
+      background: linear-gradient(135deg, rgba(255,102,0,0.1), rgba(30,41,59,0.9));
+      border: 1px solid rgba(255,102,0,0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #111827;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav" aria-label="Main Navigation">
+    <a href="/owner.html" class="brand-title" aria-label="Abiruchi Hotel Home">
+      🍛 ABIRUCHI HOTEL
+    </a>
+    <div class="nav-links">
+      <a href="/owner.html" class="nav-link active" aria-label="Owner Dashboard">Dashboard</a>
+      <a href="/manager.html" class="nav-link" aria-label="Manager Operations">Manager Ops</a>
+      <a href="/qr-manager.html" class="nav-link" aria-label="QR Studio">QR Studio</a>
+      <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
+      <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="filter-bar" role="toolbar" aria-label="Revenue Filters">
+      <div class="filter-group">
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">DATE:</span>
+        <button class="chip active" onclick="setDateFilter('today', this)" aria-label="Filter today">Today</button>
+        <button class="chip" onclick="setDateFilter('7d', this)" aria-label="Filter last 7 days">7 Days</button>
+        <button class="chip" onclick="setDateFilter('30d', this)" aria-label="Filter last 30 days">30 Days</button>
+        <button class="chip" onclick="setDateFilter('all', this)" aria-label="Filter all time">All Time</button>
+      </div>
+
+      <div class="filter-group">
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">PAYMENT:</span>
+        <button class="chip active" onclick="setPaymentFilter('ALL', this)" aria-label="All payment methods">All</button>
+        <button class="chip" onclick="setPaymentFilter('UPI', this)" aria-label="UPI payments">UPI</button>
+        <button class="chip" onclick="setPaymentFilter('CASH', this)" aria-label="Cash payments">Cash</button>
+        <button class="chip" onclick="setPaymentFilter('CARD', this)" aria-label="Card payments">Card</button>
+      </div>
+
+      <div class="filter-group">
+        <a id="btnExportCsv" href="/api/v1/analytics/export/orders.csv" class="btn btn-secondary" aria-label="Export Orders to CSV">📥 Export CSV</a>
+        <a id="btnDailyPdf" href="/api/v1/analytics/export/daily.html" target="_blank" class="btn" aria-label="Print Daily Revenue Report">🖨️ Daily Report</a>
+      </div>
+    </div>
+
+    <!-- QR Adoption Highlight Widget (Case 148) -->
+    <div class="adoption-box" role="region" aria-label="QR Adoption Rate">
+      <div>
+        <div style="font-size:0.8rem; font-weight:800; color:var(--primary); text-transform:uppercase;">Guest Ordering Efficiency</div>
+        <div style="font-size:1.5rem; font-weight:800; color:#fff;" id="adoptionHeadline">QR Adoption: 62.5% Today</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;" id="adoptionSub">15 digital orders submitted via QR vs 9 waiter-punched orders</div>
+      </div>
+      <div>
+        <span style="font-size:2.5rem; font-weight:900; color:var(--primary);" id="adoptionPct">62.5%</span>
+      </div>
+    </div>
+
+    <!-- Revenue & Sales Metrics Grid (Cases 143, 144) -->
+    <div class="metric-grid" role="region" aria-label="Key Performance Indicators">
+      <div class="metric-card">
+        <div class="metric-lbl">Total Gross Revenue</div>
+        <div class="metric-val" id="valRevenue">₹0.00</div>
+        <div class="metric-sub">▲ In sync with SQLite ledger</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">Total Orders Count</div>
+        <div class="metric-val" id="valOrders">0</div>
+        <div class="metric-sub">All channels combined</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">Payment Mode Breakdown</div>
+        <div class="metric-val" id="valPaymentModes" style="font-size:1.05rem; font-weight:800; line-height:1.5; margin-top:8px;">
+          Cash: ₹0 | UPI: ₹0 | Card: ₹0
+        </div>
+        <div class="metric-sub" id="valPaymentModesTotal" style="color:var(--primary); font-weight:800;">Total: ₹0.00</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">GST Tax Collected (5%)</div>
+        <div class="metric-val" id="valTax">₹0.00</div>
+        <div class="metric-sub">CGST 2.5% + SGST 2.5%</div>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>Category Breakdown</span>
+      <span style="font-size:0.85rem; color:var(--text-muted);" id="dateIndicator">Live Performance</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Sales Amount (INR)</th>
+          <th>Share (%)</th>
+        </tr>
+      </thead>
+      <tbody id="categoryTableBody">
+        <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading revenue details...</td></tr>
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    let currentDateFilter = 'today';
+    let currentPaymentFilter = 'ALL';
+
+    function setDateFilter(range, btn) {
+      document.querySelectorAll('.filter-group:nth-child(1) .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDateFilter = range;
+      loadRevenue();
+    }
+
+    function setPaymentFilter(pm, btn) {
+      document.querySelectorAll('.filter-group:nth-child(2) .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPaymentFilter = pm;
+      loadRevenue();
+    }
+
+    async function loadRevenue() {
+      let from = '';
+      const now = new Date();
+      if (currentDateFilter === 'today') {
+        from = now.toISOString().slice(0, 10) + 'T00:00:00.000Z';
+      } else if (currentDateFilter === '7d') {
+        const d = new Date(now.getTime() - 7 * 86400000);
+        from = d.toISOString();
+      } else if (currentDateFilter === '30d') {
+        const d = new Date(now.getTime() - 30 * 86400000);
+        from = d.toISOString();
+      }
+
+      let url = \`/api/v1/analytics/revenue?payment_method=\${currentPaymentFilter}\`;
+      if (from) url += \`&from=\${encodeURIComponent(from)}\`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        document.getElementById('valRevenue').textContent = '₹' + data.totalINR;
+        document.getElementById('valOrders').textContent = data.ordersCount;
+        const total = parseFloat(data.totalINR) || 0;
+        document.getElementById('valTax').textContent = '₹' + ((total * 0.05)).toFixed(2);
+
+        try {
+          const today = new Date().toISOString().slice(0, 10);
+          const reconRes = await fetch(`/api/v1/payments/reconciliation?date=${today}`);
+          const reconData = await reconRes.json();
+          if (reconData.success) {
+            document.getElementById('valPaymentModes').textContent = `Cash: ₹${reconData.cash.totalINR} | UPI: ₹${reconData.upi.totalINR} | Card: ₹${reconData.card.totalINR}`;
+            document.getElementById('valPaymentModesTotal').textContent = `Total: ₹${reconData.netTotalINR}`;
+          }
+        } catch (e) {}
+
+        // Render categories
+        const tbody = document.getElementById('categoryTableBody');
+        const cats = Object.entries(data.byCategory || {});
+        if (cats.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:20px;">No sales recorded for this filter.</td></tr>';
+        } else {
+          tbody.innerHTML = cats.map(([name, amt]) => {
+            const share = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;
+            return \`<tr>
+              <td style="font-weight:700;">\${name}</td>
+              <td style="color:#10b981; font-weight:700;">₹\${amt.toFixed(2)}</td>
+              <td>\${share}%</td>
+            </tr>\`;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load revenue analytics', err);
+      }
+    }
+
+    async function loadQrAdoption() {
+      try {
+        const res = await fetch('/api/v1/analytics/qr-adoption');
+        const data = await res.json();
+        document.getElementById('adoptionHeadline').textContent = \`QR Adoption: \${data.qrPercentage}% Today\`;
+        document.getElementById('adoptionSub').textContent = \`\${data.qrOrders} digital orders submitted via QR vs \${data.waiterOrders} waiter-punched orders\`;
+        document.getElementById('adoptionPct').textContent = data.qrPercentage + '%';
+      } catch (e) {
+        console.warn('Adoption fetch failed', e);
+      }
+    }
+
+    loadRevenue();
+    loadQrAdoption();
+  </script>
+</body>
+</html>

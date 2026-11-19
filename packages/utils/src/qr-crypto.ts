@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import type { QRTableSessionPayload } from '@servora/shared-types';
+import type { QRTableSessionPayload } from '@abiruchi/shared-types';
 
 /**
  * Generates an HMAC-SHA256 signature for a QR table session payload.
@@ -22,6 +22,7 @@ export function createSignedQRSession(
     tableId: string;
     tableNumber: string;
     ttlMs?: number;
+    mode?: 'TABLE' | 'TOKEN' | 'BOOKING' | 'MENU_ONLY';
   },
   secretKey: string
 ): QRTableSessionPayload {
@@ -34,9 +35,20 @@ export function createSignedQRSession(
     tableNumber: params.tableNumber,
     issuedAt: now,
     expiresAt: now + ttl,
+    mode: params.mode || 'TABLE',
   };
 
-  const signature = signQRTablePayload(unsigned, secretKey);
+  const signature = signQRTablePayload(
+    {
+      tenantId: unsigned.tenantId,
+      outletId: unsigned.outletId,
+      tableId: unsigned.tableId,
+      tableNumber: unsigned.tableNumber,
+      issuedAt: unsigned.issuedAt,
+      expiresAt: unsigned.expiresAt,
+    },
+    secretKey
+  );
   return {
     ...unsigned,
     signature,

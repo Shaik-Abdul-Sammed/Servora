@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff & Waiter RBAC Management — Abiruchi Hotel Owner</title>
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card: #12151f;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #fc8019;
+      --primary-hover: #e06d0c;
+      --accent: #10b981;
+      --sky: #38bdf8;
+      --amber: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+    .sidebar { width: 230px; min-height: 100vh; background: #0d1017; border-right: 1px solid var(--border); padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+    .sidebar-brand { font-size: 1.15rem; font-weight: 900; color: #fff; padding: 12px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+    .nav-link { display: block; padding: 10px 12px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: all 0.15s ease; }
+    .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+    .nav-link.active { background: rgba(252, 128, 25, 0.15); color: #fc8019; }
+    .main-content { flex: 1; padding: 24px; overflow-y: auto; max-width: 1200px; margin: 0 auto; }
+    .page-title { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -0.02em; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+    
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+    .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; }
+    .staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .staff-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s ease; }
+    .staff-card:hover { border-color: rgba(252, 128, 25, 0.4); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal-box { background: #161a26; border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 0.76rem; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .form-input, .form-select { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: #0c0e14; color: #fff; font-size: 0.9rem; font-family: inherit; }
+
+    .plan-banner { background: linear-gradient(135deg, rgba(252,128,25,0.15), rgba(252,128,25,0.05)); border: 1px solid rgba(252,128,25,0.3); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px; background: #1e293b; color: #fff; font-size: 0.88rem; font-weight: 700; display: none; z-index: 200; }
+    .toast.success { background: #065f46; border: 1px solid #10b981; }
+    .toast.error { background: #7f1d1d; border: 1px solid #ef4444; }
+  </style>
+</head>
+<body>
+  <div id="navContainer"></div>
+  <main class="main-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 class="page-title">👥 Staff &amp; Waiter Access Control</h1>
+        <p style="font-size:0.85rem; color:var(--muted);">Manage waiter accounts, table assignments, role-based permissions, shifts, and credentials.</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" onclick="openTransferTablesModal()">🔄 Transfer Tables</button>
+        <button class="btn btn-primary" onclick="openCreateStaffModal()">➕ Add Staff Member</button>
+      </div>
+    </div>
+
+    <!-- Free Base Plan Quota Status Banner -->
+    <div class="plan-banner" id="subscriptionBanner">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.2rem;">⭐</span>
+          <span style="font-weight:900; font-size:1.05rem; color:#fff;" id="planNameDisplay">Free Base Plan</span>
+          <span class="badge" style="background:#267e3e; color:#fff;">ACTIVE</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;" id="planLimitsText">
+          Includes 1 Outlet, up to 3 Waiter Accounts, Free QR Ordering, and KDS routing.
+        </p>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="text-align:right;">
+          <div style="font-size:0.75rem; color:var(--muted); font-weight:700;">WAITER SLOTS USED</div>
+          <div style="font-size:1.15rem; font-weight:900; color:var(--primary);" id="waiterSlotCount">0 of 3</div>
+        </div>
+        <button id="upgradePlanBtn" class="btn btn-primary" style="display:none;" onclick="alert('Upgrade to Pro Growth: Unlimited Waiters, Multi-Outlet, and Advanced AI analytics')">
+          🚀 Upgrade Plan
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Staff Roster -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:1.1rem; font-weight:800;">Staff Roster &amp; Assigned Tables</h3>
+        <span id="staffCountBadge" class="badge" style="background:rgba(252,128,25,0.15); color:var(--primary);">0 Staff</span>
+      </div>
+      <div class="staff-grid" id="staffGridContainer">
+        <p style="color:var(--muted); font-size:0.88rem;">Loading staff roster...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create Staff Modal -->
+  <div id="createStaffModal" class="modal-overlay" onclick="closeModalOnBackdrop(event, 'createStaffModal')">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:1.15rem; font-weight:800;">➕ Add Staff Member</h3>
+        <button onclick="closeModal('createStaffModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" id="staffName" class="form-input" placeholder="e.g. Suresh Kumar" required />
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Role *</label>
+          <select id="staffRole" class="form-select">
+            <option value="WAITER">Waiter / Floor Staff</option>
+            <option value="KITCHEN">Kitchen Staff / Chef</option>
+            <option value="BAR">Bar Staff / Mixologist</option>
+            <option value="CASHIER">Cashier / Front Desk</option>
+            <option value="MANAGER">Manager</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">4-Digit Terminal PIN</label>
+          <input type="text" id="staffPin" class="form-input" placeholder="e.g. 1234" maxlength="4" />
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Mobile Phone Number</label>
+          <input type="tel" id="staffPhone" class="form-input" placeholder="+91 98765 43210" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Shift Hours</label>
+          <input type="text" id="staffShift" class="form-input" placeholder="11:00 - 23:00" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assigned Tables (Comma-separated)</label>
+        <input type="text" id="staffTables" class="form-input" placeholder="e.g. Table 1, Table 2, Patio 4" />
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closeModal('createStaffModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateStaff()">Save Staff Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer Tables Modal -->
+  <div id="transferTablesModal" class="modal-overlay" onclick="closeModalOnBackdrop(event, 'transferTablesModal')">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:1.15rem; font-weight:800;">🔄 Transfer Table Coverage</h3>
+        <button onclick="closeModal('transferTablesModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">From Waiter *</label>
+        <select id="transferFromStaff" class="form-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">To Waiter *</label>
+        <select id="transferToStaff" class="form-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tables to Transfer (Comma-separated) *</label>
+        <input type="text" id="transferTableList" class="form-input" placeholder="e.g. Table 14, Table 15" required />
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closeModal('transferTablesModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitTransferTables()">Execute Transfer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/owner/shared.js"></script>
+  <script>
+    document.getElementById('navContainer').innerHTML = renderNav('staff');
+
+    let allStaff = [];
+    let currentSubscription = null;
+
+    function showToast(msg, type = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast ' + type;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    async function loadSubscription() {
+      try {
+        const res = await apiFetch('/api/v1/owner/subscription');
+        currentSubscription = await res.json();
+        document.getElementById('planNameDisplay').textContent = currentSubscription.planName;
+        document.getElementById('waiterSlotCount').textContent = `${currentSubscription.currentWaiters} of ${currentSubscription.maxWaiters}`;
+
+        if (!currentSubscription.canAddMoreWaiters) {
+          document.getElementById('upgradePlanBtn').style.display = 'inline-flex';
+        } else {
+          document.getElementById('upgradePlanBtn').style.display = 'none';
+        }
+      } catch (e) {}
+    }
+
+    async function loadStaff() {
+      try {
+        const res = await apiFetch('/api/v1/owner/staff');
+        allStaff = await res.json();
+        document.getElementById('staffCountBadge').textContent = `${allStaff.length} Staff`;
+
+        const container = document.getElementById('staffGridContainer');
+        if (allStaff.length === 0) {
+          container.innerHTML = '<p style="color:var(--muted); padding:20px; text-align:center;">No staff accounts configured. Click "Add Staff Member" to begin.</p>';
+          return;
+        }
+
+        container.innerHTML = allStaff.map(s => `
+          <div class="staff-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h3 style="font-weight:800; font-size:1rem; color:#fff;">${s.name}</h3>
+                <span style="font-size:0.75rem; color:var(--sky); font-weight:700;">Role: ${s.role}</span>
+              </div>
+              <span class="badge" style="background:${s.isActive ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${s.isActive ? '#10b981' : '#ef4444'};">
+                ${s.isActive ? '● Active' : '○ Inactive'}
+              </span>
+            </div>
+
+            <div style="font-size:0.8rem; color:var(--muted);">
+              <div>📞 Phone: ${s.phone || 'Not added'}</div>
+              <div>🕒 Shift: ${s.shiftStart || '09:00'} - ${s.shiftEnd || '21:00'}</div>
+              <div style="margin-top:4px;">
+                <span style="font-weight:700; color:#fff;">Assigned Tables:</span>
+                ${(s.assignedTables && s.assignedTables.length > 0) ? s.assignedTables.map(t => `<span class="badge" style="background:rgba(255,255,255,0.08); color:#fff; margin-left:3px;">${t}</span>`).join('') : '<span style="color:var(--muted); margin-left:4px;">None</span>'}
+              </div>
+              <div style="margin-top:4px; font-family:monospace; color:var(--amber);">PIN: ****</div>
+            </div>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; padding-top:10px; border-top:1px solid var(--border);">
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleStaffActive('${s.id}', ${!s.isActive})">
+                ${s.isActive ? 'Deactivate' : 'Activate'}
+              </button>
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="resetStaffPin('${s.id}')">Reset PIN</button>
+              <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteStaff('${s.id}', '${s.name.replace(/'/g, "\\'")}')">🗑️ Remove</button>
+            </div>
+          </div>
+        `).join('');
+
+        // Populate transfer dropdowns
+        const fromSel = document.getElementById('transferFromStaff');
+        const toSel = document.getElementById('transferToStaff');
+        if (fromSel && toSel) {
+          const waiters = allStaff.filter(s => s.role === 'WAITER');
+          fromSel.innerHTML = waiters.map(w => `<option value="${w.id}">${w.name} (${(w.assignedTables || []).join(', ') || 'No tables'})</option>`).join('');
+          toSel.innerHTML = waiters.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+        }
+      } catch (err) {
+        showToast('Error loading staff: ' + err.message, 'error');
+      }
+    }
+
+    function openCreateStaffModal() { document.getElementById('createStaffModal').style.display = 'flex'; }
+    function openTransferTablesModal() { document.getElementById('transferTablesModal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function closeModalOnBackdrop(e, id) { if (e.target.id === id) closeModal(id); }
+
+    async function submitCreateStaff() {
+      const name = document.getElementById('staffName').value.trim();
+      const role = document.getElementById('staffRole').value;
+      const pinCode = document.getElementById('staffPin').value.trim();
+      const phone = document.getElementById('staffPhone').value.trim();
+      const shift = document.getElementById('staffShift').value.trim();
+      const tablesRaw = document.getElementById('staffTables').value.trim();
+      const assignedTables = tablesRaw ? tablesRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+      if (!name) return alert('Please enter a staff name.');
+
+      try {
+        const res = await apiFetch('/api/v1/owner/staff', {
+          method: 'POST',
+          body: JSON.stringify({ name, role, pinCode, phone, assignedTables }),
+        });
+        if (res.status === 403) {
+          const errData = await res.json();
+          alert(`⚠️ Plan Limit Reached: ${errData.message}`);
+          return;
+        }
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        showToast('Staff member added successfully!');
+        closeModal('createStaffModal');
+        await loadSubscription();
+        await loadStaff();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function toggleStaffActive(id, isActive) {
+      try {
+        const res = await apiFetch(`/api/v1/owner/staff/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ isActive }),
+        });
+        if (!res.ok) throw new Error('Failed to update status');
+        showToast('Status updated');
+        await loadStaff();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function resetStaffPin(id) {
+      const newPin = prompt('Enter a new 4-digit PIN for this staff member (leave blank to auto-generate):');
+      if (newPin === null) return;
+      try {
+        const res = await apiFetch(`/api/v1/owner/staff/${id}/reset-pin`, {
+          method: 'POST',
+          body: JSON.stringify({ newPin: newPin.trim() || undefined }),
+        });
+        const data = await res.json();
+        alert(`Credentials reset. New PIN: ${data.pinCode}`);
+        showToast('PIN reset successfully');
+      } catch (err) {
+        showToast('Failed to reset PIN', 'error');
+      }
+    }
+
+    async function deleteStaff(id, name) {
+      if (!confirm(`Are you sure you want to remove staff access for "${name}" immediately?`)) return;
+      try {
+        const res = await apiFetch(`/api/v1/owner/staff/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Deletion failed');
+        showToast('Staff access revoked');
+        await loadSubscription();
+        await loadStaff();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function submitTransferTables() {
+      const fromStaffId = document.getElementById('transferFromStaff').value;
+      const toStaffId = document.getElementById('transferToStaff').value;
+      const raw = document.getElementById('transferTableList').value.trim();
+      if (!fromStaffId || !toStaffId || !raw) return alert('Please fill in all fields.');
+      if (fromStaffId === toStaffId) return alert('From and To staff members cannot be the same.');
+
+      const tableNumbers = raw.split(',').map(t => t.trim()).filter(Boolean);
+
+      try {
+        const res = await apiFetch('/api/v1/owner/staff/transfer-tables', {
+          method: 'POST',
+          body: JSON.stringify({ fromStaffId, toStaffId, tableNumbers }),
+        });
+        if (!res.ok) throw new Error('Transfer failed');
+        showToast('Tables transferred successfully!');
+        closeModal('transferTablesModal');
+        await loadStaff();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    loadSubscription();
+    loadStaff();
+  </script>
+</body>
+</html>

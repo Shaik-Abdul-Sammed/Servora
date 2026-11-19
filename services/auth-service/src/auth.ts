@@ -15,7 +15,7 @@ export interface AuthTokenPayload {
 export class AuthService {
   private jwtSecret: string;
 
-  constructor(jwtSecret: string = process.env.JWT_SECRET || 'servora-dev-jwt-secret-min-32-chars') {
+  constructor(jwtSecret: string = process.env.JWT_SECRET || 'abiruchi-dev-jwt-secret-min-32-chars') {
     this.jwtSecret = jwtSecret;
   }
 

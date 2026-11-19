@@ -1,0 +1,13 @@
+{
+  "segment": "BAR",
+  "displayMode": "TOKEN",
+  "tokenMode": true,
+  "tableNumbers": false,
+  "bookingEnabled": false,
+  "payFirst": true,
+  "requireFirstOrderApproval": false,
+  "tokenPrefix": "B",
+  "tippingEnabled": true,
+  "categoryPresets": ["DRINKS", "SHOTS", "SNACKS"],
+  "categories": ["Drinks", "Shots", "Snacks"]
+}

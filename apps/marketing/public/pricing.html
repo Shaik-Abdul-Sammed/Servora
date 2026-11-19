@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing Plans — Abiruchi Hotel</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:20px 48px; border-bottom:1px solid var(--border); backdrop-filter:blur(16px); position:sticky; top:0; z-index:100; background:rgba(9,10,15,0.8); }
+    .brand { font-size:1.4rem; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:24px; font-weight:600; font-size:0.95rem; }
+    nav a:hover, nav a.active { color:#fff; }
+    .hero { text-align:center; padding:80px 24px 32px; max-width:850px; margin:0 auto; }
+    h1 { font-size:2.8rem; font-weight:900; line-height:1.2; letter-spacing:-0.03em; margin-bottom:16px; }
+    .hero p { font-size:1.15rem; color:var(--muted); margin-bottom:32px; }
+    .pricing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px; max-width:1100px; margin:32px auto 64px; padding:0 24px; }
+    .price-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:36px; display:flex; flex-direction:column; position:relative; }
+    .price-card.featured { border-color:var(--primary); box-shadow:0 0 30px rgba(225,29,72,0.2); }
+    .card-badge { position:absolute; top:18px; right:20px; font-size:0.75rem; font-weight:800; background:var(--primary); color:#fff; padding:4px 12px; border-radius:20px; }
+    .plan-name { font-size:1.3rem; font-weight:800; color:#fff; margin-bottom:8px; }
+    .plan-price { font-size:2.8rem; font-weight:900; color:#fff; margin-bottom:4px; }
+    .plan-sub { font-size:0.85rem; color:var(--muted); margin-bottom:24px; }
+    .feature-list { list-style:none; margin-bottom:32px; flex:1; }
+    .feature-list li { margin-bottom:12px; font-size:0.92rem; color:var(--muted); display:flex; align-items:center; gap:10px; }
+    .feature-list li::before { content:'✓'; color:var(--accent); font-weight:900; }
+    .btn { padding:14px; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; display:block; }
+    .btn-primary { background:linear-gradient(135deg,#f43f5e,#be123c); color:#fff; }
+    .btn-secondary { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
+    footer { text-align:center; padding:48px 24px; border-top:1px solid var(--border); color:var(--muted); font-size:0.88rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">🍽️ Abiruchi Hotel Pricing</div>
+    <nav>
+      <a href="/marketing">Overview</a>
+      <a href="/marketing/for-cafes">Cafes</a>
+      <a href="/marketing/for-restaurants">Restaurants</a>
+      <a href="/marketing/for-bars">Bars</a>
+      <a href="/marketing/pricing" class="active">Pricing</a>
+      <a href="/owner" style="color:var(--primary);">Owner Login →</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Predictable, Transparent Pricing</h1>
+      <p>Start free on our community tier up to 10k monthly guest requests, then scale as your outlet throughput expands.</p>
+    </section>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="plan-name">Community Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-sub">Free tier firewall-rate-limited up to 10,000 monthly guest sessions.</div>
+        <ul class="feature-list">
+          <li>Zero-install Web PWA QR menu</li>
+          <li>Real-time Table ordering</li>
+          <li>Automated 8-language translation</li>
+          <li>1 KDS Kitchen display rail</li>
+          <li>Pay-Later / Cash to Server flow</li>
+        </ul>
+        <a href="/owner" class="btn btn-secondary">Get Started Free</a>
+      </div>
+
+      <div class="price-card featured">
+        <span class="card-badge">MOST POPULAR</span>
+        <div class="plan-name">Pro Outlet</div>
+        <div class="plan-price">$79<span style="font-size:1rem;font-weight:400;color:var(--muted);">/mo</span></div>
+        <div class="plan-sub">For busy single-location cafes, bistros, and cocktail lounges.</div>
+        <ul class="feature-list">
+          <li>Unlimited monthly guest orders</li>
+          <li>Alpha Token &amp; Queue system</li>
+          <li>Multi-station KDS (Grill, Bar, Pizza)</li>
+          <li>Coursing Hold vs Fire controls</li>
+          <li>One-Tap Waiter Bridge routing</li>
+          <li>Apple Pay &amp; Google Pay digital settlement</li>
+        </ul>
+        <a href="/owner" class="btn btn-primary">Start 14-Day Free Trial</a>
+      </div>
+
+      <div class="price-card">
+        <div class="plan-name">Enterprise Group</div>
+        <div class="plan-price">Custom</div>
+        <div class="plan-sub">For hotel chains, resort groups, and high-volume franchise outlets.</div>
+        <ul class="feature-list">
+          <li>Multi-outlet consolidated management</li>
+          <li>Hotel PMS Folio charging integration</li>
+          <li>Custom POS bridge thermal printers</li>
+          <li>99.99% SLA &amp; dedicated support</li>
+          <li>Custom domain &amp; white-label PWA branding</li>
+        </ul>
+        <a href="mailto:enterprise@abiruchi.com" class="btn btn-secondary">Contact Enterprise Sales</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 Abiruchi Hotel Inc. All rights reserved. Zero hidden percentage fees on your food revenue.</p>
+  </footer>
+</body>
+</html>

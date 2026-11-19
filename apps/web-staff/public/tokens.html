@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Board — Abiruchi Hotel Staff</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+    .sidebar-brand { font-size:1.1rem; font-weight:800; color:#fff; padding:12px 12px 20px; letter-spacing:-0.02em; }
+    .nav-link { display:block; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:600; transition:all 0.15s ease; }
+    .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
+    .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
+    .main-content { flex:1; padding:24px; overflow-y:auto; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:20px; letter-spacing:-0.02em; }
+    .columns-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+    .token-col { background:#0f121b; border:1px solid var(--border); border-radius:16px; padding:16px; }
+    .col-title { font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+    .token-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
+    .token-code { font-size:1.4rem; font-weight:900; color:#fff; }
+    .token-bucket { font-size:0.75rem; color:var(--sky); font-weight:700; margin-top:2px; }
+    .btn { padding:6px 12px; border-radius:8px; border:none; font-size:0.8rem; font-weight:700; cursor:pointer; margin-top:8px; width:100%; }
+    .btn-ready { background:linear-gradient(135deg,#38bdf8,#0284c7); color:#fff; }
+    .btn-served { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+    @media(max-width:768px) { body{flex-direction:column} .sidebar{width:100%;min-height:auto;flex-direction:row;flex-wrap:wrap;padding:12px} .sidebar-brand{display:none} }
+  </style>
+</head>
+<body>
+  <div id="navContainer"></div>
+  <div class="main-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h1 class="page-title">🎟️ Queue & Token Engine (C1 & C2)</h1>
+      <button class="btn btn-served" style="width:auto;padding:8px 16px;" onclick="spawnToken()">+ New Token</button>
+    </div>
+
+    <div class="columns-grid">
+      <div class="token-col">
+        <div class="col-title"><span>⏳ QUEUED</span><span id="countQueued" class="badge">0</span></div>
+        <div id="listQueued"></div>
+      </div>
+      <div class="token-col">
+        <div class="col-title"><span>🍳 PREPARING</span><span id="countPrep" class="badge">0</span></div>
+        <div id="listPrep"></div>
+      </div>
+      <div class="token-col">
+        <div class="col-title"><span>🔔 READY TO PICKUP</span><span id="countReady" class="badge">0</span></div>
+        <div id="listReady"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/staff/shared.js"></script>
+  <script>
+    document.getElementById('navContainer').innerHTML = renderStaffNav('tokens');
+    const OUTLET_ID = 'b0000000-0000-0000-0000-000000000001';
+
+    async function loadTokens() {
+      try {
+        const res = await fetch(`/api/v1/tokens/active?outletId=${OUTLET_ID}`);
+        if (!res.ok) return;
+        const tokens = await res.json();
+
+        const queued = tokens.filter(t => t.state === 'QUEUED');
+        const prep = tokens.filter(t => t.state === 'PREPARING');
+        const ready = tokens.filter(t => t.state === 'READY');
+
+        document.getElementById('countQueued').textContent = queued.length;
+        document.getElementById('countPrep').textContent = prep.length;
+        document.getElementById('countReady').textContent = ready.length;
+
+        document.getElementById('listQueued').innerHTML = queued.map(t => `
+          <div class="token-card">
+            <div class="token-code">${t.code}</div>
+            <div class="token-bucket">${t.bucket}</div>
+            <button class="btn btn-ready" onclick="advanceToken('${t.id}', 'PREPARING')">Start Prep →</button>
+          </div>
+        `).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+
+        document.getElementById('listPrep').innerHTML = prep.map(t => `
+          <div class="token-card">
+            <div class="token-code">${t.code}</div>
+            <div class="token-bucket">${t.bucket}</div>
+            <button class="btn btn-ready" onclick="advanceToken('${t.id}', 'READY')">Mark Ready 🔔</button>
+          </div>
+        `).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+
+        document.getElementById('listReady').innerHTML = ready.map(t => `
+          <div class="token-card" style="border-color:#38bdf8;">
+            <div class="token-code" style="color:#38bdf8;">${t.code}</div>
+            <div class="token-bucket">${t.bucket}</div>
+            <button class="btn btn-served" onclick="advanceToken('${t.id}', 'SERVED')">Hand to Guest ✓</button>
+          </div>
+        `).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
+      } catch (e) {}
+    }
+
+    async function advanceToken(tokenId, newState) {
+      const res = await fetch(`/api/v1/tokens/${tokenId}/state`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: newState })
+      });
+      if (res.ok) {
+        showToast(`Token updated to ${newState}`);
+        loadTokens();
+      }
+    }
+
+    async function spawnToken() {
+      const res = await fetch('/api/v1/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outletId: OUTLET_ID, bucket: 'FOOD' })
+      });
+      if (res.ok) {
+        const t = await res.json();
+        showToast(`Created token ${t.code}`);
+        loadTokens();
+      }
+    }
+
+    loadTokens();
+    setInterval(loadTokens, 3000);
+  </script>
+</body>
+</html>

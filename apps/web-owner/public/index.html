@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Servora | Restaurant Operator Portal</title>
+  <title>Abiruchi Hotel | Restaurant Operator Portal</title>
   <style>
     :root {
       --bg: #09090b;
@@ -20,12 +20,14 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       display: flex;
       min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     /* Sidebar */
@@ -261,7 +263,7 @@
   <aside>
     <div class="brand">
       <div class="brand-icon">S</div>
-      <div class="brand-name">Servora</div>
+      <div class="brand-name">Abiruchi Hotel</div>
       <span class="brand-badge">OPERATOR</span>
     </div>
     <ul class="nav-links">
@@ -271,7 +273,7 @@
       <li class="nav-item" onclick="switchTab('orders', this)">🧾 Live Orders</li>
     </ul>
     <div class="sidebar-footer">
-      <div>Trattoria Servora</div>
+      <div>Trattoria Abiruchi Hotel</div>
       <div style="font-size: 0.75rem; color: #71717a; margin-top: 4px;">Tenant ID: a000-0001</div>
     </div>
   </aside>
@@ -284,6 +286,12 @@
         <span class="outlet-badge">📍 Downtown Flagship</span>
       </div>
       <div class="header-right">
+        <button id="pauseRushBtn" onclick="toggleRushPause()" style="background:#27272a; border:1px solid #f59e0b; color:#fbbf24; font-size:0.8rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
+          ⏸ Pause Orders: Off
+        </button>
+        <button id="payModeBtn" onclick="toggleShiftPayMode()" style="background:#27272a; border:1px solid #38bdf8; color:#38bdf8; font-size:0.8rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
+          💳 Shift: Pay Later
+        </button>
         <div class="clock" id="liveClock">--:--:--</div>
         <a href="/kds" target="_blank" style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border: 1px solid #0284c7; border-radius: 6px;">
           Open KDS &rarr;
@@ -397,12 +405,12 @@
   <!-- QR Print Modal -->
   <div class="modal-overlay" id="qrModal">
     <div class="qr-card-print">
-      <h2>Trattoria Servora</h2>
+      <h2>Trattoria Abiruchi Hotel</h2>
       <p id="qrTableLabel">Table T-01</p>
       <div class="qr-placeholder">
         <div style="font-size: 3rem; margin-bottom: 8px;">📱</div>
         <div style="font-weight: 700; margin-bottom: 4px;">Scan to Order & Pay</div>
-        <div style="font-size: 0.75rem; color: #71717a;" id="qrSignedUrl">https://servora.local/qr?t=...</div>
+        <div style="font-size: 0.75rem; color: #71717a;" id="qrSignedUrl">https://abiruchi.local/qr?t=...</div>
       </div>
       <div style="font-size: 0.8rem; color: #71717a;">
         Cryptographically signed HMAC-SHA256 session token active.
@@ -416,9 +424,11 @@
 
   <script>
     const API_BASE = window.location.origin;
+    const OUTLET_ID = 'b0000000-0000-0000-0000-000000000001';
     let menuItems = [];
     let categories = [];
     let orders = [];
+    let outletSettings = { paymentMode: 'PAY_LATER', isPaused: false };
 
     setInterval(() => {
       document.getElementById('liveClock').textContent = new Date().toLocaleTimeString();
@@ -434,8 +444,70 @@
       document.getElementById('view-orders').style.display = tabId === 'orders' ? 'block' : 'none';
     }
 
+    async function toggleShiftPayMode() {
+      const nextMode = outletSettings.paymentMode === 'PAY_FIRST' ? 'PAY_LATER' : 'PAY_FIRST';
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/outlets/${OUTLET_ID}/payment-mode`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentMode: nextMode }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          outletSettings.paymentMode = data.settings.paymentMode;
+          updateSettingsUI();
+        }
+      } catch (e) {
+        console.warn('Failed to update payment mode:', e);
+      }
+    }
+
+    async function toggleRushPause() {
+      const nextPause = !outletSettings.isPaused;
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/outlets/${OUTLET_ID}/pause-orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            isPaused: nextPause,
+            reason: nextPause ? 'Surge rush - pausing incoming online orders' : '',
+            etaMinutes: nextPause ? 15 : 0,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          outletSettings.isPaused = data.settings.isPaused;
+          updateSettingsUI();
+        }
+      } catch (e) {
+        console.warn('Failed to toggle rush pause:', e);
+      }
+    }
+
+    function updateSettingsUI() {
+      const payBtn = document.getElementById('payModeBtn');
+      if (payBtn) {
+        payBtn.textContent = outletSettings.paymentMode === 'PAY_FIRST' ? '💳 Shift: Pay First' : '💳 Shift: Pay Later';
+        payBtn.style.borderColor = outletSettings.paymentMode === 'PAY_FIRST' ? '#a855f7' : '#38bdf8';
+        payBtn.style.color = outletSettings.paymentMode === 'PAY_FIRST' ? '#c084fc' : '#38bdf8';
+      }
+      const pauseBtn = document.getElementById('pauseRushBtn');
+      if (pauseBtn) {
+        pauseBtn.textContent = outletSettings.isPaused ? '⏸ Orders PAUSED (Rush)' : '⏸ Pause Orders: Off';
+        pauseBtn.style.background = outletSettings.isPaused ? '#ef4444' : '#27272a';
+        pauseBtn.style.color = outletSettings.isPaused ? '#fff' : '#fbbf24';
+      }
+    }
+
     async function loadData() {
       try {
+        // Load Outlet Settings
+        const cfgRes = await fetch(`${API_BASE}/api/v1/outlets/${OUTLET_ID}/config`);
+        if (cfgRes.ok) {
+          outletSettings = await cfgRes.json();
+          updateSettingsUI();
+        }
+
         // Load Menu
         const menuRes = await fetch(`${API_BASE}/api/v1/menu`);
         if (menuRes.ok) {
@@ -445,10 +517,11 @@
           renderMenuAdmin();
         }
 
-        // Load KDS / Orders
-        const ordersRes = await fetch(`${API_BASE}/api/v1/kds/orders`);
+        // Load Unified Active Orders Stream (Achievement 46)
+        const ordersRes = await fetch(`${API_BASE}/api/v1/orders/active?outletId=${OUTLET_ID}`);
         if (ordersRes.ok) {
-          orders = await ordersRes.json();
+          const data = await ordersRes.json();
+          orders = data.orders || [];
           renderOrders();
           renderFloorPlan();
         }
@@ -568,11 +641,21 @@
       tbody.innerHTML = html;
     }
 
-    function toggleAvailability(itemId, nextState) {
+    // Achievement 1: 1-Tap Sold Out Toggle with Audit Logging
+    async function toggleAvailability(itemId, nextState) {
       const item = menuItems.find(i => i.id === itemId);
       if (item) {
         item.isAvailable = nextState;
         renderMenuAdmin();
+        try {
+          await fetch(`${API_BASE}/api/v1/menu/items/${itemId}/toggle-86`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isAvailable: nextState, actorId: 'owner_ui', reason: '1-tap manual toggle' })
+          });
+        } catch (e) {
+          console.warn('86 toggle network error:', e);
+        }
       }
     }
 
@@ -585,6 +668,34 @@
     function closeQrModal() {
       document.getElementById('qrModal').style.display = 'none';
     }
+
+    // Connect to SSE for Live Order Stream in Owner Portal
+    try {
+      const evtSource = new EventSource(`${API_BASE}/api/v1/events`);
+      evtSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'ORDER_CREATED') {
+            orders.unshift(data.payload);
+            renderOrders();
+            renderFloorPlan();
+          } else if (data.type === 'ITEM_86_TOGGLED' || data.type === 'ITEM_AVAILABILITY_CHANGED') {
+            const updated = data.payload.item || data.payload;
+            const item = menuItems.find(i => i.id === updated.id);
+            if (item) {
+              item.isAvailable = updated.isAvailable;
+              renderMenuAdmin();
+            }
+          } else if (data.type === 'OUTLET_ORDERS_PAUSED' || data.type === 'OUTLET_ORDERS_RESUMED') {
+            outletSettings.isPaused = data.payload.isPaused;
+            updateSettingsUI();
+          } else if (data.type === 'OUTLET_PAYMENT_MODE_CHANGED') {
+            outletSettings.paymentMode = data.payload.paymentMode;
+            updateSettingsUI();
+          }
+        } catch (e) {}
+      };
+    } catch (e) {}
 
     loadData();
   </script>

@@ -1,8 +1,8 @@
 {
-  "name": "@servora/web-admin",
+  "name": "@abiruchi/web-admin",
   "version": "0.1.0",
   "private": true,
-  "description": "Servora Multi-Tenant Super-Admin Platform Console",
+  "description": "Abiruchi Hotel Multi-Tenant Super-Admin Platform Console",
   "scripts": {
     "dev": "node --experimental-strip-types ../../services/order-service/src/server.ts"
   }

@@ -40,7 +40,7 @@ export interface FlashDeal {
   status: 'ACTIVE' | 'STANDBY';
 }
 
-export class ServoraAIEngine {
+export class AbiruchiHotelAIEngine {
   /**
    * 1. AI Smart Upsell & Dynamic Pairing Engine
    */
@@ -120,7 +120,7 @@ export class ServoraAIEngine {
       discountValue: '₹100 / $10 Off',
       expiryDays: 5,
       messageText: {
-        en: `Hi ${guest.name}! We miss you at Trattoria Servora. Your favorite ${guest.favoriteDish} is waiting for you! Enjoy ₹100 off on your next visit with code ${promoCode} (Valid 5 days). Tap here to reserve your table: https://servora.local`,
+        en: `Hi ${guest.name}! We miss you at Trattoria Abiruchi Hotel. Your favorite ${guest.favoriteDish} is waiting for you! Enjoy ₹100 off on your next visit with code ${promoCode} (Valid 5 days). Tap here to reserve your table: https://abiruchi.local`,
         hi: `नमस्ते ${guest.name}! हमें त्रात्तोरिया सेर्वोरा में आपकी याद आ रही है। आपके पसंदीदा ${guest.favoriteDish} पर कोड ${promoCode} के साथ ₹100 की छूट पाएं! (5 दिनों के लिए वैध)`,
         te: `నమస్కారం ${guest.name}! ట్రాటోరియా సెర్వోరా మిమ్మల్ని ఆహ్వానిస్తోంది. మీ ఇష్టమైన ${guest.favoriteDish} పై ${promoCode} కోడ్‌తో ₹100 తగ్గింపు పొందండి! (5 రోజులు మాత్రమే చెల్లుబాటు)`,
       },

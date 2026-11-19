@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Today's Specials — Abiruchi Hotel Owner</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+    .sidebar-brand { font-size:1.1rem; font-weight:800; color:#fff; padding:12px 12px 20px; letter-spacing:-0.02em; }
+    .nav-link { display:block; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:600; transition:all 0.15s ease; }
+    .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
+    .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
+    .main-content { flex:1; padding:24px; overflow-y:auto; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:8px; letter-spacing:-0.02em; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; margin-top:16px; }
+    .special-item { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+    .special-img { width:100%; height:160px; object-fit:cover; background:#1e2433; }
+    .special-body { padding:14px; flex:1; display:flex; flex-direction:column; gap:6px; }
+    .special-title { font-weight:700; font-size:1rem; color:#fff; }
+    .special-desc { font-size:0.82rem; color:var(--muted); flex:1; }
+    .special-prices { display:flex; align-items:center; gap:8px; margin:6px 0; }
+    .price-discount { font-size:1.1rem; font-weight:800; color:var(--amber); }
+    .price-base { text-decoration:line-through; color:var(--muted); font-size:0.88rem; }
+    .badge { display:inline-block; padding:3px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; }
+    .badge-tag { background:rgba(56,189,248,0.15); color:var(--sky); }
+    .badge-soldout { background:rgba(239,68,68,0.2); color:#ef4444; }
+    .badge-stock { background:rgba(245,158,11,0.15); color:var(--amber); }
+    .btn { padding:8px 14px; border-radius:8px; border:none; font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-danger { background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .form-group { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+    .form-group label { font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; }
+    .form-input { padding:10px; border-radius:8px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:0.88rem; }
+  </style>
+</head>
+<body>
+  <div id="navContainer"></div>
+  <main class="main-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h1 class="page-title">⭐ Today's Specials & Daily Creations</h1>
+        <p style="font-size:0.85rem; color:var(--muted);">Control chef recommendations, limited-portion dishes, and happy hour specials in real-time.</p>
+      </div>
+      <button class="btn btn-primary" onclick="toggleCreateModal()">+ Add New Special</button>
+    </div>
+
+    <!-- Active Specials List -->
+    <div class="card">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:12px;">Active & Scheduled Specials</h3>
+      <div id="specialsGrid" class="grid">
+        <p style="color:var(--muted); font-size:0.88rem;">Loading specials catalog...</p>
+      </div>
+    </div>
+
+    <!-- Create Special Modal -->
+    <div id="createModal" class="card" style="display:none; border-color:var(--primary);">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:14px;">Create Today's Special Dish</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Dish Name</label>
+          <input type="text" id="spName" class="form-input" placeholder="e.g. Handmade Truffle Tagliolini" />
+        </div>
+        <div class="form-group">
+          <label>Photo URL (or Unsplash sample)</label>
+          <input type="text" id="spImage" class="form-input" placeholder="https://images.unsplash.com/photo-..." />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description & Culinary Notes</label>
+        <textarea id="spDesc" class="form-input" style="height:60px;" placeholder="Artisanal pasta tossed in butter and shaved Umbrian truffles..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Original Price ($)</label>
+          <input type="number" step="0.01" id="spBasePrice" class="form-input" placeholder="32.00" />
+        </div>
+        <div class="form-group">
+          <label>Special Promotional Price ($)</label>
+          <input type="number" step="0.01" id="spDiscountPrice" class="form-input" placeholder="26.00" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Limited Quantity (Portions)</label>
+          <input type="number" id="spPortions" class="form-input" placeholder="20" />
+        </div>
+        <div class="form-group">
+          <label>Marketing Tags (comma-separated)</label>
+          <input type="text" id="spTags" class="form-input" placeholder="CHEF_CHOICE, HAPPY_HOUR, SEASONAL" />
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-danger" onclick="toggleCreateModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSpecial()">Publish Special →</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/owner/shared.js"></script>
+  <script>
+    document.getElementById('navContainer').innerHTML = renderNav('specials');
+
+    async function loadSpecials() {
+      try {
+        const res = await apiFetch('/api/v1/specials?outletId=b0000000-0000-0000-0000-000000000001');
+        const list = await res.json();
+        const grid = document.getElementById('specialsGrid');
+        if (list.length === 0) {
+          grid.innerHTML = '<p style="color:var(--muted); font-size:0.88rem;">No specials currently scheduled. Tap "+ Add New Special" to feature a dish today!</p>';
+          return;
+        }
+        grid.innerHTML = list.map(s => `
+          <div class="special-item">
+            ${s.imageUrl ? `<img src="${s.imageUrl}" class="special-img" alt="${s.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'" />` : '<div class="special-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🍽️</div>'}
+            <div class="special-body">
+              <div style="display:flex;justify-content:space-between;align-items:start;">
+                <h4 class="special-title">${s.name}</h4>
+                ${s.soldOut ? '<span class="badge badge-soldout">SOLD OUT</span>' : ''}
+              </div>
+              <p class="special-desc">${s.description || 'Special chef preparation for today.'}</p>
+              <div class="special-prices">
+                ${s.discountPriceCents ? `<span class="price-discount">$${(s.discountPriceCents/100).toFixed(2)}</span><span class="price-base">$${(s.basePriceCents/100).toFixed(2)}</span>` : `<span class="price-discount">$${(s.basePriceCents/100).toFixed(2)}</span>`}
+                ${s.remainingQty !== null ? `<span class="badge badge-stock">${s.remainingQty} left</span>` : ''}
+              </div>
+              <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;">
+                ${(s.tags || []).map(t => `<span class="badge badge-tag">${t}</span>`).join('')}
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:auto; padding-top:8px; border-top:1px solid var(--border);">
+                <button class="btn" style="background:rgba(255,255,255,0.08);color:#fff;" onclick="toggleSoldOut('${s.id}', ${s.remainingQty === 0})">${s.remainingQty === 0 ? 'Restock' : 'Mark 86 (Sold Out)'}</button>
+                <button class="btn btn-danger" onclick="deleteSpecial('${s.id}')">Delete</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        showToast('Error loading specials: ' + err.message, 'error');
+      }
+    }
+
+    function toggleCreateModal() {
+      const el = document.getElementById('createModal');
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+      if (el.style.display === 'block') el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function submitSpecial() {
+      const name = document.getElementById('spName').value.trim();
+      const imageUrl = document.getElementById('spImage').value.trim();
+      const description = document.getElementById('spDesc').value.trim();
+      const basePrice = parseFloat(document.getElementById('spBasePrice').value || '0');
+      const discountPrice = parseFloat(document.getElementById('spDiscountPrice').value || '0');
+      const portions = parseInt(document.getElementById('spPortions').value || '0', 10);
+      const tags = document.getElementById('spTags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+      if (!name || basePrice <= 0) {
+        showToast('Please provide a dish name and valid price.', 'error');
+        return;
+      }
+
+      const payload = {
+        outletId: 'b0000000-0000-0000-0000-000000000001',
+        name,
+        imageUrl: imageUrl || null,
+        description,
+        basePriceCents: Math.round(basePrice * 100),
+        discountPriceCents: discountPrice > 0 ? Math.round(discountPrice * 100) : null,
+        limitedQty: portions > 0 ? portions : null,
+        tags: tags.length > 0 ? tags : ['CHEF_RECOMMENDED'],
+      };
+
+      try {
+        const res = await apiFetch('/api/v1/owner/specials', { method: 'POST', body: JSON.stringify(payload) });
+        if (res.ok) {
+          showToast('Special published successfully!');
+          toggleCreateModal();
+          loadSpecials();
+        } else {
+          showToast('Error publishing special', 'error');
+        }
+      } catch (err) {
+        showToast('Network error: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleSoldOut(id, currentlySoldOut) {
+      try {
+        await apiFetch(`/api/v1/owner/specials/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ remainingQty: currentlySoldOut ? 10 : 0 }),
+        });
+        showToast(currentlySoldOut ? 'Restocked 10 portions' : 'Marked sold out (86)');
+        loadSpecials();
+      } catch (err) {
+        showToast('Update failed', 'error');
+      }
+    }
+
+    async function deleteSpecial(id) {
+      if (!confirm('Remove this special?')) return;
+      try {
+        await apiFetch(`/api/v1/owner/specials/${id}`, { method: 'DELETE' });
+        showToast('Special removed');
+        loadSpecials();
+      } catch (err) {
+        showToast('Delete failed', 'error');
+      }
+    }
+
+    loadSpecials();
+  </script>
+</body>
+</html>

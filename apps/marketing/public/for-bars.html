@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abiruchi Hotel for Bars &amp; Lounges</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:20px 48px; border-bottom:1px solid var(--border); backdrop-filter:blur(16px); position:sticky; top:0; z-index:100; background:rgba(9,10,15,0.8); }
+    .brand { font-size:1.4rem; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:24px; font-weight:600; font-size:0.95rem; }
+    nav a:hover, nav a.active { color:#fff; }
+    .hero { text-align:center; padding:80px 24px 48px; max-width:850px; margin:0 auto; }
+    .badge { display:inline-block; padding:6px 16px; border-radius:24px; font-size:0.8rem; font-weight:700; background:rgba(56,189,248,0.15); color:#38bdf8; margin-bottom:20px; }
+    h1 { font-size:2.8rem; font-weight:900; line-height:1.2; letter-spacing:-0.03em; margin-bottom:20px; }
+    .hero p { font-size:1.15rem; color:var(--muted); margin-bottom:32px; }
+    .btn { padding:14px 28px; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+    .btn-primary { background:linear-gradient(135deg,#38bdf8,#0284c7); color:#fff; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; max-width:1000px; margin:32px auto 64px; padding:0 24px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:28px; }
+    .card-title { font-size:1.2rem; font-weight:800; margin-bottom:10px; color:#fff; }
+    .card-desc { color:var(--muted); font-size:0.92rem; }
+    footer { text-align:center; padding:48px 24px; border-top:1px solid var(--border); color:var(--muted); font-size:0.88rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">🍸 Abiruchi Hotel for Bars &amp; Lounges</div>
+    <nav>
+      <a href="/marketing">Overview</a>
+      <a href="/marketing/for-cafes">Cafes</a>
+      <a href="/marketing/for-restaurants">Restaurants</a>
+      <a href="/marketing/for-bars" class="active">Bars</a>
+      <a href="/marketing/pricing">Pricing</a>
+      <a href="/owner" style="color:var(--primary);">Owner Login →</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="badge">High Decibel &amp; Rapid Turnover</span>
+      <h1>No More Crowding at the Bar Counter</h1>
+      <p>Guests scan QR codes at high-top tables or bar corners, order their next round in under 15 seconds, and pay digitally. Bartenders receive tickets cleanly segregated by station.</p>
+      <a href="/owner/tokens" class="btn btn-primary">View Token Dispatch Board →</a>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h3 class="card-title">Bar Station Segregation</h3>
+        <p class="card-desc">Draft beers and neat spirits print or display separately from shaken craft cocktails for specialized bartender throughput.</p>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Token Pickup Announcements</h3>
+        <p class="card-desc">Digital boards alert guests when their drinks are placed at the pickup station. No shouting over loud music.</p>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Tipping Preset Optimization</h3>
+        <p class="card-desc">Smart default tips (18%, 20%, 25%) lift average bartender gratuities by up to 34% compared to cash transactions.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 Abiruchi Hotel Inc. Powering high-energy cocktail lounges, taprooms, and nightlife venues.</p>
+  </footer>
+</body>
+</html>

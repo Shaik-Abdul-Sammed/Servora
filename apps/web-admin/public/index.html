@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Servora | Super-Admin Platform Console</title>
+  <title>Abiruchi Hotel | Super-Admin Platform Console</title>
   <style>
     :root {
       --bg: #09090b;
@@ -18,13 +18,15 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     header {
@@ -134,11 +136,11 @@
 
   <header>
     <div class="brand-section">
-      <h1 style="font-size: 1.25rem; font-weight: 800; color: #fff;">Servora Cloud</h1>
+      <h1 style="font-size: 1.25rem; font-weight: 800; color: #fff;">Abiruchi Hotel Cloud</h1>
       <span class="badge">SUPER-ADMIN CONSOLE</span>
     </div>
     <div class="user-pill">
-      Logged in as: <b>root@servora.internal</b> (Tenant Isolation: Bypass)
+      Logged in as: <b>root@abiruchi.internal</b> (Tenant Isolation: Bypass)
     </div>
   </header>
 
@@ -200,8 +202,8 @@
       </thead>
       <tbody>
         <tr>
-          <td style="font-weight: 700; color: #fff;">Trattoria Servora</td>
-          <td style="font-family: monospace; color: #a1a1aa;">trattoria-servora</td>
+          <td style="font-weight: 700; color: #fff;">Trattoria Abiruchi Hotel</td>
+          <td style="font-family: monospace; color: #a1a1aa;">trattoria-abiruchi</td>
           <td>USD ($)</td>
           <td>1 (Downtown Flagship)</td>
           <td><span style="background: #1e1b4b; color: #a5b4fc; padding: 2px 8px; border-radius: 4px; font-weight: 600;">ENTERPRISE</span></td>

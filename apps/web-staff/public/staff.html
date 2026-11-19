@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Terminal — Abiruchi Hotel Operating System</title>
+  <link rel="stylesheet" href="/guest/styles.css">
+  <style>
+    :root {
+      --primary: #ff6600;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --warning: #f59e0b;
+      --success: #10b981;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .top-nav {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .nav-link:hover, .nav-link:focus-visible, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 102, 0, 0.15);
+      outline: 2px solid var(--primary);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+    .station-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .station-chip {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .station-chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .board-column {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      max-height: 80vh;
+    }
+    .col-header {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .col-count {
+      font-size: 0.75rem;
+      background: #334155;
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: #fff;
+    }
+    .token-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .token-code {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+    .token-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 4px 0 10px;
+    }
+    .btn {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-prep { background: var(--warning); color: #000; }
+    .btn-ready { background: var(--success); color: #fff; }
+    .btn-serve { background: var(--primary); color: #fff; }
+  </style>
+</head>
+<body>
+  <nav class="top-nav" aria-label="Main Navigation">
+    <a href="/owner.html" class="brand-title" aria-label="Abiruchi Hotel Home">
+      🍛 ABIRUCHI HOTEL
+    </a>
+    <div class="nav-links">
+      <a href="/owner.html" class="nav-link" aria-label="Owner Dashboard">Dashboard</a>
+      <a href="/manager.html" class="nav-link" aria-label="Manager Operations">Manager Ops</a>
+      <a href="/qr-manager.html" class="nav-link" aria-label="QR Studio">QR Studio</a>
+      <a href="/staff.html" class="nav-link active" aria-label="Staff Terminal">Staff</a>
+      <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Station Selector -->
+    <div class="station-bar" role="tablist" aria-label="Kitchen Stations">
+      <button class="station-chip active" onclick="setStation('ALL', this)" role="tab" aria-selected="true" aria-label="All stations">All Stations</button>
+      <button class="station-chip" onclick="setStation('HOT_LINE', this)" role="tab" aria-selected="false" aria-label="Hot Line Dosa & Meals (A)">Hot Line (A)</button>
+      <button class="station-chip" onclick="setStation('COLD_PREP', this)" role="tab" aria-selected="false" aria-label="Cold Prep Chutneys & Salads (B)">Cold Prep (B)</button>
+      <button class="station-chip" onclick="setStation('BAR', this)" role="tab" aria-selected="false" aria-label="Bar & Cool Drinks (D)">Bar & Coolers (D)</button>
+      <button class="station-chip" onclick="setStation('COFFEE', this)" role="tab" aria-selected="false" aria-label="Filter Coffee (F)">Coffee & Chai (F)</button>
+    </div>
+
+    <!-- Token Kanban Columns (Cases 59-67) -->
+    <div class="board-grid">
+      <!-- Column 1: QUEUED -->
+      <section class="board-column" aria-labelledby="colQueuedTitle">
+        <div class="col-header">
+          <span id="colQueuedTitle">⏳ Queued Orders</span>
+          <span class="col-count" id="countQueued">0</span>
+        </div>
+        <div id="colQueued" style="overflow-y:auto; flex:1;"></div>
+      </section>
+
+      <!-- Column 2: PREPARING -->
+      <section class="board-column" aria-labelledby="colPrepTitle">
+        <div class="col-header">
+          <span id="colPrepTitle" style="color:var(--warning);">🔥 Preparing</span>
+          <span class="col-count" id="countPreparing">0</span>
+        </div>
+        <div id="colPreparing" style="overflow-y:auto; flex:1;"></div>
+      </section>
+
+      <!-- Column 3: READY -->
+      <section class="board-column" aria-labelledby="colReadyTitle">
+        <div class="col-header">
+          <span id="colReadyTitle" style="color:var(--success);">✅ Ready for Pickup</span>
+          <span class="col-count" id="countReady">0</span>
+        </div>
+        <div id="colReady" style="overflow-y:auto; flex:1;"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    let currentStation = 'ALL';
+
+    function setStation(station, btn) {
+      document.querySelectorAll('.station-chip').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      currentStation = station;
+      loadBoard();
+    }
+
+    async function loadBoard() {
+      try {
+        const url = currentStation === 'ALL' ? '/api/v1/tokens/active' : \`/api/v1/tokens/active?station=\${currentStation}\`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const tokens = data.tokens || [];
+
+        const queued = tokens.filter(t => t.state === 'QUEUED');
+        const preparing = tokens.filter(t => t.state === 'PREPARING');
+        const ready = tokens.filter(t => t.state === 'READY');
+
+        document.getElementById('countQueued').textContent = queued.length;
+        document.getElementById('countPreparing').textContent = preparing.length;
+        document.getElementById('countReady').textContent = ready.length;
+
+        // Render Queued
+        document.getElementById('colQueued').innerHTML = queued.map(t => \`
+          <div class="token-card">
+            <div class="token-code">\${t.token_code}</div>
+            <div class="token-meta">Station: \${t.station} • Order #\${t.order_id.slice(-6)}</div>
+            <button class="btn btn-prep" onclick="updateState('\${t.id}', 'PREPARING')" aria-label="Start cooking token \${t.token_code}">
+              🔥 Start Prep
+            </button>
+          </div>
+        \`).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No queued tokens</div>';
+
+        // Render Preparing
+        document.getElementById('colPreparing').innerHTML = preparing.map(t => \`
+          <div class="token-card">
+            <div class="token-code">\${t.token_code}</div>
+            <div class="token-meta">Station: \${t.station} • Order #\${t.order_id.slice(-6)}</div>
+            <button class="btn btn-ready" onclick="updateState('\${t.id}', 'READY')" aria-label="Mark token \${t.token_code} ready for waiter">
+              ✅ Mark Ready
+            </button>
+          </div>
+        \`).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No cooking in progress</div>';
+
+        // Render Ready
+        document.getElementById('colReady').innerHTML = ready.map(t => \`
+          <div class="token-card">
+            <div class="token-code">\${t.token_code}</div>
+            <div class="token-meta">Station: \${t.station} • Ready for service</div>
+            <button class="btn btn-serve" onclick="updateState('\${t.id}', 'SERVED')" aria-label="Mark token \${t.token_code} served to table">
+              🍽️ Mark Served
+            </button>
+          </div>
+        \`).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No ready orders</div>';
+
+      } catch (err) {
+        console.error('Failed to load token board', err);
+      }
+    }
+
+    async function updateState(id, state) {
+      try {
+        const res = await fetch(\`/api/v1/tokens/\${id}/state\`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state, waiterId: 'waiter_floor' })
+        });
+        if (res.ok) loadBoard();
+      } catch (e) {
+        alert('Failed to update token state');
+      }
+    }
+
+    loadBoard();
+    setInterval(loadBoard, 8000);
+  </script>
+</body>
+</html>

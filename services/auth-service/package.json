@@ -1,5 +1,5 @@
 {
-  "name": "@servora/auth-service",
+  "name": "@abiruchi/auth-service",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "test": "node --experimental-strip-types tests/auth.test.ts"
   },
   "dependencies": {
-    "@servora/shared-types": "*",
-    "@servora/utils": "*"
+    "@abiruchi/shared-types": "*",
+    "@abiruchi/utils": "*"
   }
 }

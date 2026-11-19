@@ -1,14 +1,14 @@
 import { ThermalReceiptFormatter } from './printer.ts';
 import type { ServerEvent, Order } from '../../../packages/shared-types/src/index.ts';
 
-const CLOUD_URL = process.env.SERVORA_API_URL || 'http://localhost:3001';
+const CLOUD_URL = process.env.ABIRUCHI HOTEL_API_URL || 'http://localhost:3001';
 
 export class POSBridgeDaemon {
   private active = false;
 
   public start() {
     this.active = true;
-    console.log(`[Servora POS Bridge] Initialized. Connecting to ${CLOUD_URL}/api/v1/events...`);
+    console.log(`[Abiruchi Hotel POS Bridge] Initialized. Connecting to ${CLOUD_URL}/api/v1/events...`);
     this.connect();
   }
 
@@ -19,7 +19,7 @@ export class POSBridgeDaemon {
         throw new Error(`Failed to connect to SSE stream: ${res.statusText}`);
       }
 
-      console.log(`[Servora POS Bridge] Connected to Cloud Order Stream.`);
+      console.log(`[Abiruchi Hotel POS Bridge] Connected to Cloud Order Stream.`);
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -47,16 +47,31 @@ export class POSBridgeDaemon {
         }
       }
     } catch (err) {
-      console.warn(`[Servora POS Bridge] Connection lost, retrying in 5s...`, err);
+      console.warn(`[Abiruchi Hotel POS Bridge] Connection lost, retrying in 5s...`, err);
       setTimeout(() => this.connect(), 5000);
     }
   }
 
-  public handleOrderCreated(order: Order) {
+  public async handleOrderCreated(order: Order) {
     console.log(`\n================== [ESC/POS PRINTER JOB] ==================`);
     const asciiReceipt = ThermalReceiptFormatter.toAsciiReceipt(order);
     console.log(asciiReceipt);
-    console.log(`[Servora POS Bridge] Sent ESC/POS binary (${ThermalReceiptFormatter.toEscPos(order).length} bytes) to Thermal Printer.`);
+
+    const printerHost = process.env.PRINTER_HOST;
+    const printerPort = parseInt(process.env.PRINTER_PORT || '9100', 10);
+    const escBytes = ThermalReceiptFormatter.toEscPos(order);
+
+    if (printerHost) {
+      console.log(`[Abiruchi Hotel POS Bridge] Dispatching ${escBytes.length} bytes to Network Printer at ${printerHost}:${printerPort}...`);
+      const success = await ThermalReceiptFormatter.printToNetwork(printerHost, printerPort, escBytes);
+      if (success) {
+        console.log(`[Abiruchi Hotel POS Bridge] ✓ Hardware print successful.`);
+      } else {
+        console.warn(`[Abiruchi Hotel POS Bridge] ✗ Network printer unavailable, queued locally.`);
+      }
+    } else {
+      console.log(`[Abiruchi Hotel POS Bridge] Simulated ESC/POS binary (${escBytes.length} bytes) to Virtual Printer.`);
+    }
   }
 
   public stop() {

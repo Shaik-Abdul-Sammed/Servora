@@ -21,7 +21,7 @@ test('Auth Service Multi-Tenant Identity & JWT Engine', async (t) => {
   await t.test('Issues valid JWT token with tenant and role scopes', () => {
     const token = auth.generateToken({
       userId: 'usr_owner_01',
-      email: 'owner@servora.com',
+      email: 'owner@abiruchi.com',
       role: 'OWNER',
       tenantId: 'a0000000-0000-0000-0000-000000000001',
       outletId: 'b0000000-0000-0000-0000-000000000001',
@@ -39,7 +39,7 @@ test('Auth Service Multi-Tenant Identity & JWT Engine', async (t) => {
   await t.test('Rejects forged or tampered JWT signatures', () => {
     const token = auth.generateToken({
       userId: 'usr_staff_01',
-      email: 'staff@servora.com',
+      email: 'staff@abiruchi.com',
       role: 'KITCHEN_STAFF',
       tenantId: 'a0000000-0000-0000-0000-000000000001',
     });
@@ -59,7 +59,7 @@ test('Auth Service Multi-Tenant Identity & JWT Engine', async (t) => {
   await t.test('Rejects expired JWT tokens', () => {
     const expiredToken = auth.generateToken({
       userId: 'usr_old',
-      email: 'old@servora.com',
+      email: 'old@abiruchi.com',
       role: 'WAITER',
       tenantId: 'a0000000-0000-0000-0000-000000000001',
       expiresInSeconds: -10, // Already expired

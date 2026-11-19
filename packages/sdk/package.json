@@ -1,5 +1,5 @@
 {
-  "name": "@servora/sdk",
+  "name": "@abiruchi/sdk",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@servora/shared-types": "*",
-    "@servora/utils": "*"
+    "@abiruchi/shared-types": "*",
+    "@abiruchi/utils": "*"
   }
 }

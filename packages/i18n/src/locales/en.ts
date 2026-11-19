@@ -1,6 +1,6 @@
 export const en = {
   common: {
-    venueTitle: 'Trattoria Servora',
+    venueTitle: 'Trattoria Abiruchi Hotel',
     table: 'Table',
     allDishes: 'All Dishes',
     add: '+ Add',
@@ -21,7 +21,7 @@ export const en = {
     orderMore: 'Order More Items',
     orderRef: 'Order Reference',
     kitchenNote: 'Add Kitchen Note (e.g. less spicy, extra sauce):',
-    specialOffer: '🎁 Returning Customer Offer: Use code SERVORA50 for $5 off!',
+    specialOffer: '🎁 Returning Customer Offer: Use code ABIRUCHI HOTEL50 for $5 off!',
     aiConcierge: '🤖 Ask AI Waiter',
     askAiPlaceholder: 'Ask about dietary restrictions, ingredients, pairings...',
     containsAllergens: 'Contains:',

@@ -1,14 +1,14 @@
 -- ============================================================================
--- Servora Database Seeds - Demo Restaurant Data (0001)
--- Trattoria Servora (Downtown Flagship)
+-- Abiruchi Hotel Database Seeds - Demo Restaurant Data (0001)
+-- Trattoria Abiruchi Hotel (Downtown Flagship)
 -- ============================================================================
 
 -- 1. Tenant
 INSERT INTO tenants (id, name, slug, currency, default_locale)
 VALUES (
     'a0000000-0000-0000-0000-000000000001',
-    'Trattoria Servora',
-    'trattoria-servora',
+    'Trattoria Abiruchi Hotel',
+    'trattoria-abiruchi',
     'USD',
     'en-US'
 ) ON CONFLICT (id) DO NOTHING;
@@ -26,11 +26,11 @@ VALUES (
 -- 3. Tables
 INSERT INTO tables (id, tenant_id, outlet_id, table_number, capacity, qr_code_url, is_active)
 VALUES
-    ('c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-01', 2, 'https://order.servora.local/qr?t=1', TRUE),
-    ('c0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-02', 4, 'https://order.servora.local/qr?t=2', TRUE),
-    ('c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-03', 4, 'https://order.servora.local/qr?t=3', TRUE),
-    ('c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-04', 6, 'https://order.servora.local/qr?t=4', TRUE),
-    ('c0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Bar-01', 1, 'https://order.servora.local/qr?t=5', TRUE)
+    ('c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-01', 2, 'https://order.abiruchi.local/qr?t=1', TRUE),
+    ('c0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-02', 4, 'https://order.abiruchi.local/qr?t=2', TRUE),
+    ('c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-03', 4, 'https://order.abiruchi.local/qr?t=3', TRUE),
+    ('c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'T-04', 6, 'https://order.abiruchi.local/qr?t=4', TRUE),
+    ('c0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Bar-01', 1, 'https://order.abiruchi.local/qr?t=5', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. Menu Categories

@@ -1,8 +1,8 @@
 {
-  "name": "@servora/web-owner",
+  "name": "@abiruchi/web-owner",
   "version": "0.1.0",
   "private": true,
-  "description": "Servora Venue Operator Portal & Restaurant Management Dashboard",
+  "description": "Abiruchi Hotel Venue Operator Portal & Restaurant Management Dashboard",
   "scripts": {
     "dev": "node --experimental-strip-types ../../services/order-service/src/server.ts"
   }

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments — Abiruchi Hotel Owner</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+    .sidebar-brand { font-size:1.1rem; font-weight:800; color:#fff; padding:12px 12px 20px; letter-spacing:-0.02em; }
+    .nav-link { display:block; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:600; transition:all 0.15s ease; }
+    .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
+    .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
+    .main-content { flex:1; padding:24px; overflow-y:auto; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:20px; letter-spacing:-0.02em; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+    .btn { padding:10px 18px; border-radius:10px; border:none; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s ease; }
+    .btn-success { background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); }
+    .btn-success:hover { background:rgba(16,185,129,0.25); }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+    .badge-green { background:rgba(16,185,129,0.15); color:#10b981; }
+    .badge-amber { background:rgba(245,158,11,0.15); color:#f59e0b; }
+    .badge-blue { background:rgba(56,189,248,0.15); color:#38bdf8; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    @media(max-width:768px) { body{flex-direction:column} .sidebar{width:100%;min-height:auto;flex-direction:row;flex-wrap:wrap;padding:12px} .sidebar-brand{display:none} }
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
+    .stat-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+    .stat-label { font-size:0.78rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; }
+    .stat-value { font-size:1.6rem; font-weight:800; color:#fff; margin-top:4px; }
+    .payment-list { display:flex; flex-direction:column; gap:12px; }
+    .payment-row { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; display:flex; justify-content:space-between; align-items:center; animation:fadeInUp 0.3s ease; }
+    .payment-info .order-id { font-weight:700; font-size:0.92rem; color:#fff; }
+    .payment-info .meta { font-size:0.8rem; color:var(--muted); margin-top:3px; }
+    .payment-amount { font-weight:800; font-size:1.1rem; color:#fff; margin-bottom:6px; }
+    .payment-actions { text-align:right; }
+    .empty-state { text-align:center; padding:48px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand">🍽️ Abiruchi Hotel</div>
+    <a href="/owner" class="nav-link">📊 Dashboard</a>
+    <a href="/owner/orders" class="nav-link">🎫 Orders</a>
+    <a href="/owner/availability" class="nav-link">🔴 Availability</a>
+    <a href="/owner/payments" class="nav-link active">💳 Payments</a>
+    <a href="/owner/tokens" class="nav-link">🎟️ Tokens</a>
+    <a href="/owner/bookings" class="nav-link">📅 Bookings</a>
+    <a href="/owner/staff" class="nav-link">👥 Staff</a>
+    <a href="/owner/settings" class="nav-link">⚙️ Settings</a>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+    </div>
+  </nav>
+  <div class="main-content">
+    <h1 class="page-title">Payment Verification</h1>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Today</div>
+        <div class="stat-value" id="totalToday">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unverified</div>
+        <div class="stat-value" id="unverifiedCount" style="color:#fb7185;">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cash</div>
+        <div class="stat-value" id="cashTotal">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Digital</div>
+        <div class="stat-value" id="digitalTotal" style="color:#38bdf8;">$0.00</div>
+      </div>
+    </div>
+    <div class="payment-list" id="paymentList">
+      <div class="empty-state">Loading payments...</div>
+    </div>
+  </div>
+  <script>
+    let payments = [];
+
+    function methodBadge(m) {
+      const map = { CASH:'badge-amber', CARD:'badge-blue', ROOM_CHARGE:'badge-green' };
+      return `<span class="badge ${map[m]||'badge-blue'}">${m||'CARD'}</span>`;
+    }
+
+    function fmt(cents) { return '$' + ((cents||0)/100).toFixed(2); }
+
+    function renderPayments() {
+      const list = document.getElementById('paymentList');
+      if (!payments.length) { list.innerHTML = '<div class="empty-state">No unverified payments</div>'; return; }
+
+      let total = 0, cash = 0, digital = 0;
+      payments.forEach(p => {
+        const amt = p.amount || p.total || 0;
+        total += amt;
+        if (p.method === 'CASH') cash += amt; else digital += amt;
+      });
+      document.getElementById('totalToday').textContent = fmt(total);
+      document.getElementById('unverifiedCount').textContent = payments.length;
+      document.getElementById('cashTotal').textContent = fmt(cash);
+      document.getElementById('digitalTotal').textContent = fmt(digital);
+
+      list.innerHTML = payments.map(p => `
+        <div class="payment-row" id="prow-${p.id}">
+          <div class="payment-info" style="flex:1;">
+            <div class="order-id">Order #${(p.orderId||p.id||'').slice(-6).toUpperCase()}</div>
+            <div class="meta">Table ${p.tableNumber||'—'} · ${methodBadge(p.method)} · ${new Date(p.createdAt||Date.now()).toLocaleTimeString()}</div>
+            <div style="margin-top:8px;">
+              <input type="text" id="cnote-${p.id}" class="form-input" style="padding:6px 12px; font-size:0.82rem; background:rgba(255,255,255,0.06); border:1px solid var(--border); border-radius:8px; color:#fff; width:95%; max-width:340px;" placeholder="Customer note for verification" value="Customer (Table ${p.tableNumber || 'Takeaway'}) - Paid in Full" aria-label="Customer verification note">
+            </div>
+          </div>
+          <div class="payment-actions">
+            <div class="payment-amount">${fmt(p.amount||p.total)}</div>
+            <button class="btn btn-success" onclick="verifyPayment('${p.id}', '${p.orderId || p.id}', '${p.tableNumber || ''}')" aria-label="Verify payment by manager on click">✓ Verify</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function verifyPayment(id, orderId, tableNumber) {
+      const noteInput = document.getElementById(`cnote-${id}`);
+      const customerNote = (noteInput ? noteInput.value.trim() : '') || `Customer (Table ${tableNumber || 'Takeaway'}) verified by manager`;
+
+      try {
+        const res = await fetch(`/api/v1/payments/${id}/verify`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            verifiedBy: 'Manager',
+            notes: customerNote,
+            customerNote: customerNote,
+            orderId: orderId
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          payments = payments.filter(p => p.id !== id);
+          renderPayments();
+          showBanner(`✓ Payment verified! Customer Note: "${data.customerNote || customerNote}"`);
+        } else {
+          alert('Verification failed: ' + (data.error || 'Server error'));
+        }
+      } catch(e) { alert('Error: ' + e.message); }
+    }
+
+    function showBanner(msg) {
+      const el = document.createElement('div');
+      el.style.cssText = 'position:fixed;top:16px;right:16px;padding:12px 20px;border-radius:12px;font-weight:700;font-size:0.88rem;z-index:1000;background:#059669;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }
+
+    async function fetchPayments() {
+      try {
+        const res = await fetch('/api/v1/payments/unverified');
+        if (res.ok) {
+          const data = await res.json();
+          payments = Array.isArray(data) ? data : (data.payments || data.data || []);
+          renderPayments();
+        }
+      } catch(e) { console.error(e); }
+    }
+
+    fetchPayments();
+    setInterval(fetchPayments, 10000);
+  </script>
+</body>
+</html>

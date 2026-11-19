@@ -1,16 +1,17 @@
 {
-  "short_name": "Servora",
-  "name": "Servora Restaurant QR Ordering",
+  "short_name": "Abiruchi",
+  "name": "Abiruchi Hotel",
+  "description": "Abiruchi Hotel — The taste of the land, served smartly.",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e8590c'/><text y='70' x='50' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='60' fill='white'>A</text></svg>",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml"
     }
   ],
   "start_url": "/?source=pwa",
-  "background_color": "#09090b",
-  "theme_color": "#e11d48",
+  "background_color": "#ffffff",
+  "theme_color": "#e8590c",
   "display": "standalone",
   "orientation": "portrait"
 }

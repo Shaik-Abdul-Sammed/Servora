@@ -50,7 +50,7 @@ test('POS Bridge Thermal Receipt Formatting', async (t) => {
   };
 
   await t.test('Produces valid ESC/POS byte sequence with cuts and headers', () => {
-    const escPosBuffer = ThermalReceiptFormatter.toEscPos(sampleOrder, 'TRATTORIA SERVORA');
+    const escPosBuffer = ThermalReceiptFormatter.toEscPos(sampleOrder, 'ABIRUCHI HOTEL');
     assert.ok(escPosBuffer.length > 50);
 
     // Verify ESC @ (init printer: 0x1b, 0x40)

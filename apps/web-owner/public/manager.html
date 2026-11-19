@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Operations — Abiruchi Hotel Operating System</title>
+  <link rel="stylesheet" href="/guest/styles.css">
+  <style>
+    :root {
+      --primary: #ff6600;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .top-nav {
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .nav-link:hover, .nav-link:focus-visible, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 102, 0, 0.15);
+      outline: 2px solid var(--primary);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip:hover, .chip:focus-visible {
+      outline: 2px solid var(--primary);
+      color: #fff;
+    }
+    .chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-count {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover, .btn:focus-visible {
+      opacity: 0.9;
+      outline: 2px solid #fff;
+    }
+    .btn-assign { background: var(--primary); color: #fff; }
+    .btn-escalate { background: var(--danger); color: #fff; }
+    .btn-verify { background: var(--success); color: #fff; }
+    .btn-secondary { background: #334155; color: #fff; }
+    .card-stat {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .form-input {
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #111827;
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .form-input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+    }
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .status-queued { background: #334155; color: #fff; }
+    .status-preparing { background: var(--warning); color: #000; }
+    .status-ready { background: var(--success); color: #fff; }
+    .call-card {
+      background: #111827;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .call-card.escalated {
+      border: 2px solid var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav" aria-label="Main Navigation">
+    <a href="/owner.html" class="brand-title" aria-label="Abiruchi Hotel Home">
+      🍛 ABIRUCHI HOTEL
+    </a>
+    <div class="nav-links">
+      <a href="/owner.html" class="nav-link" aria-label="Owner Dashboard">Dashboard</a>
+      <a href="/manager.html" class="nav-link active" aria-label="Manager Operations">Manager Ops</a>
+      <a href="/qr-manager.html" class="nav-link" aria-label="QR Studio">QR Studio</a>
+      <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
+      <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Tabs Header -->
+    <div class="tab-bar" role="tablist" aria-label="Manager Operations Sections">
+      <button class="chip active" role="tab" aria-selected="true" id="tabBtnFloor" onclick="selectTab('floor', this)">
+        🔔 Floor Ops
+      </button>
+      <button class="chip" role="tab" aria-selected="false" id="tabBtnPayments" onclick="selectTab('payments', this)">
+        💳 Payments Hub (Group O)
+      </button>
+      <button class="chip" role="tab" aria-selected="false" id="tabBtnBookings" onclick="selectTab('bookings', this)">
+        📅 Bookings Polish (Group P)
+      </button>
+      <button class="chip" role="tab" aria-selected="false" id="tabBtnCustomers" onclick="selectTab('customers', this)">
+        👥 Customers & Loyalty (Group Q)
+      </button>
+    </div>
+
+    <!-- TAB 1: FLOOR OPS (Active Calls, Tokens, Recon) -->
+    <div id="tab-floor" class="tab-panel active" role="tabpanel" aria-labelledby="tabBtnFloor">
+      <div class="grid">
+        <section class="panel" aria-labelledby="callsTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="callsTitle">
+              🔔 Active Waiter Calls
+              <span class="badge-count" id="activeCallsCount">0</span>
+            </div>
+            <button class="btn btn-assign" onclick="loadCalls()" aria-label="Refresh assistance calls">🔄 Refresh</button>
+          </div>
+          <div id="callsList">
+            <div style="text-align:center; color:var(--text-muted); padding:30px;">Checking active floor calls...</div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="tokensTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="tokensTitle">
+              🎫 Kitchen Tokens & Escalations
+              <span class="badge-count" id="activeTokensCount">0</span>
+            </div>
+            <button class="btn btn-assign" onclick="loadTokens()" aria-label="Refresh service tokens">🔄 Refresh</button>
+          </div>
+          <div id="tokensList">
+            <div style="text-align:center; color:var(--text-muted); padding:30px;">Loading service tokens...</div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="quickReconTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="quickReconTitle">
+              ⚡ Quick UPI Verify
+            </div>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">
+            Zero-Trust Policy: Confirm UPI transaction reference before clearing order.
+          </div>
+          <div class="form-group">
+            <label for="reconOrderId">Order ID</label>
+            <input type="text" id="reconOrderId" class="form-input" placeholder="e.g. ord_12345" aria-label="Order ID to reconcile">
+          </div>
+          <div class="form-group">
+            <label for="reconCustomerNote">Customer Note (Who Paid)</label>
+            <input type="text" id="reconCustomerNote" class="form-input" placeholder="e.g. Ramesh - Table 14 / Paid via UPI" aria-label="Customer note for verification">
+          </div>
+          <div class="form-group">
+            <label for="reconRef">Bank UTR / Transaction Ref</label>
+            <input type="text" id="reconRef" class="form-input" placeholder="e.g. UPI-901015-XYZ" aria-label="UPI Reference number">
+          </div>
+          <button class="btn btn-verify" onclick="reconcilePayment()" aria-label="Verify and mark payment as paid" style="width:100%; justify-content:center;">
+            ✓ Verify Payment & Mark PAID
+          </button>
+          <div id="reconResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB 2: PAYMENTS HUB (Group O - Cases 91-106) -->
+    <div id="tab-payments" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnPayments">
+      <!-- Reconciliation Metrics Row -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:20px;">
+        <div class="panel">
+          <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">💵 Till Cash Collected</div>
+          <div id="reconCashVal" style="font-size:1.8rem; font-weight:800; color:#10b981; margin-top:4px;">₹0.00</div>
+          <div id="reconCashCount" style="font-size:0.75rem; color:var(--text-muted);">0 transactions</div>
+        </div>
+        <div class="panel">
+          <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">📱 UPI Settled (9010150809@ybl)</div>
+          <div id="reconUpiVal" style="font-size:1.8rem; font-weight:800; color:var(--primary); margin-top:4px;">₹0.00</div>
+          <div id="reconUpiCount" style="font-size:0.75rem; color:var(--text-muted);">0 transactions</div>
+        </div>
+        <div class="panel">
+          <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">💳 POS Card Swipes</div>
+          <div id="reconCardVal" style="font-size:1.8rem; font-weight:800; color:#38bdf8; margin-top:4px;">₹0.00</div>
+          <div id="reconCardCount" style="font-size:0.75rem; color:var(--text-muted);">0 transactions</div>
+        </div>
+        <div class="panel">
+          <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">💰 Total Net Reconciled</div>
+          <div id="reconNetVal" style="font-size:1.8rem; font-weight:800; color:#fff; margin-top:4px;">₹0.00</div>
+          <div id="reconNetCount" style="font-size:0.75rem; color:var(--text-muted);">0 total orders</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Record Cash & Card -->
+        <section class="panel" aria-labelledby="cashCardTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="cashCardTitle">💵 Cash & Card Recording</div>
+          </div>
+          <div class="form-group">
+            <label for="payActionOrderId">Order ID</label>
+            <input type="text" id="payActionOrderId" class="form-input" placeholder="e.g. ord_12345" aria-label="Order ID for payment action">
+          </div>
+          <div class="form-group">
+            <label for="payCashTendered">Cash Received (₹)</label>
+            <input type="number" id="payCashTendered" class="form-input" placeholder="e.g. 500" aria-label="Cash tendered">
+          </div>
+          <button class="btn btn-assign" onclick="recordCash()" aria-label="Record Cash Tendered" style="width:100%; justify-content:center; margin-bottom:12px;">
+            💵 Record Cash & Compute Change
+          </button>
+          <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:8px;">
+            <div class="form-group">
+              <label for="payCardLast4">Card Last 4 Digits & Txn Ref</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="payCardLast4" class="form-input" placeholder="4242" maxlength="4" style="width:80px;" aria-label="Card last 4 digits">
+                <input type="text" id="payCardTxnRef" class="form-input" placeholder="POS-TXN-1234" style="flex:1;" aria-label="Card POS transaction reference">
+              </div>
+            </div>
+            <button class="btn btn-secondary" onclick="recordCard()" aria-label="Record Card Transaction" style="width:100%; justify-content:center;">
+              💳 Record POS Card Payment
+            </button>
+          </div>
+          <div id="payActionResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
+        </section>
+
+        <!-- Unverified / Fraud Reject / Refund -->
+        <section class="panel" aria-labelledby="refundOpsTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="refundOpsTitle">🛡️ Verification, Rejection & Refund</div>
+          </div>
+          <div class="form-group">
+            <label for="refundOrderId">Order ID or Payment ID</label>
+            <input type="text" id="refundOrderId" class="form-input" placeholder="Order ID or Payment ID" aria-label="Target ID for refund or rejection">
+          </div>
+          <div class="form-group">
+            <label for="refundReason">Reason</label>
+            <input type="text" id="refundReason" class="form-input" placeholder="e.g. Fake screenshot / Customer billing correction" aria-label="Reason for refund or rejection">
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-escalate" onclick="rejectPayment()" aria-label="Reject Fraud Screenshot" style="flex:1; justify-content:center;">
+              🚫 Reject Screenshot
+            </button>
+            <button class="btn btn-secondary" onclick="processRefund()" aria-label="Process Refund" style="flex:1; justify-content:center;">
+              ↩️ Process Refund
+            </button>
+          </div>
+          <div id="refundActionResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
+
+          <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:12px;">
+            <div style="font-size:0.85rem; font-weight:700; color:var(--warning); margin-bottom:8px;">⚠️ Walkout Risk & Duplicates</div>
+            <button class="btn btn-secondary" onclick="loadRiskAlerts()" aria-label="Check Walkout Risk" style="margin-bottom:8px; width:100%; justify-content:center;">
+              🔍 Check Unpaid Orders (>45 min)
+            </button>
+            <div id="riskAlertsBox" style="font-size:0.8rem; color:var(--text-muted);">Click to audit active unpaid tables.</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB 3: BOOKINGS POLISH (Group P - Cases 16, 19-28) -->
+    <div id="tab-bookings" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnBookings">
+      <div class="grid">
+        <!-- Slot Availability Checker -->
+        <section class="panel" aria-labelledby="slotTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="slotTitle">📅 Slot Capacity & Availability</div>
+          </div>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <input type="date" id="slotCheckDate" class="form-input" style="flex:1;" aria-label="Date for slot check">
+            <input type="number" id="slotPartySize" class="form-input" placeholder="Guests" value="4" min="1" max="50" style="width:90px;" aria-label="Party size for slot check">
+            <button class="btn btn-assign" onclick="checkSlots()" aria-label="Check Slots">Check</button>
+          </div>
+          <div id="slotsResult" style="font-size:0.85rem; color:var(--text-muted);">Enter date and party size to inspect table capacity.</div>
+        </section>
+
+        <!-- Booking Operations: Reschedule, Override, WhatsApp, Refund -->
+        <section class="panel" aria-labelledby="bookingOpsTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="bookingOpsTitle">🛠️ Booking Management</div>
+          </div>
+          <div class="form-group">
+            <label for="bookOpsId">Booking ID</label>
+            <input type="text" id="bookOpsId" class="form-input" placeholder="e.g. b073b9bc-351b..." aria-label="Booking ID for operations">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn btn-secondary" onclick="rescheduleBookingPrompt()" aria-label="Reschedule Booking">
+              🔄 Reschedule Slot
+            </button>
+            <button class="btn btn-assign" onclick="whatsappReminderPrompt()" aria-label="Trigger WhatsApp Confirmation">
+              💬 WhatsApp Reminder
+            </button>
+            <button class="btn btn-escalate" onclick="overrideBookingPrompt()" aria-label="Walk-in Table Override">
+              ⚡ Walk-in Override
+            </button>
+            <button class="btn btn-secondary" onclick="refundDepositPrompt()" aria-label="Refund Deposit on Cancellation">
+              ↩️ Refund Deposit
+            </button>
+          </div>
+          <div id="bookingActionResult" style="margin-top:12px; font-size:0.85rem; font-weight:700;"></div>
+
+          <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.85rem; font-weight:700;">🚩 Past No-Shows & Recurring</span>
+              <button class="btn btn-secondary" onclick="loadNoShows()" style="padding:4px 8px; font-size:0.75rem;" aria-label="Refresh no-shows">Refresh</button>
+            </div>
+            <div id="noShowsList" style="font-size:0.8rem; color:var(--text-muted);">Auditing reservation status...</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- TAB 4: CUSTOMERS & RETENTION (Group Q - Cases 136-142) -->
+    <div id="tab-customers" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnCustomers">
+      <div class="grid">
+        <!-- Customer Lookup & Privacy -->
+        <section class="panel" aria-labelledby="custLookupTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="custLookupTitle">🔍 Customer Lookup & Loyalty</div>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+            Strict Privacy Guarantee: Guests remain anonymous by default. Customer records exist only upon explicit opt-in.
+          </div>
+          <div style="display:flex; gap:10px; margin-bottom:14px;">
+            <input type="tel" id="custPhoneInput" class="form-input" placeholder="Phone number (e.g. 9010150809)" style="flex:1;" aria-label="Customer phone number">
+            <button class="btn btn-assign" onclick="lookupCustomer()" aria-label="Search customer">Search</button>
+          </div>
+          <div id="custLookupResult" style="font-size:0.85rem; color:var(--text-muted);">
+            Enter customer phone number to inspect loyalty stamps and visit history.
+          </div>
+        </section>
+
+        <!-- Right-to-be-Forgotten / Opt-Out Action -->
+        <section class="panel" aria-labelledby="optOutTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="optOutTitle">🛡️ Privacy & Right to be Forgotten</div>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+            Immediately purges customer phone, name, and PII from the system per DPDP / GDPR requirements.
+          </div>
+          <div class="form-group">
+            <label for="optOutPhoneInput">Phone to Purge</label>
+            <input type="tel" id="optOutPhoneInput" class="form-input" placeholder="Phone to permanently purge" aria-label="Phone to purge">
+          </div>
+          <button class="btn btn-escalate" onclick="executeOptOut()" aria-label="Purge customer PII" style="width:100%; justify-content:center;">
+            🗑️ Execute Data Purge (Opt-Out)
+          </button>
+          <div id="optOutResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Tab switching logic
+    function selectTab(tabId, btn) {
+      document.querySelectorAll('.tab-bar .chip').forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById('tab-' + tabId);
+      if (activePanel) activePanel.classList.add('active');
+
+      if (tabId === 'payments') loadReconciliation();
+      if (tabId === 'bookings') checkSlots();
+    }
+
+    // ------------------------------------------------------------------------
+    // Floor Ops
+    // ------------------------------------------------------------------------
+    async function loadCalls() {
+      try {
+        const res = await fetch('/api/v1/calls/active');
+        const data = await res.json();
+        const calls = data.calls || [];
+        document.getElementById('activeCallsCount').textContent = calls.length;
+
+        const container = document.getElementById('callsList');
+        if (calls.length === 0) {
+          container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:40px;">No active waiter calls right now. All tables satisfied!</div>';
+          return;
+        }
+
+        container.innerHTML = calls.map(c => {
+          const isEscalated = c.escalated || c.elapsedSeconds > 120;
+          const mins = Math.floor(c.elapsedSeconds / 60);
+          const secs = c.elapsedSeconds % 60;
+          const timeStr = `${mins}m ${secs < 10 ? '0' : ''}${secs}s elapsed`;
+
+          return `
+            <div class="call-card ${isEscalated ? 'escalated' : ''}">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:1.05rem; font-weight:800; color:#fff;">Table ${c.tableNumber}</span>
+                <span style="font-size:0.8rem; font-weight:700; color:${isEscalated ? 'var(--danger)' : 'var(--text-muted)'};">
+                  ${isEscalated ? '⚠️ ESCALATED: ' : ''}${timeStr}
+                </span>
+              </div>
+              <span style="display:inline-block; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:4px; background:rgba(255,102,0,0.15); color:var(--primary); margin-bottom:8px;">
+                ${c.category}
+              </span>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">
+                Assigned: ${c.assignedStaffName || c.assigned_waiter_name || 'Unassigned'}
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-assign" onclick="assignWaiter('${c.id}')" aria-label="Assign Table ${c.tableNumber} to staff">
+                  👤 Assign Waiter
+                </button>
+                ${!isEscalated ? `<button class="btn btn-escalate" onclick="escalateCall('${c.id}')" aria-label="Escalate call">⚠️ Escalate</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Failed to load active calls', e);
+      }
+    }
+
+    async function assignWaiter(callId) {
+      const name = prompt('Enter waiter name to assign (e.g. Ravi, Suresh, Anita):', 'Ravi');
+      if (!name) return;
+      try {
+        const res = await fetch(`/api/v1/calls/${callId}/assign`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ waiterId: 'waiter_' + name.toLowerCase(), waiterName: name })
+        });
+        if (res.ok) {
+          alert('Assigned to ' + name + ' successfully!');
+          loadCalls();
+        }
+      } catch (e) {
+        alert('Failed to assign waiter');
+      }
+    }
+
+    async function escalateCall(callId) {
+      if (!confirm('Escalate this waiter assistance call to high priority?')) return;
+      try {
+        const res = await fetch(`/api/v1/calls/${callId}/escalate`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'Floor Manager manual escalation' })
+        });
+        if (res.ok) loadCalls();
+      } catch (e) {
+        alert('Failed to escalate call');
+      }
+    }
+
+    async function loadTokens() {
+      try {
+        const res = await fetch('/api/v1/tokens/active');
+        const data = await res.json();
+        const tokens = data.tokens || [];
+        document.getElementById('activeTokensCount').textContent = tokens.length;
+
+        const container = document.getElementById('tokensList');
+        if (tokens.length === 0) {
+          container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:30px;">No active kitchen tokens currently.</div>';
+          return;
+        }
+
+        container.innerHTML = tokens.map(t => {
+          let pillClass = 'status-queued';
+          if (t.state === 'PREPARING') pillClass = 'status-preparing';
+          if (t.state === 'READY') pillClass = 'status-ready';
+
+          return `
+            <div style="background:#111827; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:1.25rem; font-weight:800; color:var(--primary);">${t.token_code}</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;"> • Station: ${t.station}</span>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Order: ${t.order_id}</div>
+              </div>
+              <span class="status-pill ${pillClass}">${t.state}</span>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Failed to load active tokens', e);
+      }
+    }
+
+    async function reconcilePayment() {
+      const orderId = document.getElementById('reconOrderId').value.trim();
+      const customerNote = document.getElementById('reconCustomerNote')?.value.trim() || `Customer payment for order ${orderId}`;
+      const transactionRef = document.getElementById('reconRef').value.trim() || 'UPI-REF-' + Date.now().toString().slice(-6);
+      const resEl = document.getElementById('reconResult');
+
+      if (!orderId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter an Order ID';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/v1/payments/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, utr: transactionRef, customerNote, notes: customerNote, managerId: 'manager' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Payment verified! Order ${orderId} marked PAID. Note: "${data.customerNote || customerNote}"`;
+          document.getElementById('reconOrderId').value = '';
+          document.getElementById('reconRef').value = '';
+          if (document.getElementById('reconCustomerNote')) document.getElementById('reconCustomerNote').value = '';
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Verification failed');
+        }
+      } catch (err) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error verifying payment';
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // Group O: Payments Hub
+    // ------------------------------------------------------------------------
+    async function loadReconciliation() {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const res = await fetch(`/api/v1/payments/reconciliation?date=${today}`);
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('reconCashVal').textContent = '₹' + data.cash.totalINR;
+          document.getElementById('reconCashCount').textContent = data.cash.count + ' transactions';
+
+          document.getElementById('reconUpiVal').textContent = '₹' + data.upi.totalINR;
+          document.getElementById('reconUpiCount').textContent = data.upi.count + ' transactions';
+
+          document.getElementById('reconCardVal').textContent = '₹' + data.card.totalINR;
+          document.getElementById('reconCardCount').textContent = data.card.count + ' transactions';
+
+          document.getElementById('reconNetVal').textContent = '₹' + data.netTotalINR;
+          document.getElementById('reconNetCount').textContent = data.totalTransactions + ' total orders';
+        }
+      } catch (e) {
+        console.error('Failed to load reconciliation', e);
+      }
+    }
+
+    async function recordCash() {
+      const orderId = document.getElementById('payActionOrderId').value.trim();
+      const tendered = parseFloat(document.getElementById('payCashTendered').value);
+      const resEl = document.getElementById('payActionResult');
+      if (!orderId || isNaN(tendered)) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter Order ID and cash tendered amount.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/v1/payments/cash', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, amountTenderedCents: Math.round(tendered * 100) })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Cash received! Change to return: ₹${data.changeINR} (Order marked PAID)`;
+          loadReconciliation();
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Failed to record cash');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error recording cash';
+      }
+    }
+
+    async function recordCard() {
+      const orderId = document.getElementById('payActionOrderId').value.trim();
+      const cardLast4 = document.getElementById('payCardLast4').value.trim() || '4242';
+      const txnRef = document.getElementById('payCardTxnRef').value.trim() || 'POS-' + Date.now().toString().slice(-4);
+      const resEl = document.getElementById('payActionResult');
+      if (!orderId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter Order ID for card payment.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/v1/payments/card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, cardLast4, transactionReference: txnRef })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Card payment recorded! Card: *${data.cardLast4} (Txn: ${data.transactionReference})`;
+          loadReconciliation();
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Failed to record card');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error recording card';
+      }
+    }
+
+    async function rejectPayment() {
+      const targetId = document.getElementById('refundOrderId').value.trim();
+      const reason = document.getElementById('refundReason').value.trim() || 'Fake screenshot detected';
+      const resEl = document.getElementById('refundActionResult');
+      if (!targetId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please provide Order ID or Payment ID to reject.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/v1/payments/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: targetId, reason })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = `🚫 Payment rejected! Order remains UNPAID. (${reason})`;
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Rejection failed');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error rejecting payment';
+      }
+    }
+
+    async function processRefund() {
+      const targetId = document.getElementById('refundOrderId').value.trim();
+      const reason = document.getElementById('refundReason').value.trim() || 'Customer requested refund';
+      const resEl = document.getElementById('refundActionResult');
+      if (!targetId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please provide Order ID or Payment ID to refund.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/v1/payments/refund', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: targetId, reason })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Refund processed! Amount: ₹${data.refundINR} (Refund ID: ${data.refundId})`;
+          loadReconciliation();
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Refund failed');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error processing refund';
+      }
+    }
+
+    async function loadRiskAlerts() {
+      const box = document.getElementById('riskAlertsBox');
+      try {
+        const [riskRes, dupRes] = await Promise.all([
+          fetch('/api/v1/payments/walkout-risk?maxMinutes=45'),
+          fetch('/api/v1/payments/duplicates')
+        ]);
+        const riskData = await riskRes.json();
+        const dupData = await dupRes.json();
+
+        let html = '';
+        if (riskData.riskOrders && riskData.riskOrders.length > 0) {
+          html += `<div style="color:var(--danger); font-weight:700; margin-bottom:4px;">⚠️ ${riskData.count} Walkout Risk Table(s):</div>`;
+          html += riskData.riskOrders.map(o => `<div>• Table ${o.tableNumber} (Order: #${o.id.slice(-6)}) - Unpaid for ${o.elapsedMinutes}m (₹${o.totalINR})</div>`).join('');
+        } else {
+          html += '<div style="color:var(--success);">✓ Zero walkout risk orders detected (>45m).</div>';
+        }
+
+        if (dupData.duplicates && dupData.duplicates.length > 0) {
+          html += `<div style="color:var(--warning); font-weight:700; margin-top:8px;">⚠️ ${dupData.count} Duplicate Payment Attempt(s):</div>`;
+          html += dupData.duplicates.map(d => `<div>• Ref: ${d.reference} (${d.count} occurrences)</div>`).join('');
+        } else {
+          html += '<div style="color:var(--success); margin-top:4px;">✓ Zero duplicate payment references.</div>';
+        }
+        box.innerHTML = html;
+      } catch (e) {
+        box.innerHTML = '<div style="color:var(--danger);">Error checking risk alerts.</div>';
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // Group P: Bookings Polish
+    // ------------------------------------------------------------------------
+    async function checkSlots() {
+      const date = document.getElementById('slotCheckDate').value || new Date().toISOString().slice(0, 10);
+      document.getElementById('slotCheckDate').value = date;
+      const party = document.getElementById('slotPartySize').value || 4;
+      const resEl = document.getElementById('slotsResult');
+
+      try {
+        const res = await fetch(`/api/v1/bookings/slots?date=${date}&partySize=${party}`);
+        const data = await res.json();
+        if (data.slots) {
+          resEl.innerHTML = `
+            <div style="font-weight:700; color:#fff; margin-bottom:8px;">Available Slots on ${date} (Party: ${party}):</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+              ${data.slots.map(s => `
+                <div style="background:#111827; border:1px solid ${s.available ? 'var(--border)' : 'var(--danger)'}; padding:6px 12px; border-radius:6px; font-size:0.8rem;">
+                  <b>${s.slotTime}</b>: ${s.available ? '<span style="color:var(--success); font-weight:700;">Open</span>' : '<span style="color:var(--danger);">Full</span>'}
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      } catch (e) {
+        resEl.textContent = 'Error loading slots';
+      }
+    }
+
+    async function rescheduleBookingPrompt() {
+      const bookingId = document.getElementById('bookOpsId').value.trim();
+      const resEl = document.getElementById('bookingActionResult');
+      if (!bookingId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter Booking ID.';
+        return;
+      }
+      const newDate = prompt('Enter new date (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+      const newSlot = prompt('Enter new slot time (e.g. 19:30):', '19:30');
+      if (!newDate || !newSlot) return;
+
+      try {
+        const res = await fetch(`/api/v1/bookings/${bookingId}/reschedule`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: newDate, slot: newSlot })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Booking rescheduled to ${newDate} at ${newSlot}!`;
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Reschedule failed');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error rescheduling booking';
+      }
+    }
+
+    async function whatsappReminderPrompt() {
+      const bookingId = document.getElementById('bookOpsId').value.trim();
+      const resEl = document.getElementById('bookingActionResult');
+      if (!bookingId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter Booking ID.';
+        return;
+      }
+      try {
+        const res = await fetch(`/api/v1/bookings/${bookingId}/whatsapp`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.innerHTML = `✓ WhatsApp reminder generated! <a href="${data.whatsappLink}" target="_blank" style="color:var(--primary); font-weight:800;">Open WhatsApp Link ↗</a>`;
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Failed to generate reminder');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error generating WhatsApp reminder';
+      }
+    }
+
+    async function overrideBookingPrompt() {
+      const bookingId = document.getElementById('bookOpsId').value.trim();
+      const resEl = document.getElementById('bookingActionResult');
+      if (!bookingId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter Booking ID.';
+        return;
+      }
+      const walkInName = prompt('Enter walk-in guest name:', 'Walk-in VIP Guest');
+      if (!walkInName) return;
+
+      try {
+        const res = await fetch(`/api/v1/bookings/${bookingId}/override`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guestName: walkInName, partySize: 2 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--warning)';
+          resEl.textContent = `⚡ Walk-in override complete! Original booking bumped to ${data.bumpedBookingStatus}. Table assigned to ${data.walkInAssignment.guestName}.`;
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Override failed');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error overriding booking';
+      }
+    }
+
+    async function refundDepositPrompt() {
+      const bookingId = document.getElementById('bookOpsId').value.trim();
+      const resEl = document.getElementById('bookingActionResult');
+      if (!bookingId) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter Booking ID.';
+        return;
+      }
+      const reason = prompt('Reason for deposit refund:', 'Customer cancellation within policy window');
+      if (!reason) return;
+
+      try {
+        const res = await fetch(`/api/v1/bookings/${bookingId}/refund`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Booking deposit refunded: ₹${data.refundINR} (Booking status: CANCELLED)`;
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Deposit refund failed');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error refunding booking deposit';
+      }
+    }
+
+    async function loadNoShows() {
+      const container = document.getElementById('noShowsList');
+      try {
+        const res = await fetch('/api/v1/bookings/no-shows');
+        const data = await res.json();
+        if (data.noShows && data.noShows.length > 0) {
+          container.innerHTML = data.noShows.map(b => `
+            <div style="background:#111827; padding:8px 12px; border-radius:6px; margin-bottom:6px;">
+              <b>${b.guestName}</b> (${b.guestPhone}) • Party: ${b.partySize} • Slot: ${b.slotDate} ${b.slotTime}
+              <span style="color:var(--danger); font-weight:700;"> [NO-SHOW]</span>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div style="color:var(--success);">✓ Zero reservation no-shows recorded.</div>';
+        }
+      } catch (e) {
+        container.textContent = 'Error checking no-shows';
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // Group Q: Customers & Loyalty
+    // ------------------------------------------------------------------------
+    async function lookupCustomer() {
+      const phone = document.getElementById('custPhoneInput').value.trim();
+      const resEl = document.getElementById('custLookupResult');
+      if (!phone) {
+        resEl.textContent = 'Please enter a valid phone number.';
+        return;
+      }
+      try {
+        const res = await fetch(`/api/v1/customers/lookup?phone=${encodeURIComponent(phone)}`);
+        const data = await res.json();
+        if (res.ok && data.found && data.customer) {
+          const c = data.customer;
+          resEl.innerHTML = `
+            <div style="background:#111827; border:1px solid var(--border); border-radius:8px; padding:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:1.1rem; font-weight:800; color:#fff;">${c.name}</span>
+                <span style="background:rgba(255,102,0,0.2); color:var(--primary); font-weight:800; font-size:0.75rem; padding:4px 8px; border-radius:4px;">
+                  🌟 OPTED-IN MEMBER
+                </span>
+              </div>
+              <div style="color:var(--text-muted); font-size:0.85rem; margin-bottom:6px;">📞 Phone: ${c.phone}</div>
+              <div style="color:var(--text-muted); font-size:0.85rem; margin-bottom:12px;">🗓️ Member Since: ${new Date(c.createdAt || c.created_at).toLocaleDateString('en-IN')}</div>
+              <div style="background:#1e293b; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Loyalty Stamp Balance</div>
+                <div style="font-size:1.8rem; font-weight:900; color:var(--primary); margin:4px 0;">${c.loyalty_stamps || c.loyaltyStamps || 1} Stamps</div>
+                <div style="font-size:0.75rem; color:#10b981;">Collect 5 stamps for a complimentary dessert or starter!</div>
+              </div>
+            </div>
+          `;
+        } else {
+          resEl.innerHTML = `
+            <div style="background:#111827; border:1px dashed var(--border); border-radius:8px; padding:16px; text-align:center;">
+              <div style="color:var(--text-muted); margin-bottom:4px;">No customer found matching <b>${phone}</b></div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">
+                (This phone has either never opted in, dined anonymously, or executed privacy opt-out).
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        resEl.textContent = 'Error querying customer profile';
+      }
+    }
+
+    async function executeOptOut() {
+      const phone = document.getElementById('optOutPhoneInput').value.trim();
+      const resEl = document.getElementById('optOutResult');
+      if (!phone) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Please enter customer phone to purge.';
+        return;
+      }
+      if (!confirm(`Permanently purge all PII and customer records for ${phone}? This action is irreversible.`)) return;
+      try {
+        const res = await fetch('/api/v1/customers/opt-out', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          resEl.style.color = 'var(--success)';
+          resEl.textContent = `✓ Data purge successful! ${data.purgedCount || 1} customer record(s) nullified. Right to be forgotten honored.`;
+          document.getElementById('optOutPhoneInput').value = '';
+        } else {
+          resEl.style.color = 'var(--danger)';
+          resEl.textContent = 'Error: ' + (data.error || 'Purge failed');
+        }
+      } catch (e) {
+        resEl.style.color = 'var(--danger)';
+        resEl.textContent = 'Network error executing opt-out';
+      }
+    }
+
+    loadCalls();
+    loadTokens();
+    setInterval(loadCalls, 10000);
+    setInterval(loadTokens, 10000);
+  </script>
+</body>
+</html>

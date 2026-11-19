@@ -1,0 +1,1192 @@
+/* ==========================================================================
+   Abiruchi Hotel Guest PWA — Abiruchi Hotel Enterprise World-Class UI/UX Design System
+   ========================================================================== */
+
+:root {
+  /* Abiruchi Hotel Brand Color Palette */
+  --primary: #fc8019;
+  --primary-hover: #e06d0c;
+  --primary-gradient: linear-gradient(135deg, #ff5200 0%, #fc8019 100%);
+  --abiruchi-flame: #fc8019;
+  --abiruchi-emerald: #60b246;
+  --abiruchi-emerald-hover: #4d9337;
+  --abiruchi-ruby: #e43b4f;
+  --amber: #f59e0b;
+  --sky: #0284c7;
+
+  /* Light Theme (Default Abiruchi Hotel Warm Appetite Look) */
+  --bg: #f2f4f7;
+  --card-bg: #ffffff;
+  --surface: #ffffff;
+  --card-border: #e9ecef;
+  --card-hover-border: #fc8019;
+  --text: #1c1c24;
+  --text-title: #282c3f;
+  --text-muted: #686b78;
+  --glass: rgba(255, 255, 255, 0.95);
+  --header-bg: #ffffff;
+  --header-border: #e9ecef;
+  --chip-bg: #ffffff;
+  --chip-border: #e2e8f0;
+  --divider: #f0f0f5;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.14);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] {
+  --bg: #0e1117;
+  --card-bg: #161b22;
+  --surface: #161b22;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-hover-border: rgba(252, 128, 25, 0.6);
+  --text: #f0f6fc;
+  --text-title: #ffffff;
+  --text-muted: #8b949e;
+  --glass: rgba(22, 27, 34, 0.92);
+  --header-bg: #161b22;
+  --header-border: rgba(255, 255, 255, 0.08);
+  --chip-bg: #21262d;
+  --chip-border: rgba(255, 255, 255, 0.12);
+  --divider: rgba(255, 255, 255, 0.06);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.7);
+}
+
+/* System Theme preference fallback */
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --bg: #0e1117;
+    --card-bg: #161b22;
+    --surface: #161b22;
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover-border: rgba(252, 128, 25, 0.6);
+    --text: #f0f6fc;
+    --text-title: #ffffff;
+    --text-muted: #8b949e;
+    --glass: rgba(22, 27, 34, 0.92);
+    --header-bg: #161b22;
+    --header-border: rgba(255, 255, 255, 0.08);
+    --chip-bg: #21262d;
+    --chip-border: rgba(255, 255, 255, 0.12);
+    --divider: rgba(255, 255, 255, 0.06);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.7);
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  padding-bottom: 120px;
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Mandatory Keyframe Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes cartBadgeBounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   Header & Top Navigation (Clean Minimal Abiruchi Hotel Navigation Bar)
+   ========================================================================== */
+header {
+  position: sticky;
+  top: 0;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 40;
+  gap: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Distinctive Abiruchi Hotel Monogram Logo */
+.abiruchi-logo-mark {
+  width: 36px;
+  height: 36px;
+  background: var(--primary-gradient);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(252, 128, 25, 0.35);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.abiruchi-logo-letter {
+  color: #ffffff;
+  font-family: var(--font);
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  transform: translateY(-1px);
+}
+
+.brand-text {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-title);
+  letter-spacing: -0.02em;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Theme Switcher Toggle (Light / Dark / System) */
+.theme-switch-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--chip-border);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+}
+[data-theme="dark"] .theme-switch-group { background: rgba(255, 255, 255, 0.06); }
+.theme-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.theme-btn.active {
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-badge {
+  background: rgba(252, 128, 25, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(252, 128, 25, 0.3);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.table-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+.lang-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.lang-select {
+  background: var(--chip-bg);
+  color: var(--text);
+  border: 1px solid var(--chip-border);
+  border-radius: 20px;
+  padding: 5px 10px 5px 28px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.lang-icon-pos {
+  position: absolute;
+  left: 9px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Restaurant Hero Card (Abiruchi Hotel Executive Header)
+   ========================================================================== */
+.abiruchi-hero-container {
+  padding: 16px 16px 8px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.abiruchi-hero-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+.hero-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.hero-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text-title);
+  letter-spacing: -0.02em;
+}
+.hero-rating-badge {
+  background: #267e3e;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.hero-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.hero-pills {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--divider);
+  font-size: 0.82rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* 4 Customer Journeys (Order Now / Scheduled Pickup / Table Booking / Dine-In QR) */
+.journey-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+}
+.journey-tab.active {
+  background: rgba(252, 128, 25, 0.12);
+  color: var(--primary);
+}
+.pickup-slot-chip {
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.pickup-slot-chip:hover:not(.disabled) {
+  border-color: var(--primary);
+}
+.pickup-slot-chip.selected {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.pickup-slot-chip.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================================================
+   Coupons & Deals Carousel (Abiruchi Hotel Horizontal Promotion Cards)
+   ========================================================================== */
+.deals-carousel-wrap {
+  padding: 8px 16px 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.deals-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0;
+}
+.deals-carousel::-webkit-scrollbar { display: none; }
+.deal-coupon-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  min-width: 230px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.deal-coupon-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+.deal-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(252, 128, 25, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.deal-text-primary {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--text-title);
+  line-height: 1.2;
+}
+.deal-text-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Search & Filter Bar (Veg/Non-Veg Switches)
+   ========================================================================== */
+.filter-search-container {
+  padding: 6px 16px 10px;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-input {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  padding: 12px 14px 12px 42px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(252, 128, 25, 0.15);
+}
+.search-icon-pos {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.search-clear {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: none;
+}
+
+.abiruchi-toggles-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.abiruchi-toggles-row::-webkit-scrollbar { display: none; }
+.abiruchi-pill-toggle {
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  color: var(--text);
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+.abiruchi-pill-toggle.active {
+  background: rgba(252, 128, 25, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.abiruchi-pill-toggle.active-veg {
+  background: rgba(96, 178, 70, 0.1);
+  border-color: var(--abiruchi-emerald);
+  color: var(--abiruchi-emerald);
+}
+.abiruchi-pill-toggle.active-nonveg {
+  background: rgba(228, 59, 79, 0.1);
+  border-color: var(--abiruchi-ruby);
+  color: var(--abiruchi-ruby);
+}
+
+/* ==========================================================================
+   Category Nav (Sticky Underline Tabs)
+   ========================================================================== */
+.category-scroll-wrapper {
+  position: sticky;
+  top: 61px;
+  background: var(--header-bg);
+  padding: 8px 16px;
+  z-index: 30;
+  border-bottom: 1px solid var(--header-border);
+}
+.category-nav {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.category-nav::-webkit-scrollbar { display: none; }
+.cat-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.2s ease;
+}
+.cat-btn.active {
+  color: var(--primary);
+}
+.cat-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 3px 3px 0 0;
+}
+
+/* ==========================================================================
+   FSSAI Veg & Non-Veg Symbols (Authentic Indian Restaurant Standard)
+   ========================================================================== */
+.fssai-symbol {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fssai-veg {
+  border: 1.5px solid #0f8a65;
+}
+.fssai-veg-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0f8a65;
+}
+.fssai-nonveg {
+  border: 1.5px solid #e43b4f;
+}
+.fssai-nonveg-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e43b4f;
+}
+.fssai-egg {
+  border: 1.5px solid #d97706;
+}
+.fssai-egg-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d97706;
+}
+
+/* ==========================================================================
+   Abiruchi Hotel 2-Column Dish Presentation Row
+   ========================================================================== */
+.menu-container {
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.category-group {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.category-heading {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text-title);
+  letter-spacing: -0.02em;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.category-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.abiruchi-dish-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--divider);
+  gap: 16px;
+  animation: fadeInUp 0.3s ease;
+}
+.abiruchi-dish-row:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+/* Left Column: Details */
+.dish-left-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dish-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dish-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-title);
+  line-height: 1.3;
+}
+.dish-price-tag {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-title);
+  margin: 2px 0;
+}
+.dish-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #267e3e;
+  font-weight: 800;
+}
+.dish-desc-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dish-tag-list {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.dish-tag {
+  font-size: 0.68rem;
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+/* Right Column: Visual Photo + Iconic Overlapping ADD Button */
+.dish-right-col {
+  width: 130px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.dish-photo-box {
+  width: 120px;
+  height: 104px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  background: #e2e8f0;
+}
+[data-theme="dark"] .dish-photo-box { background: #21262d; }
+.dish-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Abiruchi Hotel Interactive ADD & Stepper Button */
+.abiruchi-add-btn-wrap {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+.abiruchi-btn-add {
+  background: var(--surface);
+  color: var(--abiruchi-emerald);
+  border: 1px solid var(--chip-border);
+  border-radius: 8px;
+  padding: 7px 22px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.abiruchi-btn-add:hover {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  border-color: var(--abiruchi-emerald);
+}
+.abiruchi-btn-add:active {
+  transform: scale(0.95);
+}
+
+/* Quantity Stepper when item added [- 1 +] */
+.abiruchi-btn-stepper {
+  background: var(--abiruchi-emerald);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  min-width: 90px;
+  box-shadow: 0 4px 10px rgba(96, 178, 70, 0.35);
+  font-weight: 900;
+  font-size: 0.88rem;
+}
+.stepper-arrow {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.customisable-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Abiruchi Hotel Floating Action Cart Bar
+   ========================================================================== */
+.abiruchi-floating-cart-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 760px;
+  background: var(--abiruchi-emerald);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(96, 178, 70, 0.45);
+  z-index: 50;
+  cursor: pointer;
+  animation: fadeInUp 0.3s var(--spring);
+}
+.floating-cart-items-total {
+  display: flex;
+  flex-direction: column;
+}
+.floating-cart-count {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.95;
+}
+.floating-cart-amount {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+.floating-cart-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   Bottom Sheet / Cart Drawer
+   ========================================================================== */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 60;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.sheet-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+.bottom-sheet {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 580px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUpSheet 0.3s var(--spring);
+}
+.sheet-handle {
+  width: 38px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+  margin: 0 auto 6px;
+}
+[data-theme="dark"] .sheet-handle { background: rgba(255, 255, 255, 0.2); }
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sheet-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-title);
+}
+.sheet-close {
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cart-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  padding: 12px 14px;
+  border-radius: 14px;
+  gap: 12px;
+}
+.cart-row-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-title);
+}
+.cart-row-price {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.cart-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.step-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--chip-border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-accordion {
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.accordion-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-title);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pill-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.opt-pill {
+  background: var(--surface);
+  border: 1px solid var(--chip-border);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.opt-pill.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.summary-box {
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+}
+.summary-line.total {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text-title);
+  border-top: 1px dashed var(--chip-border);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.submit-order-btn {
+  background: var(--primary-gradient);
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(252, 128, 25, 0.35);
+  transition: all 0.2s var(--spring);
+  text-align: center;
+  width: 100%;
+}
+.submit-order-btn:hover {
+  box-shadow: 0 8px 24px rgba(252, 128, 25, 0.45);
+}
+
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: #1e293b;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s var(--spring);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.star-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+.star-btn.active {
+  color: #f59e0b;
+  transform: scale(1.15);
+}
+
+/* ==========================================================================
+   Floating Waiter Call Button & In-Flight Status
+   ========================================================================== */
+.floating-waiter-btn {
+  position: fixed;
+  bottom: 84px;
+  right: 18px;
+  background: var(--surface);
+  color: var(--text-title);
+  border: 1.5px solid var(--chip-border);
+  padding: 10px 16px;
+  border-radius: 28px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  z-index: 45;
+  transition: all 0.2s var(--spring);
+}
+.floating-waiter-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.floating-waiter-btn:active {
+  transform: scale(0.96);
+}
+
+.active-call-banner {
+  background: rgba(232, 89, 12, 0.12);
+  border: 1px solid rgba(232, 89, 12, 0.35);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.active-call-status {
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+.status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.status-accepted { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+.status-in_progress { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-completed { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+
+/* Pre-Bill & Thermal Receipt Preview */
+.bill-breakdown-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 18px;
+  margin: 12px 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.bill-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.bill-divider {
+  border-top: 1px dashed var(--divider);
+  margin: 10px 0;
+}
+.bill-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin-top: 8px;
+}
+
+/* Water Bottle Checkout Modal */
+.water-bottle-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.water-bottle-icon {
+  font-size: 2.8rem;
+  margin-bottom: 6px;
+}
+
+/* Complete Dark Mode Invariants */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #161b22 !important;
+  color: #f0f6fc !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+[data-theme="dark"] .bottom-sheet {
+  background: #161b22 !important;
+  color: #f0f6fc !important;
+}
+[data-theme="dark"] .opt-pill {
+  background: #21262d !important;
+  color: #f0f6fc !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+[data-theme="dark"] .opt-pill:hover,
+[data-theme="dark"] .opt-pill.active {
+  background: rgba(232, 89, 12, 0.2) !important;
+  border-color: #fc8019 !important;
+  color: #fc8019 !important;
+}
+[data-theme="dark"] .abiruchi-btn-add {
+  background: #21262d !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #4ade80 !important;
+}

@@ -6,18 +6,18 @@ import type {
   QRTableSessionPayload,
 } from '../../shared-types/src/index.ts';
 
-export interface ServoraClientOptions {
+export interface AbiruchiHotelClientOptions {
   baseUrl: string;
   tenantId?: string;
   authToken?: string;
 }
 
-export class ServoraClient {
+export class AbiruchiHotelClient {
   private baseUrl: string;
   private tenantId?: string;
   private authToken?: string;
 
-  constructor(options: ServoraClientOptions) {
+  constructor(options: AbiruchiHotelClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/$/, '');
     this.tenantId = options.tenantId;
     this.authToken = options.authToken;

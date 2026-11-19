@@ -1,5 +1,5 @@
 {
-  "name": "@servora/order-service",
+  "name": "@abiruchi/order-service",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@servora/shared-types": "*",
-    "@servora/utils": "*"
+    "@abiruchi/shared-types": "*",
+    "@abiruchi/utils": "*"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

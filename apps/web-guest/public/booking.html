@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Reserve a Table — Abiruchi Hotel</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --primary: #fc8019;
+      --primary-hover: #e57315;
+      --accent: #10b981;
+      --surface: #ffffff;
+    }
+    [data-theme="dark"] {
+      --bg: #0b0f19;
+      --card: #151d2f;
+      --border: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #fc8019;
+      --primary-hover: #ff9138;
+      --accent: #10b981;
+      --surface: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .booking-wrapper { width: 100%; max-width: 540px; margin: 12px auto; }
+    .top-nav {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .back-btn {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.88rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+    .lang-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .brand-header { text-align: center; margin-bottom: 20px; }
+    .brand-logo { font-size: 2rem; margin-bottom: 4px; }
+    .brand-title { font-size: 1.6rem; font-weight: 900; color: var(--primary); letter-spacing: -0.02em; }
+    .brand-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .form-input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: border 0.15s ease;
+    }
+    .form-input:focus, select:focus { outline: none; border-color: var(--primary); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+    .btn-submit:active { transform: scale(0.98); }
+    .deposit-badge {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .confirmed-box {
+      display: none;
+      text-align: center;
+      padding: 24px 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast">Reservation confirmed!</div>
+
+  <div class="top-nav">
+    <a href="/" class="back-btn">← <span id="backToMenuText">Menu</span></a>
+    <select id="langSelect" class="lang-select" onchange="changeLanguage(this.value)">
+      <option value="en">English (EN)</option>
+      <option value="te">తెలుగు (Telugu)</option>
+      <option value="hi">हिंदी (Hindi)</option>
+    </select>
+  </div>
+
+  <div class="booking-wrapper">
+    <div class="brand-header">
+      <div class="brand-logo">🍽️</div>
+      <h1 class="brand-title">ABIRUCHI HOTEL</h1>
+      <p class="brand-subtitle" id="tagline">The Intelligent Operating System for Modern Restaurants</p>
+    </div>
+
+    <div class="card">
+      <!-- Confirmation State -->
+      <div id="confirmedBox" class="confirmed-box">
+        <div style="font-size:3rem; margin-bottom:10px;">🎉</div>
+        <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:6px;" id="confTitle">Table Reserved!</h2>
+        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:16px;" id="confSubtitle">
+          We have reserved your table. A confirmation SMS will be sent.
+        </p>
+        <div style="background:rgba(252,128,25,0.08); border:1px solid rgba(252,128,25,0.3); border-radius:12px; padding:16px; margin-bottom:20px;">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Reservation Reference</div>
+          <div id="confRefCode" style="font-size:1.4rem; font-weight:900; color:var(--primary); margin:4px 0;">ABR-BK-1420</div>
+          <div id="confSummary" style="font-size:0.88rem; font-weight:700;">2 Guests • 7:30 PM</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <a id="btnWhatsAppConfirm" href="#" target="_blank" class="btn-submit" style="display:none; background:#22c55e; text-decoration:none;">
+            💬 Open WhatsApp Confirmation (wa.me)
+          </a>
+          <a href="/" class="btn-submit" style="display:inline-block; text-decoration:none;" id="btnReturnMenu">
+            ← Return to Restaurant Menu
+          </a>
+        </div>
+      </div>
+
+      <!-- Booking Form -->
+      <form id="bookingForm" onsubmit="handleReservation(event)">
+        <!-- Date & Time -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" id="lblDate">Reservation Date</label>
+            <input type="date" id="bkDate" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblTime">Preferred Time</label>
+            <select id="bkTime" class="form-input" required>
+              <option value="12:00">12:00 PM (Lunch)</option>
+              <option value="12:30">12:30 PM</option>
+              <option value="13:00">1:00 PM</option>
+              <option value="13:30">1:30 PM</option>
+              <option value="19:00">7:00 PM (Dinner)</option>
+              <option value="19:30" selected>7:30 PM (Prime)</option>
+              <option value="20:00">8:00 PM</option>
+              <option value="20:30">8:30 PM</option>
+              <option value="21:00">9:00 PM</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Party Size -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" id="lblAdults">Adults</label>
+            <select id="bkAdults" class="form-input">
+              <option value="1">1 Adult</option>
+              <option value="2" selected>2 Adults</option>
+              <option value="3">3 Adults</option>
+              <option value="4">4 Adults</option>
+              <option value="5">5 Adults</option>
+              <option value="6">6+ Large Party</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblChildren">Children</label>
+            <select id="bkChildren" class="form-input">
+              <option value="0" selected>0 Children</option>
+              <option value="1">1 Child</option>
+              <option value="2">2 Children</option>
+              <option value="3">3+ Children</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Seating & Occasion -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" id="lblSeating">Seating Preference</label>
+            <select id="bkSeating" class="form-input">
+              <option value="MAIN_DINING" selected>Main Dining Hall</option>
+              <option value="WINDOW">Window View</option>
+              <option value="BOOTH">Cozy Booth</option>
+              <option value="OUTDOOR">Outdoor Terrace</option>
+              <option value="FAMILY_SECTION">Family Section</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblOccasion">Dining Occasion</label>
+            <select id="bkOccasion" class="form-input">
+              <option value="CASUAL" selected>Casual Dining</option>
+              <option value="BIRTHDAY">Birthday Celebration</option>
+              <option value="ANNIVERSARY">Anniversary</option>
+              <option value="BUSINESS">Business Lunch / Dinner</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" id="lblName">Full Name</label>
+            <input type="text" id="bkName" class="form-input" placeholder="e.g. Rahul Sharma" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblPhone">Mobile Number (10 Digits)</label>
+            <input type="tel" id="bkPhone" class="form-input" placeholder="e.g. 9010150809" pattern="[6-9][0-9]{9}" maxlength="10" required />
+          </div>
+        </div>
+
+        <!-- Special Requests -->
+        <div class="form-group">
+          <label class="form-label" id="lblNotes">Special Dietary Requests / Notes</label>
+          <input type="text" id="bkNotes" class="form-input" placeholder="e.g. High chair needed, less spicy food" />
+        </div>
+
+        <!-- Recurring Booking Option (Group C - Case 26) -->
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:14px;">
+          <label style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:0.85rem; cursor:pointer;">
+            <input type="checkbox" id="bkRecurring" style="width:18px; height:18px; accent-color:var(--primary);" />
+            <span>Repeat this reservation weekly (Recurring Table Booking)</span>
+          </label>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; margin-left:26px;">
+            Automatically secures your favorite table each week for 8 consecutive weeks.
+          </div>
+        </div>
+
+        <!-- Table Hold Notice -->
+        <div class="deposit-badge">
+          <div>
+            <div style="font-weight:800; font-size:0.88rem; color:var(--text);" id="depositTitle">Table Hold Deposit</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);" id="depositSub">100% redeemable on your final dining bill. Free cancellation up to 2h prior.</div>
+          </div>
+          <div style="font-weight:900; font-size:1.15rem; color:var(--accent);">₹200.00</div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-submit">Confirm Table Reservation →</button>
+
+        <div style="text-align:center; margin-top:14px;">
+          <button type="button" onclick="triggerGuestReschedule()" style="background:none; border:none; color:var(--primary); font-size:0.85rem; font-weight:700; cursor:pointer; text-decoration:underline;">
+            Already have a reservation? Click here to reschedule →
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const savedTheme = localStorage.getItem('abiruchi_theme') || 'system';
+    if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const dateInput = document.getElementById('bkDate');
+    dateInput.value = today;
+    dateInput.min = today;
+
+    const BOOKING_LANG = {
+      en: {
+        back: 'Menu',
+        tagline: 'The Intelligent Operating System for Modern Restaurants',
+        date: 'Reservation Date',
+        time: 'Preferred Time',
+        adults: 'Adults',
+        children: 'Children',
+        seating: 'Seating Preference',
+        occasion: 'Dining Occasion',
+        name: 'Full Name',
+        phone: 'Mobile Number (10 Digits)',
+        notes: 'Special Requests / Dietary Notes',
+        depositTitle: 'Table Hold Deposit',
+        depositSub: '100% redeemable on your dining bill. Free cancellation up to 2h prior.',
+        btn: 'Confirm Table Reservation →',
+        confTitle: 'Table Reserved Successfully!',
+        confSubtitle: 'We have reserved your table. A confirmation SMS has been dispatched.'
+      },
+      te: {
+        back: 'మెనూ',
+        tagline: 'ఆధునిక రెస్టారెంట్ల కోసం ఇంటెలిజెంట్ ఆపరేటింగ్ సిస్టమ్',
+        date: 'రిజర్వేషన్ తేదీ',
+        time: 'సమయం',
+        adults: 'పెద్దలు',
+        children: 'పిల్లలు',
+        seating: 'సీటింగ్ ప్రాధాన్యత',
+        occasion: 'సందర్భం',
+        name: 'పూర్తి పేరు',
+        phone: 'మొబైల్ నంబర్ (10 అంకెలు)',
+        notes: 'ప్రత్యేక అభ్యర్థనలు / ఆహార సూచనలు',
+        depositTitle: 'టేబుల్ హోల్డ్ డిపాజిట్',
+        depositSub: 'మీ భోజన బిల్లులో 100% సర్దుబాటు చేయబడుతుంది. ఉచిత రద్దు సదుపాయం.',
+        btn: 'టేబుల్ రిజర్వేషన్‌ను నిర్ధారించండి →',
+        confTitle: 'టేబుల్ విజయవంతంగా బుక్ చేయబడింది!',
+        confSubtitle: 'మీ టేబుల్ రిజర్వ్ చేయబడింది. నిర్ధారణ ఎస్ఎమ్ఎస్ పంపబడింది.'
+      },
+      hi: {
+        back: 'मेनू',
+        tagline: 'आधुनिक रेस्तरां के लिए इंटेलिजेंट ऑपरेटिंग सिस्टम',
+        date: 'आरक्षण तिथि',
+        time: 'पसंदीदा समय',
+        adults: 'वयस्क',
+        children: 'बच्चे',
+        seating: 'बैठने की प्राथमिकता',
+        occasion: 'अवसर',
+        name: 'पूरा नाम',
+        phone: 'मोबाइल नंबर (10 अंक)',
+        notes: 'विशेष अनुरोध / भोजन संबंधी निर्देश',
+        depositTitle: 'टेबल होल्ड डिपॉजिट',
+        depositSub: 'आपके भोजन बिल में 100% समायोजित। 2 घंटे पहले तक निःशुल्क रद्दीकरण।',
+        btn: 'टेबल आरक्षण की पुष्टि करें →',
+        confTitle: 'टेबल सफलतापूर्वक आरक्षित!',
+        confSubtitle: 'आपकी टेबल आरक्षित कर ली गई है। पुष्टि एसएमएस भेज दिया गया है।'
+      }
+    };
+
+    function changeLanguage(lang) {
+      localStorage.setItem('abiruchi_guest_lang', lang);
+      const d = BOOKING_LANG[lang] || BOOKING_LANG.en;
+      document.getElementById('backToMenuText').textContent = d.back;
+      document.getElementById('tagline').textContent = d.tagline;
+      document.getElementById('lblDate').textContent = d.date;
+      document.getElementById('lblTime').textContent = d.time;
+      document.getElementById('lblAdults').textContent = d.adults;
+      document.getElementById('lblChildren').textContent = d.children;
+      document.getElementById('lblSeating').textContent = d.seating;
+      document.getElementById('lblOccasion').textContent = d.occasion;
+      document.getElementById('lblName').textContent = d.name;
+      document.getElementById('lblPhone').textContent = d.phone;
+      document.getElementById('lblNotes').textContent = d.notes;
+      document.getElementById('depositTitle').textContent = d.depositTitle;
+      document.getElementById('depositSub').textContent = d.depositSub;
+      document.getElementById('submitBtn').textContent = d.btn;
+      document.getElementById('confTitle').textContent = d.confTitle;
+      document.getElementById('confSubtitle').textContent = d.confSubtitle;
+    }
+
+    const currentLang = localStorage.getItem('abiruchi_guest_lang') || 'en';
+    document.getElementById('langSelect').value = currentLang;
+    changeLanguage(currentLang);
+
+    async function handleReservation(e) {
+      e.preventDefault();
+      const phoneInput = document.getElementById('bkPhone').value.trim();
+      if (!/^[6-9]\d{9}$/.test(phoneInput)) {
+        showToast('Please enter a valid 10-digit Indian mobile number.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Securing Table...';
+
+      const adults = parseInt(document.getElementById('bkAdults').value, 10);
+      const children = parseInt(document.getElementById('bkChildren').value || '0', 10);
+      const partySize = adults + children;
+      const slotDate = document.getElementById('bkDate').value;
+      const slotTime = document.getElementById('bkTime').value;
+
+      const payload = {
+        outletId: 'b0000000-0000-0000-0000-000000000001',
+        guestName: document.getElementById('bkName').value.trim(),
+        guestPhone: phoneInput,
+        partySize,
+        adultsCount: adults,
+        childrenCount: children,
+        seatingPreference: document.getElementById('bkSeating').value,
+        occasion: document.getElementById('bkOccasion').value,
+        specialRequests: document.getElementById('bkNotes').value.trim() || null,
+        slotDate,
+        slotTime,
+        depositAmountCents: 20000,
+        cancellationPolicyHours: 2,
+      };
+
+      try {
+        const res = await fetch('/api/v1/bookings/enhanced', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.status === 201) {
+          const booking = await res.json();
+          document.getElementById('bookingForm').style.display = 'none';
+          document.getElementById('confirmedBox').style.display = 'block';
+          const bId = booking.id || booking.booking?.id || '';
+          document.getElementById('confRefCode').textContent = `ABR-BK-${bId.slice(0, 6).toUpperCase()}`;
+          document.getElementById('confSummary').textContent = `${partySize} Guests • ${slotDate} at ${slotTime}`;
+
+          // Check recurring
+          if (document.getElementById('bkRecurring')?.checked && bId) {
+            try {
+              await fetch(`/api/v1/bookings/${bId}/recurring`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recurrencePattern: 'WEEKLY', occurrencesCount: 8 })
+              });
+            } catch {}
+          }
+
+          // Generate WhatsApp link
+          if (bId) {
+            try {
+              const waRes = await fetch(`/api/v1/bookings/${bId}/whatsapp`, { method: 'POST' });
+              const waData = await waRes.json();
+              if (waData.whatsappLink) {
+                const waBtn = document.getElementById('btnWhatsAppConfirm');
+                if (waBtn) {
+                  waBtn.href = waData.whatsappLink;
+                  waBtn.style.display = 'inline-block';
+                }
+              }
+            } catch {}
+          }
+
+          showToast('✓ Table reserved successfully!');
+        } else if (res.status === 409) {
+          showToast('Time slot fully booked! Please select another time.');
+        } else {
+          showToast('Reservation error. Please check your details.');
+        }
+      } catch (err) {
+        showToast('Network error while booking.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm Table Reservation →';
+      }
+    }
+
+    async function triggerGuestReschedule() {
+      const ref = prompt('Enter your booking reference or ID (e.g. ABR-BK-1234 or Booking ID):');
+      if (!ref) return;
+      const cleanId = ref.replace('ABR-BK-', '').replace('SRV-BK-', '').trim();
+      const newDate = prompt('Enter new reservation date (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+      const newSlot = prompt('Enter new preferred time slot (e.g. 20:00):', '20:00');
+      if (!newDate || !newSlot) return;
+
+      try {
+        const res = await fetch(`/api/v1/bookings/${cleanId}/reschedule`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: newDate, slot: newSlot })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`✓ Booking rescheduled to ${newDate} at ${newSlot}!`);
+          alert(`Your table reservation has been updated to ${newDate} at ${newSlot}.`);
+        } else {
+          showToast(data.error || 'Reschedule failed');
+        }
+      } catch (e) {
+        showToast('Network error while rescheduling');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3200);
+    }
+  </script>
+</body>
+</html>

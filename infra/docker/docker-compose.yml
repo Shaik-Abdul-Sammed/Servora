@@ -2,24 +2,75 @@ version: '3.8'
 
 services:
   # ---------------------------------------------------------------------------
+  # WAF Reverse Proxy: NGINX tuned for 10,000+ Concurrent Connections
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: abiruchi-nginx-waf
+    restart: always
+    ports:
+      - '8085:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - abiruchi-api
+
+  # ---------------------------------------------------------------------------
+  # Cloudflare Tunnel: Zero-Inbound-Port Secure Tunnel (DDoS Shield & Edge Cache)
+  # ---------------------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: abiruchi-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:-dummy_token_set_in_env}
+    depends_on:
+      - nginx
+
+  # ---------------------------------------------------------------------------
+  # Abiruchi Hotel Core Order Service & Web Applications (Guest PWA, KDS, Owner Portal)
+  # ---------------------------------------------------------------------------
+  abiruchi-api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    container_name: abiruchi-order-service
+    restart: always
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://abiruchi:abiruchi_secure_password_2026@postgres:5432/abiruchi_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: abiruchi-prod-jwt-secret-replace-in-env-32-chars
+      QR_SIGNING_SALT: abiruchi-prod-qr-hmac-salt-replace-in-env
+    volumes:
+      - abiruchi-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
   # Database: PostgreSQL with Multi-Tenant Row-Level Security (RLS)
   # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
-    container_name: servora-postgres
+    container_name: abiruchi-postgres
     restart: always
     environment:
-      POSTGRES_DB: servora_dev
-      POSTGRES_USER: servora
-      POSTGRES_PASSWORD: servora_secure_password_2026
+      POSTGRES_DB: abiruchi_dev
+      POSTGRES_USER: abiruchi
+      POSTGRES_PASSWORD: abiruchi_secure_password_2026
     ports:
-      - '5432:5432'
+      - '5436:5432'
     volumes:
-      - servora-pgdata:/var/lib/postgresql/data
+      - abiruchi-pgdata:/var/lib/postgresql/data
       - ../../data/migrations/0001_initial_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ../../data/seeds/0001_demo_restaurant.sql:/docker-entrypoint-initdb.d/02_seeds.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U servora -d servora_dev"]
+      test: ["CMD-SHELL", "pg_isready -U abiruchi -d abiruchi_dev"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -29,39 +80,16 @@ services:
   # ---------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
-    container_name: servora-redis
+    container_name: abiruchi-redis
     restart: always
     ports:
-      - '6379:6379'
+      - '6382:6379'
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  # ---------------------------------------------------------------------------
-  # Servora Core Order Service & Web Applications (Guest PWA, KDS, Owner Portal)
-  # ---------------------------------------------------------------------------
-  servora-api:
-    build:
-      context: ../..
-      dockerfile: infra/docker/Dockerfile
-    container_name: servora-order-service
-    restart: always
-    ports:
-      - '3001:3001'
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      DATABASE_URL: postgresql://servora:servora_secure_password_2026@postgres:5432/servora_dev
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: servora-prod-jwt-secret-replace-in-env-32-chars
-      QR_SIGNING_SALT: servora-prod-qr-hmac-salt-replace-in-env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
 volumes:
-  servora-pgdata:
+  abiruchi-pgdata:
+  abiruchi-data:

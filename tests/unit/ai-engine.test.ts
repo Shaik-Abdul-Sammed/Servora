@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ServoraAIEngine } from '../../services/ai-service/src/ai-engine.ts';
+import { AbiruchiHotelAIEngine } from '../../services/ai-service/src/ai-engine.ts';
 import type { MenuItem } from '../../packages/shared-types/src/index.ts';
 
-test('Servora AI Automation Suite Engine', async (t) => {
-  const ai = new ServoraAIEngine();
+test('Abiruchi Hotel AI Automation Suite Engine', async (t) => {
+  const ai = new AbiruchiHotelAIEngine();
 
   const mockCatalog: MenuItem[] = [
     {

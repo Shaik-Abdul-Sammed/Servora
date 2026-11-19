@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water & Beverage Service — Abiruchi Hotel Owner</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+    .sidebar { width:220px; min-height:100vh; background:#0d1017; border-right:1px solid var(--border); padding:20px 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+    .sidebar-brand { font-size:1.1rem; font-weight:800; color:#fff; padding:12px 12px 20px; letter-spacing:-0.02em; }
+    .nav-link { display:block; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font-size:0.88rem; font-weight:600; transition:all 0.15s ease; }
+    .nav-link:hover { background:rgba(255,255,255,0.05); color:#fff; }
+    .nav-link.active { background:rgba(225,29,72,0.15); color:#fb7185; }
+    .main-content { flex:1; padding:24px; overflow-y:auto; }
+    .page-title { font-size:1.5rem; font-weight:800; color:#fff; margin-bottom:8px; letter-spacing:-0.02em; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; margin-top:16px; }
+    .bev-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:center; }
+    .bev-img { width:52px; height:52px; border-radius:10px; object-fit:cover; background:#1e2433; }
+    .btn { padding:8px 14px; border-radius:8px; border:none; font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .form-group { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+    .form-group label { font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; }
+    .form-input { padding:10px; border-radius:8px; border:1px solid var(--border); background:rgba(0,0,0,0.3); color:#fff; font-size:0.88rem; }
+  </style>
+</head>
+<body>
+  <div id="navContainer"></div>
+  <main class="main-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div>
+        <h1 class="page-title">💧 Water & Beverage Service Setup</h1>
+        <p style="font-size:0.85rem; color:var(--muted);">Manage complimentary water hospitality protocols, bottle sizes, cold drinks, and soft beverages.</p>
+      </div>
+      <button class="btn btn-primary" onclick="toggleAddModal()">+ Add Beverage Product</button>
+    </div>
+
+    <!-- Water Policy Panel -->
+    <div class="card" style="border-left:4px solid var(--sky);">
+      <h3 style="font-size:1.1rem; font-weight:700; color:var(--sky); margin-bottom:6px;">💧 Hospitality Water Policy</h3>
+      <p style="font-size:0.85rem; color:var(--muted); line-height:1.5;">
+        Guests are prompted during check-in or first order for their drinking water preference: <strong>Complimentary Chilled Water</strong> (Free), <strong>Bottled Water 500ml</strong>, or <strong>Bottled Water 1L</strong>.
+        In accordance with hospitality consumer protection standards, paid water items are <strong>never added without explicit customer selection</strong>.
+      </p>
+    </div>
+
+    <!-- Active Beverages -->
+    <div class="card">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:12px;">Configured Beverage Catalog</h3>
+      <div id="bevsGrid" class="grid">
+        <p style="color:var(--muted); font-size:0.88rem;">Loading beverage inventory...</p>
+      </div>
+    </div>
+
+    <!-- Add Beverage Modal -->
+    <div id="addModal" class="card" style="display:none; border-color:var(--primary);">
+      <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:14px;">Add Beverage Product</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Beverage Name</label>
+          <input type="text" id="bvName" class="form-input" placeholder="e.g. Pellegrino Sparkling 750ml" />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="bvCategory" class="form-input">
+            <option value="WATER">Water (Bottled / Sparkling)</option>
+            <option value="COLD_DRINKS">Soft Drinks & Soda</option>
+            <option value="JUICE">Fresh Juices & Smoothies</option>
+            <option value="COFFEE">Iced & Cold Brew Coffee</option>
+            <option value="MOCKTAIL">Non-Alcoholic Mocktails</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Price ($)</label>
+          <input type="number" step="0.01" id="bvPrice" class="form-input" placeholder="4.50" />
+        </div>
+        <div class="form-group">
+          <label>Current Stock (Bottles/Cans)</label>
+          <input type="number" id="bvStock" class="form-input" placeholder="100" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Photo URL</label>
+        <input type="text" id="bvImage" class="form-input" placeholder="https://images.unsplash.com/photo-..." />
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn" style="background:rgba(255,255,255,0.08);color:#fff;" onclick="toggleAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitBeverage()">Save Product →</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="/owner/shared.js"></script>
+  <script>
+    document.getElementById('navContainer').innerHTML = renderNav('beverages');
+
+    async function loadBeverages() {
+      try {
+        const res = await apiFetch('/api/v1/beverages?outletId=b0000000-0000-0000-0000-000000000001&all=true');
+        const list = await res.json();
+        const grid = document.getElementById('bevsGrid');
+        if (list.length === 0) {
+          grid.innerHTML = '<p style="color:var(--muted); font-size:0.88rem;">No beverages found. Add your first bottle or drink above.</p>';
+          return;
+        }
+        grid.innerHTML = list.map(b => `
+          <div class="bev-card">
+            ${b.imageUrl ? `<img src="${b.imageUrl}" class="bev-img" alt="${b.name}" />` : '<div class="bev-img" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🥤</div>'}
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:0.95rem; color:#fff;">${b.name}</div>
+              <div style="font-size:0.75rem; color:var(--muted);">${b.category} • Stock: ${b.stock || 0}</div>
+              <div style="font-size:0.9rem; font-weight:800; color:var(--accent); margin-top:2px;">$${((b.priceCents||0)/100).toFixed(2)}</div>
+            </div>
+            <button class="btn" style="background:${b.isAvailable ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)'}; color:${b.isAvailable ? '#ef4444' : '#10b981'}; font-size:0.75rem;" onclick="toggleBevAvailability('${b.id}', ${b.isAvailable})">
+              ${b.isAvailable ? '86 (Out)' : 'Restock'}
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        showToast('Error loading beverages', 'error');
+      }
+    }
+
+    function toggleAddModal() {
+      const el = document.getElementById('addModal');
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function submitBeverage() {
+      const name = document.getElementById('bvName').value.trim();
+      const category = document.getElementById('bvCategory').value;
+      const price = parseFloat(document.getElementById('bvPrice').value || '0');
+      const stock = parseInt(document.getElementById('bvStock').value || '100', 10);
+      const imageUrl = document.getElementById('bvImage').value.trim();
+
+      if (!name) { showToast('Name required', 'error'); return; }
+
+      const payload = {
+        outletId: 'b0000000-0000-0000-0000-000000000001',
+        name,
+        category,
+        priceCents: Math.round(price * 100),
+        stock,
+        imageUrl: imageUrl || null,
+        isAvailable: true,
+      };
+
+      try {
+        const res = await apiFetch('/api/v1/beverages', { method: 'POST', body: JSON.stringify(payload) });
+        if (res.ok) {
+          showToast('Beverage product added!');
+          toggleAddModal();
+          loadBeverages();
+        }
+      } catch (err) {
+        showToast('Failed to add beverage', 'error');
+      }
+    }
+
+    async function toggleBevAvailability(id, currentAvail) {
+      try {
+        await apiFetch(`/api/v1/beverages/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ isAvailable: !currentAvail }),
+        });
+        showToast(currentAvail ? 'Marked 86 (Sold out)' : 'Restocked item');
+        loadBeverages();
+      } catch (err) {
+        showToast('Update failed', 'error');
+      }
+    }
+
+    loadBeverages();
+  </script>
+</body>
+</html>

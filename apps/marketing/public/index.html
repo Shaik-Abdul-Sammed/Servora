@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abiruchi Hotel — The Autonomous Hospitality Operating System</title>
+  <style>
+    :root { --bg:#090a0f; --card:#12151f; --border:rgba(255,255,255,0.08); --text:#f8fafc; --muted:#94a3b8; --primary:#e11d48; --accent:#10b981; --sky:#38bdf8; --amber:#f59e0b; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:20px 48px; border-bottom:1px solid var(--border); backdrop-filter:blur(16px); position:sticky; top:0; z-index:100; background:rgba(9,10,15,0.8); }
+    .brand { font-size:1.4rem; font-weight:900; color:#fff; display:flex; align-items:center; gap:8px; }
+    nav a { color:var(--muted); text-decoration:none; margin-left:24px; font-weight:600; font-size:0.95rem; transition:color 0.2s; }
+    nav a:hover, nav a.active { color:#fff; }
+    .hero { text-align:center; padding:96px 24px 64px; max-width:900px; margin:0 auto; }
+    .badge { display:inline-block; padding:6px 16px; border-radius:24px; font-size:0.8rem; font-weight:700; background:rgba(225,29,72,0.15); color:#fb7185; margin-bottom:20px; border:1px solid rgba(225,29,72,0.3); }
+    h1 { font-size:3.2rem; font-weight:900; line-height:1.15; letter-spacing:-0.03em; margin-bottom:24px; }
+    .hero p { font-size:1.2rem; color:var(--muted); margin-bottom:36px; max-width:700px; margin-inline:auto; }
+    .cta-group { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+    .btn { padding:14px 28px; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:transform 0.15s; }
+    .btn:active { transform:scale(0.97); }
+    .btn-primary { background:linear-gradient(135deg,#f43f5e,#be123c); color:#fff; box-shadow:0 6px 20px rgba(225,29,72,0.4); }
+    .btn-secondary { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
+    .features { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; max-width:1100px; margin:48px auto; padding:0 24px; }
+    .feature-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:32px; }
+    .feature-icon { font-size:2rem; margin-bottom:16px; }
+    .feature-title { font-size:1.2rem; font-weight:800; margin-bottom:8px; color:#fff; }
+    .feature-desc { color:var(--muted); font-size:0.92rem; }
+    .segment-bar { display:flex; justify-content:center; gap:12px; margin:48px auto 24px; max-width:600px; }
+    .segment-tab { padding:10px 24px; border-radius:30px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; cursor:pointer; text-decoration:none; }
+    .segment-tab:hover, .segment-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    footer { text-align:center; padding:48px 24px; border-top:1px solid var(--border); color:var(--muted); font-size:0.88rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">🍽️ Abiruchi Hotel</div>
+    <nav>
+      <a href="/marketing" class="active">Overview</a>
+      <a href="/marketing/for-cafes">Cafes</a>
+      <a href="/marketing/for-restaurants">Restaurants</a>
+      <a href="/marketing/for-bars">Bars</a>
+      <a href="/marketing/pricing">Pricing</a>
+      <a href="/owner" style="color:var(--primary);">Owner Login →</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="badge">Production-Ready Restaurant Operating System</span>
+      <h1>Autonomous Ordering, Kitchen Routing &amp; Real-Time Tables</h1>
+      <p>Abiruchi Hotel powers modern dining operations with zero-install Web QR menus, instant multilingual translation, KDS kitchen display, token queuing, and seamless pay-first or pay-later workflows.</p>
+      <div class="cta-group">
+        <a href="/" class="btn btn-primary" target="_blank">Try Live Guest QR Menu →</a>
+        <a href="/owner" class="btn btn-secondary">Open Venue Dashboard</a>
+      </div>
+    </section>
+
+    <div class="segment-bar">
+      <a href="/marketing/for-cafes" class="segment-tab">☕ For Cafes</a>
+      <a href="/marketing/for-restaurants" class="segment-tab">🍽️ For Restaurants</a>
+      <a href="/marketing/for-bars" class="segment-tab">🍸 For Bars</a>
+    </div>
+
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Zero-Install Instant Web-App</div>
+        <div class="feature-desc">Guests scan a QR code and order immediately. No app store download, no registration barrier, 100% PWA with offline caching.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">Invisible Multilingual Translation</div>
+        <div class="feature-desc">Automatic, zero-latency translations across 8 languages including Arabic RTL and Asian scripts without unsightly flash of untranslated content.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎟️</div>
+        <div class="feature-title">Token &amp; Queue Management</div>
+        <div class="feature-desc">Automated alphanumeric tokens for quick-service counters and bars with real-time pickup boards and categorized order routing.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🍳</div>
+        <div class="feature-title">Multi-Station Kitchen KDS</div>
+        <div class="feature-desc">Live kitchen displays color-coded by station (Grill, Pizza, Bar, Hot Line) with course hold/fire and audio chime notifications.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛎️</div>
+        <div class="feature-title">One-Tap Human Bridge</div>
+        <div class="feature-desc">Guests tap one button for water refill, extra cutlery, bill request, or manager assistance, instantly alerting waitstaff terminals.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <div class="feature-title">Flexible Shift Payment Modes</div>
+        <div class="feature-desc">Switch seamlessly between Pay-First quick counter service and Pay-Later relaxed table dining per shift with full split-bill support.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Abiruchi Hotel Inc. Enterprise hospitality platform standard.</p>
+  </footer>
+</body>
+</html>

@@ -1,1 +1,1 @@
-TypeScript client SDK for programmatic interaction with Servora platform APIs.
+TypeScript client SDK for programmatic interaction with Abiruchi Hotel platform APIs.
