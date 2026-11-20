@@ -1895,6 +1895,16 @@ export class OrderStore {
     return order;
   }
 
+  public setOrderPriority(orderId: string, isPriority: boolean = true): Order | null {
+    const order = this.orders.get(orderId);
+    if (!order) return null;
+    (order as any).isPriority = isPriority;
+    order.isVip = isPriority;
+    order.updatedAt = new Date().toISOString();
+    this.orders.set(orderId, order);
+    return order;
+  }
+
   // --------------------------------------------------------------------------
   // C1 & C2: Token & Queue Engine
   // --------------------------------------------------------------------------

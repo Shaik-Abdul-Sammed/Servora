@@ -72,16 +72,16 @@
       </div>
       <div class="form-group">
         <label>Description & Culinary Notes</label>
-        <textarea id="spDesc" class="form-input" style="height:60px;" placeholder="Artisanal pasta tossed in butter and shaved Umbrian truffles..."></textarea>
+        <textarea id="spDesc" class="form-input" style="height:60px;" placeholder="Crispy golden ghee roast served with homemade coconut chutney and piping hot sambar..."></textarea>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Original Price ($)</label>
-          <input type="number" step="0.01" id="spBasePrice" class="form-input" placeholder="32.00" />
+          <label>Original Price (₹)</label>
+          <input type="number" step="1" id="spBasePrice" class="form-input" placeholder="180" />
         </div>
         <div class="form-group">
-          <label>Special Promotional Price ($)</label>
-          <input type="number" step="0.01" id="spDiscountPrice" class="form-input" placeholder="26.00" />
+          <label>Special Promotional Price (₹)</label>
+          <input type="number" step="1" id="spDiscountPrice" class="form-input" placeholder="150" />
         </div>
       </div>
       <div class="form-row">
@@ -116,7 +116,7 @@
         }
         grid.innerHTML = list.map(s => `
           <div class="special-item">
-            ${s.imageUrl ? `<img src="${s.imageUrl}" class="special-img" alt="${s.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80'" />` : '<div class="special-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🍽️</div>'}
+            ${s.imageUrl ? `<img src="${s.imageUrl}" class="special-img" alt="${s.name}" onerror="this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80'" />` : '<div class="special-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🍽️</div>'}
             <div class="special-body">
               <div style="display:flex;justify-content:space-between;align-items:start;">
                 <h4 class="special-title">${s.name}</h4>
@@ -124,7 +124,7 @@
               </div>
               <p class="special-desc">${s.description || 'Special chef preparation for today.'}</p>
               <div class="special-prices">
-                ${s.discountPriceCents ? `<span class="price-discount">$${(s.discountPriceCents/100).toFixed(2)}</span><span class="price-base">$${(s.basePriceCents/100).toFixed(2)}</span>` : `<span class="price-discount">$${(s.basePriceCents/100).toFixed(2)}</span>`}
+                ${s.discountPriceCents ? `<span class="price-discount">₹${(s.discountPriceCents/100).toFixed(2)}</span><span class="price-base">₹${(s.basePriceCents/100).toFixed(2)}</span>` : `<span class="price-discount">₹${(s.basePriceCents/100).toFixed(2)}</span>`}
                 ${s.remainingQty !== null ? `<span class="badge badge-stock">${s.remainingQty} left</span>` : ''}
               </div>
               <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;">

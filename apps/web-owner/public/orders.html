@@ -88,7 +88,7 @@
     </div>
     <a href="/owner" class="nav-link">📊 Dashboard</a>
     <a href="/owner/orders" class="nav-link active">🎫 Orders</a>
-    <a href="/owner/tokens" class="nav-link">🎟️ QR Studio</a>
+    <a href="/qr-manager.html" class="nav-link">🎟️ QR Studio</a>
     <a href="/owner/staff" class="nav-link">👥 Staff & RBAC</a>
     <a href="/owner/menu" class="nav-link">🍕 Menu & Photos</a>
     <a href="/owner/availability" class="nav-link">🔴 Availability</a>
@@ -483,7 +483,27 @@
       document.body.removeChild(link);
     }
 
+    function initEventStream() {
+      try {
+        const token = localStorage.getItem('abiruchi_manager_token') || sessionStorage.getItem('servora_token');
+        const url = `/api/v1/events/stream?outletId=${OUTLET_ID}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+        const evtSource = new EventSource(url);
+        evtSource.addEventListener('ORDER_STATUS_CHANGED', () => fetchOrders());
+        evtSource.addEventListener('NEW_ORDER', () => fetchOrders());
+        evtSource.addEventListener('ORDER_CREATED', () => fetchOrders());
+        evtSource.addEventListener('PAYMENT_RECEIVED', () => fetchOrders());
+        evtSource.addEventListener('PAYMENT_VERIFIED', () => fetchOrders());
+        evtSource.addEventListener('ORDER_UPDATED', () => fetchOrders());
+        evtSource.onerror = () => {
+          // Graceful browser SSE reconnection
+        };
+      } catch (err) {
+        console.warn('SSE stream setup error:', err);
+      }
+    }
+
     fetchOrders();
+    initEventStream();
     setInterval(fetchOrders, 5000);
   </script>
 </body>

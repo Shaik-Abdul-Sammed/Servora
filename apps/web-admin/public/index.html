@@ -140,6 +140,13 @@
       <span class="badge">SUPER-ADMIN CONSOLE</span>
     </div>
     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <div class="user-pill" style="display:flex; align-items:center; gap:6px;">
+        <span>🏢 Outlet Scope:</span>
+        <select id="adminOutletSwitcher" onchange="switchAdminOutlet(this.value)" style="background:transparent; border:none; color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; outline:none;">
+          <option value="b0000000-0000-0000-0000-000000000001" style="background:#18181b; color:#fff;">Abiruchi Hotel - Indiranagar Flagship</option>
+          <option value="b0000000-0000-0000-0000-000000000002" style="background:#18181b; color:#fff;">Abiruchi Hotel - Koramangala Express</option>
+        </select>
+      </div>
       <a href="/" class="user-pill" style="text-decoration:none;" title="Customer Menu">🍽️ Menu</a>
       <a href="/owner" class="user-pill" style="text-decoration:none;" title="Owner Dashboard">👑 Owner</a>
       <a href="/manager" class="user-pill" style="text-decoration:none;" title="Manager Operations">📊 Manager</a>
@@ -239,5 +246,36 @@
     </table>
   </main>
 
+  <script>
+    async function loadAdminOutlets() {
+      try {
+        const res = await fetch('/api/v1/outlets');
+        if (res.ok) {
+          const data = await res.json();
+          const list = Array.isArray(data) ? data : (data.outlets || []);
+          if (list.length > 0) {
+            const select = document.getElementById('adminOutletSwitcher');
+            select.innerHTML = list.map(o => `<option value="${o.id}" style="background:#18181b; color:#fff;">${o.name || o.title}</option>`).join('');
+            const saved = localStorage.getItem('servora_admin_outlet');
+            if (saved && list.some(o => o.id === saved)) {
+              select.value = saved;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    function switchAdminOutlet(outletId) {
+      localStorage.setItem('servora_admin_outlet', outletId);
+      document.querySelectorAll('a[href^="/owner"]').forEach(a => {
+        a.href = `/owner?outletId=${outletId}`;
+      });
+      document.querySelectorAll('a[href^="/manager"]').forEach(a => {
+        a.href = `/manager?outletId=${outletId}`;
+      });
+    }
+
+    loadAdminOutlets();
+  </script>
 </body>
 </html>

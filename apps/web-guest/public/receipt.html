@@ -241,6 +241,14 @@
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('orderId') || 'ord_demo_001';
+    let receiptPollTimer = null;
+
+    // Retain table QR token for seamless back navigation
+    const activeToken = params.get('token') || sessionStorage.getItem('servora_qr_token') || localStorage.getItem('servora_qr_token');
+    if (activeToken) {
+      const backMenuBtn = document.querySelector('a[href="/"]');
+      if (backMenuBtn) backMenuBtn.href = `/?token=${encodeURIComponent(activeToken)}`;
+    }
 
     async function loadReceipt() {
       try {
@@ -250,7 +258,26 @@
         document.getElementById('orderIdVal').textContent = '#' + (data.orderId || orderId).slice(-6).toUpperCase();
         document.getElementById('orderDateVal').textContent = data.date || new Date().toLocaleDateString('en-IN');
         document.getElementById('orderTableVal').textContent = data.orderNumber || 'Table 14';
-        document.getElementById('paymentStatusVal').textContent = data.paymentStatus || 'PAID';
+
+        const statusEl = document.getElementById('paymentStatusVal');
+        const pStatus = data.paymentStatus || 'PAID';
+        if (pStatus === 'PAID') {
+          statusEl.textContent = 'PAID ✓';
+          statusEl.style.color = '#10b981';
+          if (receiptPollTimer) {
+            clearInterval(receiptPollTimer);
+            receiptPollTimer = null;
+          }
+        } else if (pStatus === 'AWAITING_VERIFICATION' || pStatus === 'PENDING') {
+          statusEl.textContent = '⏳ AWAITING VERIFICATION';
+          statusEl.style.color = '#f59e0b';
+          if (!receiptPollTimer) {
+            receiptPollTimer = setInterval(loadReceipt, 3000);
+          }
+        } else {
+          statusEl.textContent = pStatus;
+          statusEl.style.color = '#ef4444';
+        }
 
         document.getElementById('subtotalVal').textContent = '₹' + data.subtotalINR;
         document.getElementById('taxVal').textContent = '₹' + data.taxINR;

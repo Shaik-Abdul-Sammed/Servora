@@ -372,6 +372,16 @@
       document.documentElement.setAttribute('data-theme', 'dark');
     }
 
+    // Preserve table session QR token if available
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeToken = urlParams.get('token') || sessionStorage.getItem('servora_qr_token') || localStorage.getItem('servora_qr_token');
+    if (activeToken) {
+      const menuUrl = `/?token=${encodeURIComponent(activeToken)}`;
+      document.querySelectorAll('.back-btn, #btnReturnMenu').forEach(btn => {
+        btn.setAttribute('href', menuUrl);
+      });
+    }
+
     const today = new Date().toISOString().slice(0, 10);
     const dateInput = document.getElementById('bkDate');
     dateInput.value = today;

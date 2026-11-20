@@ -379,10 +379,20 @@ export function createOrderApp() {
         }
       }
 
-      if (pathname === '/owner' && method === 'GET') {
+      if ((pathname === '/owner' || pathname === '/operator' || pathname === '/operator.html') && method === 'GET') {
         const ownerHtmlPath = join(repoRoot, 'apps/web-owner/public/index.html');
         if (existsSync(ownerHtmlPath)) {
           const html = readFileSync(ownerHtmlPath, 'utf-8');
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(html);
+          return;
+        }
+      }
+
+      if ((pathname === '/owner.html' || pathname === '/owner/dashboard') && method === 'GET') {
+        const ownerDashPath = join(repoRoot, 'apps/web-owner/public/owner.html');
+        if (existsSync(ownerDashPath)) {
+          const html = readFileSync(ownerDashPath, 'utf-8');
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
           res.end(html);
           return;
@@ -490,6 +500,14 @@ export function createOrderApp() {
       }
       if ((pathname === '/qr-manager.html' || pathname === '/owner/qr' || pathname === '/qr-manager' || pathname === '/qr') && method === 'GET') {
         const p = join(repoRoot, 'apps/web-owner/public/qr-manager.html');
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
+      if ((pathname === '/owner/tokens' || pathname === '/tokens.html' || pathname === '/owner/tokens.html') && method === 'GET') {
+        const p = join(repoRoot, 'apps/web-owner/public/tokens.html');
         if (existsSync(p)) {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
           res.end(readFileSync(p, 'utf-8'));
@@ -1596,6 +1614,44 @@ export function createOrderApp() {
         }
 
         sendJson(res, 200, updated);
+        return;
+      }
+
+      // 7d. Waiter 1-Tap Order Priority / Rush (Item 20)
+      if (
+        (pathname.startsWith('/api/v1/orders/') || pathname.startsWith('/api/v1/waiter/orders/')) &&
+        pathname.endsWith('/priority') &&
+        method === 'PATCH'
+      ) {
+        const orderId = pathname
+          .replace('/api/v1/waiter/orders/', '')
+          .replace('/api/v1/orders/', '')
+          .replace('/priority', '');
+        const body = await parseJsonBody<{ isPriority?: boolean }>(req);
+        const isPriority = body.isPriority !== undefined ? Boolean(body.isPriority) : true;
+        const updated = store.setOrderPriority(orderId, isPriority);
+        if (!updated) {
+          sendJson(res, 404, { error: 'Order not found' });
+          return;
+        }
+
+        broadcastEvent({
+          type: 'ORDER_STATUS_CHANGED',
+          tenantId: updated.tenantId,
+          outletId: updated.outletId,
+          timestamp: new Date().toISOString(),
+          payload: updated,
+        });
+
+        broadcastEvent({
+          type: 'ORDER_UPDATED' as any,
+          tenantId: updated.tenantId,
+          outletId: updated.outletId,
+          timestamp: new Date().toISOString(),
+          payload: updated,
+        });
+
+        sendJson(res, 200, { success: true, order: updated });
         return;
       }
 

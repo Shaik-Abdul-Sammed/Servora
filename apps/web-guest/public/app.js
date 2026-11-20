@@ -1576,9 +1576,10 @@ async function submitFinalOrder() {
       const created = await res.json();
       currentBillOrderId = created.id;
 
-      // Save order to history for 1-tap reordering
+      // Save order to history for 1-tap reordering & receipt tracking
       saveOrderToHistory({
         id: created.id,
+        orderId: created.id,
         token: created.token || (created.token_id ? `TK-${created.token_id}` : `TK-${created.id.slice(0, 4).toUpperCase()}`),
         date: new Date().toISOString(),
         items: payload.items.map(pi => {
@@ -1587,9 +1588,10 @@ async function submitFinalOrder() {
             id: pi.menuItemId,
             name: mItem ? mItem.name : 'Dish',
             quantity: pi.quantity,
+            priceCents: mItem ? mItem.basePriceCents : 0,
           };
         }),
-        totalCents: created.totalAmountCents || (payload.items.reduce((s, pi) => {
+        totalCents: created.totalCents || created.totalAmountCents || (payload.items.reduce((s, pi) => {
           const mItem = (menuData.items || []).find(m => m.id === pi.menuItemId);
           return s + (mItem ? mItem.basePriceCents * pi.quantity : 0);
         }, 0) + (payload.tipCents || 0)),
@@ -1690,13 +1692,57 @@ async function openUpiPrepaymentModal(orderId) {
   }
 }
 
+let guestPaymentConfig = null;
+
+async function loadPaymentConfig() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/payments/config`);
+    if (res.ok) {
+      guestPaymentConfig = await res.json();
+      syncGuestPaymentConfigUI();
+    }
+  } catch (e) {
+    console.warn('Failed to load payment config', e);
+  }
+}
+
+function syncGuestPaymentConfigUI() {
+  if (!guestPaymentConfig) return;
+  const vpa = guestPaymentConfig.upiVpa || '9010150809@ybl';
+  const name = guestPaymentConfig.payeeName || 'Abiruchi Hotel';
+  const qrImg = document.getElementById('upiQrImg');
+  if (qrImg) {
+    const qrData = encodeURIComponent(`upi://pay?pa=${vpa}&pn=${encodeURIComponent(name)}&cu=INR`);
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+  }
+  const vpaDisplay = document.getElementById('upiVpaDisplay');
+  if (vpaDisplay) {
+    vpaDisplay.textContent = `VPA: ${vpa}`;
+  }
+  const boxHeader = document.getElementById('upiBoxHeader');
+  if (boxHeader && name) {
+    boxHeader.textContent = `🍛 ${name.toUpperCase()} • DIRECT PREPAYMENT`;
+  }
+  const intentLink = document.getElementById('upiIntentLink');
+  if (intentLink) {
+    intentLink.href = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(name)}&cu=INR`;
+  }
+}
+
+function copyConfiguredVpa() {
+  const vpa = guestPaymentConfig?.upiVpa || '9010150809@ybl';
+  navigator.clipboard.writeText(vpa);
+  showToast(`📋 Copied UPI ID: ${vpa}`);
+}
+window.copyConfiguredVpa = copyConfiguredVpa;
+
 function closeUpiPrepaymentModal() {
   document.getElementById('upiPrepaymentModal')?.classList.remove('active');
   if (upiPollInterval) { clearInterval(upiPollInterval); upiPollInterval = null; }
 }
 
 function copyUpiVpa() {
-  const vpa = currentUpiData?.payeeVpa || '9010150809@ybl';
+  const vpa = currentUpiData?.payeeVpa || guestPaymentConfig?.upiVpa || '9010150809@ybl';
   navigator.clipboard.writeText(vpa);
   showToast(`📋 Copied UPI ID: ${vpa}`);
 }
@@ -2331,6 +2377,9 @@ async function loadTenantProfile() {
         if (prof.map_link) {
           const m = document.getElementById('aboutMapLink');
           if (m) m.href = prof.map_link;
+        } else if (prof.address) {
+          const m = document.getElementById('aboutMapLink');
+          if (m) m.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(prof.address)}`;
         }
         if (prof.gstin) {
           const g = document.getElementById('aboutGstin');
@@ -2345,16 +2394,25 @@ async function loadTenantProfile() {
   } catch (e) {}
 }
 
-function toggleAboutPanel() {
+function toggleAboutPanel(forceOpen) {
   const content = document.getElementById('aboutPanelContent');
   const chevron = document.getElementById('aboutPanelChevron');
   const header = document.getElementById('aboutPanelHeader');
   if (!content) return;
-  const isHidden = content.style.display === 'none' || content.style.display === '';
-  content.style.display = isHidden ? 'block' : 'none';
-  if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-  if (header) header.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+  const shouldOpen = typeof forceOpen === 'boolean'
+    ? forceOpen
+    : (content.style.display === 'none' || content.style.display === '');
+  content.style.display = shouldOpen ? 'block' : 'none';
+  if (chevron) chevron.style.transform = shouldOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (header) header.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
 }
+window.toggleAboutPanel = toggleAboutPanel;
+
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#aboutPanel') {
+    toggleAboutPanel(true);
+  }
+});
 
 // ==========================================================================
 // Web Speech API Voice Ordering (Phase 2 UX)
@@ -2603,7 +2661,12 @@ function openHistoryModal() {
     container.innerHTML = history.map((ord, idx) => {
       const dateStr = ord.date ? new Date(ord.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
       const itemsList = (ord.items || []).map(i => `${i.quantity}x ${i.name}`).join(', ');
-      const totalFmt = formatINR(ord.totalCents || 0);
+      let effectiveCents = ord.totalCents;
+      if (!effectiveCents && Array.isArray(ord.items)) {
+        effectiveCents = ord.items.reduce((s, it) => s + ((it.priceCents || 5000) * (it.quantity || 1)), 0);
+      }
+      const totalFmt = formatINR(effectiveCents || 0);
+      const targetOrderId = ord.orderId || ord.id || '';
 
       return `
         <div class="history-order-card">
@@ -2615,7 +2678,12 @@ function openHistoryModal() {
             <span style="font-size:0.9rem; font-weight:900; color:var(--text-title);">${totalFmt}</span>
           </div>
           <div style="font-size:0.82rem; color:var(--text); font-weight:600; margin-bottom:10px;">${itemsList}</div>
-          <div style="display:flex; justify-content:flex-end;">
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            ${targetOrderId ? `
+              <a href="/receipt?orderId=${targetOrderId}" target="_blank" style="text-decoration:none; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;">
+                🧾 Receipt
+              </a>
+            ` : ''}
             <button onclick="reorderPastOrder(${idx})" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
               🔁 Reorder in 1-Tap
             </button>
@@ -2676,6 +2744,7 @@ async function init() {
   loadAIRecommendations();
   checkRepeatLastOrder();
   loadTenantProfile();
+  loadPaymentConfig();
 
   // Real-time live clock and view mode initialization
   updateLiveClock();
@@ -2694,7 +2763,7 @@ function initUserSessionState() {
   if (savedLang && ['en', 'te', 'hi'].includes(savedLang)) {
     currentLang = savedLang;
   }
-  const savedDiet = localStorage.getItem('abiruchi_guest_diet');
+  const savedDiet = localStorage.getItem('abiruchi_guest_diet') || localStorage.getItem('abiruchi_user_diet');
   if (savedDiet) {
     currentDietaryFilter = savedDiet;
     const dietBtnMap = {

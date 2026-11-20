@@ -403,10 +403,68 @@
     }
     .voice-wave { display: flex; justify-content: center; gap: 5px; height: 32px; margin: 12px 0; }
     .voice-wave span { width: 4px; height: 100%; background: var(--primary); border-radius: 2px; animation: waveAnim 1s ease-in-out infinite; }
-    @keyframes waveAnim { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+    .voice-wave span:nth-child(1) { animation-delay: 0s; }
+    .voice-wave span:nth-child(2) { animation-delay: 0.15s; }
+    .voice-wave span:nth-child(3) { animation-delay: 0.3s; }
+    .voice-wave span:nth-child(4) { animation-delay: 0.45s; }
+    .voice-wave span:nth-child(5) { animation-delay: 0.6s; }
+    @keyframes waveAnim { 0%, 100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+    .voice-wave.speaking span { background: #10b981; animation-duration: 0.5s; }
+
+    /* Offline Alert Pill */
+    .offline-alert-pill {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #dc2626;
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      z-index: 99999;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      align-items: center;
+      gap: 6px;
+    }
+    .online-alert-pill {
+      background: #16a34a !important;
+    }
+
+    /* Station Filter Tabs */
+    .station-filter-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 0 10px;
+      margin-bottom: 8px;
+    }
+    .station-tab-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .station-tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
   </style>
 </head>
 <body>
+
+  <!-- Floating Offline Alert -->
+  <div id="networkAlertPill" class="offline-alert-pill">
+    <span id="networkAlertIcon">⚠️</span> <span id="networkAlertText">Floor Network Offline — Reconnecting...</span>
+  </div>
 
   <!-- Header -->
   <header>
@@ -478,6 +536,15 @@
         <span id="syncIndicator">● SSE Live</span>
         <button class="action-pill" onclick="loadStaffTerminalData()" style="padding:2px 6px; font-size:0.7rem;">🔄 Sync</button>
       </div>
+    </div>
+
+    <!-- Kitchen Station Filter Tabs -->
+    <div class="station-filter-bar" id="stationFilterBar" role="tablist" aria-label="Filter orders by kitchen station">
+      <button class="station-tab-btn active" onclick="setStationFilter('ALL', this)" role="tab">All Stations</button>
+      <button class="station-tab-btn" onclick="setStationFilter('HOT_LINE', this)" role="tab">🍳 Hot Line</button>
+      <button class="station-tab-btn" onclick="setStationFilter('BAR', this)" role="tab">🍹 Drinks / Bar</button>
+      <button class="station-tab-btn" onclick="setStationFilter('COFFEE', this)" role="tab">☕ Coffee & Chai</button>
+      <button class="station-tab-btn" onclick="setStationFilter('PARCEL', this)" role="tab">📦 Parcel</button>
     </div>
 
     <!-- Active Orders List -->
@@ -575,6 +642,7 @@
     let currentToken = null;
     let permittedTables = [];
     let filterMyTablesOnly = true;
+    let currentStationFilter = 'ALL';
     let activeOrdersList = [];
     let pendingCalls = [];
     let soundChimeEnabled = localStorage.getItem('servora_waiter_chime') !== null
@@ -582,6 +650,44 @@
       : true; // DEFAULT ON!
     let lastEventSeq = 0;
     let pollInterval = null;
+
+    function setStationFilter(station, btn) {
+      currentStationFilter = station;
+      document.querySelectorAll('.station-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderOrders();
+    }
+
+    function requestNotificationPermission() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+
+    function initNetworkListeners() {
+      const pill = document.getElementById('networkAlertPill');
+      const icon = document.getElementById('networkAlertIcon');
+      const text = document.getElementById('networkAlertText');
+      if (!pill) return;
+
+      window.addEventListener('offline', () => {
+        pill.classList.remove('online-alert-pill');
+        pill.style.display = 'flex';
+        if (icon) icon.textContent = '⚠️';
+        if (text) text.textContent = 'Floor Network Offline — Reconnecting...';
+      });
+
+      window.addEventListener('online', () => {
+        pill.classList.add('online-alert-pill');
+        pill.style.display = 'flex';
+        if (icon) icon.textContent = '✓';
+        if (text) text.textContent = 'Reconnected! Terminal Online';
+        loadStaffTerminalData();
+        setTimeout(() => {
+          pill.style.display = 'none';
+        }, 2500);
+      });
+    }
 
     // Web Audio Synthesizer Chime
     let audioCtx = null;
@@ -623,6 +729,7 @@
         btn.textContent = '🔔 Chime: ON';
         btn.classList.add('active');
         playChime('notification');
+        requestNotificationPermission();
       } else {
         btn.textContent = '🔕 Chime: OFF';
         btn.classList.remove('active');
@@ -864,6 +971,23 @@
         list = list.filter(o => permittedTables.includes(o.tableNumber));
       }
 
+      if (currentStationFilter !== 'ALL') {
+        list = list.filter(o => {
+          if (currentStationFilter === 'PARCEL') return o.isTakeaway || o.orderType === 'TAKEAWAY' || !o.tableNumber;
+          if (Array.isArray(o.items)) {
+            return o.items.some(it => {
+              const cat = (it.category || it.categoryId || it.station || '').toUpperCase();
+              const name = (it.name || '').toUpperCase();
+              if (currentStationFilter === 'HOT_LINE') return cat.includes('MAIN') || cat.includes('HOT') || name.includes('DOSA') || name.includes('BIRYANI') || name.includes('CURRY') || name.includes('ROTI');
+              if (currentStationFilter === 'BAR') return cat.includes('BAR') || cat.includes('BEVERAGE') || name.includes('DRINK') || name.includes('SODA') || name.includes('BEER') || name.includes('MOCKTAIL') || name.includes('LASSI');
+              if (currentStationFilter === 'COFFEE') return name.includes('COFFEE') || name.includes('TEA') || name.includes('CHAI');
+              return true;
+            });
+          }
+          return true;
+        });
+      }
+
       badge.textContent = list.length;
 
       if (list.length === 0) {
@@ -905,12 +1029,13 @@
           : 'Items details loading...';
 
         return `
-          <div class="order-card">
+          <div class="order-card" style="${o.isPriority ? 'border:1px solid #ef4444; background:rgba(239,68,68,0.04);' : ''}">
             <div class="order-header">
               <div>
                 <div class="order-table-title">
                   Table ${o.tableNumber || 'Takeaway'}
                   ${o.token ? `<span class="order-token-badge">Token: ${o.token}</span>` : ''}
+                  ${o.isPriority ? `<span style="background:#dc2626; color:#fff; font-size:0.68rem; font-weight:800; padding:2px 6px; border-radius:4px; margin-left:6px;">🔥 RUSH</span>` : ''}
                 </div>
                 <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
                   Order #${o.id.slice(-6)} &bull; ${new Date(o.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -931,13 +1056,35 @@
               <div style="font-size:0.75rem; color:var(--text-muted);">
                 Status: <strong style="color:#fff;">${o.status}</strong>
               </div>
-              <div style="display:flex; gap:6px;">
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="service-btn" style="background:${o.isPriority ? '#991b1b' : 'rgba(239,68,68,0.18)'}; color:${o.isPriority ? '#fff' : '#f87171'}; border:1px solid #ef4444; font-size:0.72rem; padding:6px 10px;" onclick="toggleOrderPriority('${o.id}', ${!o.isPriority})">
+                  ${o.isPriority ? '🔥 Rush Active' : '⚡ Rush'}
+                </button>
                 ${actionButtons}
               </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    async function toggleOrderPriority(orderId, isPriority) {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/priority`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ isPriority })
+        });
+        if (res.ok) {
+          playChime('urgent');
+          loadStaffTerminalData();
+        }
+      } catch (e) {
+        console.warn('Priority update error:', e);
+      }
     }
 
     async function advanceOrderStatus(orderId, nextStatus) {
@@ -1060,6 +1207,17 @@
         loadStaffTerminalData();
       } else if (type === 'CALL_WAITER' || type === 'TABLE_CALL_WAITER' || type === 'BILL_REQUESTED') {
         playChime('urgent');
+        if (navigator.vibrate) {
+          navigator.vibrate([300, 100, 300, 100, 500]);
+        }
+        if ('Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification('🛎️ Waiter Assistance Needed!', {
+              body: `Table ${p?.tableNumber || p?.table || 'Guest'} requested assistance: ${p?.reason || p?.category || 'Service requested'}`,
+              icon: '/favicon.ico'
+            });
+          } catch (e) {}
+        }
         if (p && !pendingCalls.some(c => c.id === p.id)) {
           pendingCalls.unshift(p);
           renderCalls();
@@ -1073,8 +1231,10 @@
     }
 
     // Run on start
+    initNetworkListeners();
     const authenticated = checkAuthSession();
     if (authenticated) {
+      requestNotificationPermission();
       loadStaffTerminalData();
       initRealtimeConnection();
     }

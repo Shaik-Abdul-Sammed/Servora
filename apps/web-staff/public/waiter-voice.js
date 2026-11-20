@@ -82,6 +82,14 @@ function startWaiterVoice() {
     waiterSpeechRecognition.continuous = false;
     waiterSpeechRecognition.interimResults = true;
 
+    waiterSpeechRecognition.onspeechstart = () => {
+      document.querySelector('.voice-wave')?.classList.add('speaking');
+    };
+
+    waiterSpeechRecognition.onspeechend = () => {
+      document.querySelector('.voice-wave')?.classList.remove('speaking');
+    };
+
     waiterSpeechRecognition.onresult = (event) => {
       let text = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -90,16 +98,19 @@ function startWaiterVoice() {
       if (transcriptEl) transcriptEl.textContent = `"${text}"`;
 
       if (event.results[0].isFinal) {
+        document.querySelector('.voice-wave')?.classList.remove('speaking');
         processWaiterVoiceCommand(text.trim());
       }
     };
 
     waiterSpeechRecognition.onerror = () => {
+      document.querySelector('.voice-wave')?.classList.remove('speaking');
       if (transcriptEl) transcriptEl.textContent = dict.error;
       stopWaiterVoice();
     };
 
     waiterSpeechRecognition.onend = () => {
+      document.querySelector('.voice-wave')?.classList.remove('speaking');
       if (micBtn) micBtn.classList.remove('listening');
     };
 
@@ -114,6 +125,7 @@ function stopWaiterVoice() {
   if (waiterSpeechRecognition) {
     try { waiterSpeechRecognition.stop(); } catch (e) {}
   }
+  document.querySelector('.voice-wave')?.classList.remove('speaking');
   const modal = document.getElementById('waiterVoiceModal');
   const micBtn = document.getElementById('btnWaiterVoice');
   if (modal) modal.style.display = 'none';
