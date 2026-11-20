@@ -803,9 +803,12 @@ header {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 8px 24px rgba(96, 178, 70, 0.45);
-  z-index: 50;
+  z-index: 1000;
   cursor: pointer;
   animation: fadeInUp 0.3s var(--spring);
+}
+.abiruchi-floating-cart-bar.visible {
+  display: flex !important;
 }
 .floating-cart-items-total {
   display: flex;

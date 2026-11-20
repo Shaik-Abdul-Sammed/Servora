@@ -62,7 +62,34 @@ const UI_TRANSLATIONS = {
     wbDeclineBtn: '✕ No, thank you',
     billModalTitle: 'Table Bill Preview',
     cartViewBill: 'View Pre-Bill',
-    recommended: 'Recommended'
+    recommended: 'Recommended',
+    signIn: 'Sign In',
+    logOut: 'Sign Out',
+    reserve: 'Book Table',
+    orders: 'My Orders',
+    changeTable: 'Change Table',
+    viewCartProceed: 'VIEW CART & PAY',
+    payNow: 'Pay Bill / Prepay via UPI',
+    tableConfirmTitle: 'Table {num} • Confirmed',
+    tableConfirmSubtitle: '🟢 Available & Ready • Dine-In Session Active',
+    takeawayTitle: 'Takeaway / Parcel Pickup',
+    takeawaySubtitle: '🛍️ Counter Collection • Active Session',
+    allDishes: 'All',
+    pureVeg: 'Veg',
+    nonVeg: 'Non-Veg',
+    bestseller: '⭐ Bestseller',
+    glutenFree: '🌾 Gluten-Free',
+    shiftNow: '⚡ Serving Now',
+    shiftBreakfast: '🌅 Breakfast',
+    shiftLunch: '☀️ Lunch',
+    shiftSnacks: '☕ Snacks & Tea',
+    shiftDinner: '🌙 Dinner',
+    shiftAll: '✨ All Items',
+    sortPopular: '⭐ Most Popular',
+    sortLowHigh: '💰 Price: Low to High',
+    sortHighLow: '💎 Price: High to Low',
+    tableSelectorTitle: '📍 Confirm Your Dining Table',
+    tableSelectorSubtitle: 'Select your table number below or choose Takeaway / Parcel. Orders will be delivered directly to your chosen table.'
   },
   te: {
     loyalty: 'ఖర్చు చేసిన ప్రతి ₹100కి 10 లాయల్టీ పాయింట్లు పొందండి',
@@ -96,7 +123,34 @@ const UI_TRANSLATIONS = {
     wbDeclineBtn: '✕ వద్దు, ధన్యవాదాలు',
     billModalTitle: 'టేబుల్ బిల్లు ప్రివ్యూ',
     cartViewBill: 'ప్రీ-బిల్లు చూడండి',
-    recommended: 'సిఫార్సు చేయబడినవి'
+    recommended: 'సిఫార్సు చేయబడినవి',
+    signIn: 'లాగిన్',
+    logOut: 'లాగ్ అవుట్',
+    reserve: 'టేబుల్ బుకింగ్',
+    orders: 'నా ఆర్డర్లు',
+    changeTable: 'టేబుల్ మార్చండి',
+    viewCartProceed: 'కార్ట్ చూసి చెల్లించండి',
+    payNow: 'యూపీఐ ద్వారా బిల్లు చెల్లించండి',
+    tableConfirmTitle: 'టేబుల్ {num} • నిర్ధారించబడింది',
+    tableConfirmSubtitle: '🟢 అందుబాటులో ఉంది • డైన్-ఇన్ సెషన్ యాక్టివ్',
+    takeawayTitle: 'పార్సెల్ / టేక్‌అవే పికప్',
+    takeawaySubtitle: '🛍️ కౌంటర్ సేకరణ • యాక్టివ్ సెషన్',
+    allDishes: 'అన్నీ',
+    pureVeg: 'శాఖాహారం',
+    nonVeg: 'మాంసాహారం',
+    bestseller: '⭐ బెస్ట్ సెల్లర్',
+    glutenFree: '🌾 గ్లూటెన్-ఫ్రీ',
+    shiftNow: '⚡ ఇప్పుడు లభించేవి',
+    shiftBreakfast: '🌅 టిఫిన్',
+    shiftLunch: '☀️ మధ్యాహ్న భోజనం',
+    shiftSnacks: '☕ సాయంత్రం స్నాక్స్',
+    shiftDinner: '🌙 రాత్రి భోజనం',
+    shiftAll: '✨ అన్ని వంటకాలు',
+    sortPopular: '⭐ అత్యంత ప్రజాదరణ',
+    sortLowHigh: '💰 ధర: తక్కువ నుండి ఎక్కువ',
+    sortHighLow: '💎 ధర: ఎక్కువ నుండి తక్కువ',
+    tableSelectorTitle: '📍 మీ భోజన టేబుల్‌ను నిర్ధారించండి',
+    tableSelectorSubtitle: 'క్రింద మీ టేబుల్ నంబర్‌ను ఎంచుకోండి లేదా పార్సెల్ ఎంచుకోండి. ఆర్డర్లు నేరుగా మీ టేబుల్‌కు వస్తాయి.'
   },
   hi: {
     loyalty: 'प्रत्येक ₹100 खर्च पर 10 लॉयल्टी पॉइंट्स पाएं',
@@ -130,7 +184,34 @@ const UI_TRANSLATIONS = {
     wbDeclineBtn: '✕ नहीं, धन्यवाद',
     billModalTitle: 'टेबल बिल पूर्वावलोकन',
     cartViewBill: 'प्री-बिल देखें',
-    recommended: 'अनुशंसित'
+    recommended: 'अनुशंसित',
+    signIn: 'साइन इन',
+    logOut: 'लॉग आउट',
+    reserve: 'टेबल बुक करें',
+    orders: 'मेरे ऑर्डर',
+    changeTable: 'टेबल बदलें',
+    viewCartProceed: 'कार्ट देखें और भुगतान करें',
+    payNow: 'यूपीआई से बिल का भुगतान करें',
+    tableConfirmTitle: 'टेबल {num} • पुष्टि की गई',
+    tableConfirmSubtitle: '🟢 उपलब्ध और तैयार • डाइन-इन सत्र सक्रिय',
+    takeawayTitle: 'टेकअवे / पार्सल पिकअप',
+    takeawaySubtitle: '🛍️ काउंटर संग्रह • सक्रिय सत्र',
+    allDishes: 'सभी',
+    pureVeg: 'शाकाहारी',
+    nonVeg: 'मांसाहारी',
+    bestseller: '⭐ सर्वाधिक बिकने वाला',
+    glutenFree: '🌾 ग्लूटेन-मुक्त',
+    shiftNow: '⚡ अभी उपलब्ध',
+    shiftBreakfast: '🌅 नाश्ता',
+    shiftLunch: '☀️ दोपहर का भोजन',
+    shiftSnacks: '☕ नाश्ता और चाय',
+    shiftDinner: '🌙 रात का भोजन',
+    shiftAll: '✨ सभी व्यंजन',
+    sortPopular: '⭐ सबसे लोकप्रिय',
+    sortLowHigh: '💰 कीमत: कम से ज्यादा',
+    sortHighLow: '💎 कीमत: ज्यादा से कम',
+    tableSelectorTitle: '📍 अपनी डाइनिंग टेबल की पुष्टि करें',
+    tableSelectorSubtitle: 'नीचे अपना टेबल नंबर चुनें या पार्सल चुनें। ऑर्डर सीधे आपकी चुनी हुई टेबल पर पहुंचाए जाएंगे।'
   }
 };
 
@@ -220,6 +301,34 @@ function applyInvisibleLanguageStyles(lang, dir) {
   if (document.getElementById('lblTotal')) document.getElementById('lblTotal').textContent = dict.total;
   if (document.getElementById('submitOrderBtn')) document.getElementById('submitOrderBtn').textContent = dict.sendOrder;
 
+  if (document.getElementById('changeTableBtnLabel')) document.getElementById('changeTableBtnLabel').textContent = dict.changeTable || 'Change Table';
+  if (document.getElementById('floatingCartProceedText')) document.getElementById('floatingCartProceedText').textContent = dict.viewCartProceed || 'VIEW CART & PAY';
+  if (document.getElementById('tableSelectorTitle')) document.getElementById('tableSelectorTitle').textContent = dict.tableSelectorTitle || '📍 Confirm Your Dining Table';
+  if (document.getElementById('tableSelectorSubtitle')) document.getElementById('tableSelectorSubtitle').textContent = dict.tableSelectorSubtitle || 'Select your table number below or choose Takeaway / Parcel.';
+
+  // Shifts translation
+  if (document.getElementById('shiftChipNow')) document.getElementById('shiftChipNow').textContent = dict.shiftNow || '⚡ Serving Now';
+  if (document.getElementById('shiftChipBreakfast')) document.getElementById('shiftChipBreakfast').textContent = dict.shiftBreakfast || '🌅 Breakfast';
+  if (document.getElementById('shiftChipLunch')) document.getElementById('shiftChipLunch').textContent = dict.shiftLunch || '☀️ Lunch';
+  if (document.getElementById('shiftChipSnacks')) document.getElementById('shiftChipSnacks').textContent = dict.shiftSnacks || '☕ Snacks & Tea';
+  if (document.getElementById('shiftChipDinner')) document.getElementById('shiftChipDinner').textContent = dict.shiftDinner || '🌙 Dinner';
+  if (document.getElementById('shiftChipAll')) document.getElementById('shiftChipAll').textContent = dict.shiftAll || '✨ All Items';
+
+  // Dietary filters translation
+  const filterAll = document.querySelector('#filterAllBtn span');
+  if (filterAll) filterAll.textContent = dict.allDishes || 'All';
+  const filterVeg = document.querySelector('#filterVegBtn span:last-child');
+  if (filterVeg) filterVeg.textContent = dict.pureVeg || 'Veg';
+  const filterNonVeg = document.querySelector('#filterNonVegBtn span:last-child');
+  if (filterNonVeg) filterNonVeg.textContent = dict.nonVeg || 'Non-Veg';
+  const filterBestseller = document.querySelector('#filterBestsellerBtn span');
+  if (filterBestseller) filterBestseller.textContent = dict.bestseller || '⭐ Bestseller';
+
+  // Update table confirmation UI with translated strings
+  if (typeof updateTableConfirmationUI === 'function') {
+    updateTableConfirmationUI();
+  }
+
   if (document.getElementById('callStaffTitle')) document.getElementById('callStaffTitle').textContent = dict.callStaffTitle || 'How can we assist you?';
   if (document.getElementById('callStaffSubtitle')) document.getElementById('callStaffSubtitle').textContent = dict.callStaffSubtitle || 'Select a request type below. Our floor waitstaff will be alerted immediately.';
   if (document.getElementById('optAssistanceLabel')) document.getElementById('optAssistanceLabel').textContent = dict.optAssistance || 'Need Assistance';
@@ -259,19 +368,37 @@ async function initSession() {
   const urlParams = new URLSearchParams(window.location.search);
   const mode = (urlParams.get('mode') || 'TABLE').toUpperCase();
   const token = urlParams.get('token');
+  const urlTable = urlParams.get('table') || urlParams.get('tableId') || urlParams.get('tableNumber');
+
+  if (urlTable) {
+    if (urlTable.toLowerCase() === 'takeaway' || urlTable.toLowerCase() === 'token') {
+      activeTable = { id: 'takeaway', number: 'Takeaway' };
+    } else {
+      activeTable = { id: `table-${urlTable}`, number: String(urlTable) };
+    }
+    localStorage.setItem('abiruchi_table_num', activeTable.number);
+  } else {
+    const savedTable = localStorage.getItem('abiruchi_table_num');
+    if (savedTable) {
+      activeTable = { id: savedTable === 'Takeaway' ? 'takeaway' : `table-${savedTable}`, number: savedTable };
+    }
+  }
+
   const tableId = urlParams.get('tableId') || activeTable.id;
 
   if (mode === 'BOOKING') {
     window.location.href = '/booking';
     return;
   }
-  if (mode === 'TOKEN') {
+  if (mode === 'TOKEN' || activeTable.number === 'Takeaway') {
     const tableBadge = document.getElementById('tableBadgeContainer');
     if (tableBadge) tableBadge.innerHTML = '<span style="font-size:0.75rem; font-weight:800; color:var(--primary);">🎟️ Takeaway Mode</span>';
   } else if (mode === 'MENU_ONLY') {
     const tableBadge = document.getElementById('tableBadgeContainer');
     if (tableBadge) tableBadge.innerHTML = '<span style="font-size:0.75rem; font-weight:800; color:var(--primary);">📖 Digital Menu</span>';
   }
+
+  updateTableConfirmationUI();
 
   try {
     const query = token ? `token=${token}` : `tableId=${tableId}`;
@@ -285,10 +412,10 @@ async function initSession() {
     }
     if (res.ok) {
       const session = await res.json();
-      if (session.table && mode !== 'TOKEN' && mode !== 'MENU_ONLY') {
+      if (session.table && mode !== 'TOKEN' && mode !== 'MENU_ONLY' && !urlTable) {
         activeTable = { id: session.table.id, number: session.table.tableNumber };
-        const badge = document.getElementById('tableBadge');
-        if (badge) badge.textContent = `Table ${activeTable.number}`;
+        localStorage.setItem('abiruchi_table_num', String(activeTable.number));
+        updateTableConfirmationUI();
       }
       if (session.tenant) {
         const venue = document.getElementById('venueName');
@@ -299,6 +426,77 @@ async function initSession() {
     }
   } catch (e) {}
 }
+
+// ==========================================================================
+// Table Selection and Availability Management (URL Entry & Real-Time)
+// ==========================================================================
+function openTableSelectorModal() {
+  renderTableGrid();
+  document.getElementById('tableSelectorModal')?.classList.add('active');
+}
+window.openTableSelectorModal = openTableSelectorModal;
+
+function closeTableSelectorModal() {
+  document.getElementById('tableSelectorModal')?.classList.remove('active');
+}
+window.closeTableSelectorModal = closeTableSelectorModal;
+
+function renderTableGrid() {
+  const grid = document.getElementById('tableGridContainer');
+  if (!grid) return;
+  const currentNum = String(activeTable?.number || '14');
+  let html = '';
+  for (let i = 1; i <= 20; i++) {
+    const isSelected = currentNum === String(i);
+    html += `
+      <button type="button" class="opt-pill ${isSelected ? 'active' : ''}"
+        onclick="selectTableOption('TABLE', '${i}')"
+        style="padding:10px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px; cursor:pointer;">
+        <span style="font-size:1.1rem;">🪑</span>
+        <span style="font-weight:900; font-size:0.85rem;">Table ${i}</span>
+        <span style="font-size:0.65rem; color:${isSelected ? 'var(--primary)' : '#16a34a'}; font-weight:700;">
+          ${isSelected ? '✓ Selected' : '🟢 Free'}
+        </span>
+      </button>
+    `;
+  }
+  grid.innerHTML = html;
+}
+window.renderTableGrid = renderTableGrid;
+
+function selectTableOption(mode, tableNumber) {
+  if (mode === 'TOKEN' || tableNumber === 'Takeaway') {
+    activeTable = { id: 'takeaway', number: 'Takeaway' };
+    localStorage.setItem('abiruchi_table_num', 'Takeaway');
+    showToast('🛍️ Takeaway / Parcel mode selected');
+  } else {
+    activeTable = { id: `table-${tableNumber}`, number: String(tableNumber) };
+    localStorage.setItem('abiruchi_table_num', String(tableNumber));
+    showToast(`📍 Table ${tableNumber} confirmed!`);
+  }
+  updateTableConfirmationUI();
+  closeTableSelectorModal();
+}
+window.selectTableOption = selectTableOption;
+
+function updateTableConfirmationUI() {
+  const dict = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.en;
+  const badge = document.getElementById('tableBadge');
+  const titleEl = document.getElementById('tableConfirmationTitle');
+  const subtitleEl = document.getElementById('tableConfirmationSubtitle');
+  const num = activeTable?.number || '14';
+
+  if (num === 'Takeaway') {
+    if (badge) badge.textContent = '🛍️ Takeaway';
+    if (titleEl) titleEl.textContent = dict.takeawayTitle || 'Takeaway / Parcel Pickup';
+    if (subtitleEl) subtitleEl.textContent = dict.takeawaySubtitle || '🛍️ Counter Collection • Active Session';
+  } else {
+    if (badge) badge.textContent = `Table ${num}`;
+    if (titleEl) titleEl.textContent = (dict.tableConfirmTitle || 'Table {num} • Confirmed').replace('{num}', num);
+    if (subtitleEl) subtitleEl.textContent = dict.tableConfirmSubtitle || '🟢 Available & Ready • Dine-In Session Active';
+  }
+}
+window.updateTableConfirmationUI = updateTableConfirmationUI;
 
 async function loadMenu(lang = 'en') {
   if (menuCacheByLang.has(lang)) {
@@ -517,8 +715,11 @@ function renderMenu() {
 
   // 2. Real-time shift & availability filter
   if (currentShiftFilter === 'NOW') {
-    // Show available dishes or prioritize available now
-    displayList = displayList.filter(i => isItemAvailableNow(i, now));
+    // Prioritize available dishes; fallback to full category if none are currently serving so menu is never empty
+    const availableNow = displayList.filter(i => isItemAvailableNow(i, now));
+    if (availableNow.length > 0) {
+      displayList = availableNow;
+    }
   } else if (currentShiftFilter === 'BREAKFAST') {
     displayList = displayList.filter(i => {
       const from = timeStringToMinutes(i.servingFrom || '06:00');
@@ -733,16 +934,18 @@ function updateCartUI() {
   const discountCents = bestOffer && bestOffer.savedCents ? bestOffer.savedCents : 0;
   const totalCents = Math.max(0, subtotalCents - discountCents) + taxCents + tipCents;
 
-  const bar = document.getElementById('floatingCartBar');
+  const bar = document.getElementById('abiruchiFloatingCart') || document.getElementById('floatingCartBar');
   if (bar) {
     if (totalCount > 0) {
       bar.classList.add('visible');
-      const countEl = document.getElementById('floatingCartCount');
-      const totalEl = document.getElementById('floatingCartTotal');
+      bar.style.display = 'flex';
+      const countEl = document.getElementById('cartCountBadge') || document.getElementById('floatingCartCount');
+      const totalEl = document.getElementById('cartFloatingTotal') || document.getElementById('floatingCartTotal');
       if (countEl) countEl.textContent = `${totalCount} ${totalCount === 1 ? 'ITEM' : 'ITEMS'}`;
       if (totalEl) totalEl.textContent = formatINR(totalCents);
     } else {
       bar.classList.remove('visible');
+      bar.style.display = 'none';
     }
   }
 
@@ -1665,6 +1868,69 @@ async function submitReviewAction() {
 }
 
 // Guest Profile, Sign In & Sign Out System
+let selectedOnboardingLang = 'en';
+let selectedOnboardingDiet = 'ALL';
+
+function selectLoginLang(lang) {
+  selectedOnboardingLang = lang;
+  ['en', 'te', 'hi'].forEach(l => {
+    const btn = document.getElementById(`langChoice_${l}`);
+    if (btn) btn.classList.toggle('active', l === lang);
+  });
+}
+window.selectLoginLang = selectLoginLang;
+
+function selectLoginDiet(diet) {
+  selectedOnboardingDiet = diet;
+  ['ALL', 'VEG', 'NON_VEG', 'BESTSELLER'].forEach(d => {
+    const btn = document.getElementById(`dietChoice_${d}`);
+    if (btn) btn.classList.toggle('active', d === diet);
+  });
+}
+window.selectLoginDiet = selectLoginDiet;
+
+function saveGuestOnboarding() {
+  const phone = document.getElementById('guestPhoneInput')?.value.trim();
+  const name = document.getElementById('guestNameInput')?.value.trim();
+
+  if (phone) {
+    if (phone.length < 10) {
+      showToast('Please enter a valid 10-digit mobile number or leave blank.');
+      return;
+    }
+    localStorage.setItem('abiruchi_guest_phone', phone);
+  } else {
+    localStorage.removeItem('abiruchi_guest_phone');
+  }
+
+  if (name) {
+    localStorage.setItem('abiruchi_guest_name', name);
+  }
+
+  localStorage.setItem('abiruchi_guest_lang', selectedOnboardingLang);
+  localStorage.setItem('abiruchi_guest_diet', selectedOnboardingDiet);
+
+  // Apply chosen preferences immediately
+  if (selectedOnboardingLang !== currentLang) {
+    switchLanguage(selectedOnboardingLang);
+  }
+
+  const dietBtnMap = {
+    'ALL': document.getElementById('filterAllBtn'),
+    'VEG': document.getElementById('filterVegBtn'),
+    'NON_VEG': document.getElementById('filterNonVegBtn'),
+    'BESTSELLER': document.getElementById('filterBestsellerBtn')
+  };
+  if (dietBtnMap[selectedOnboardingDiet]) {
+    toggleDietFilter(selectedOnboardingDiet, dietBtnMap[selectedOnboardingDiet]);
+  }
+
+  updateLoginStateUI();
+  closeLoginModal();
+  showToast('✓ Preferences saved! Welcome to Abiruchi Hotel.');
+}
+window.saveGuestOnboarding = saveGuestOnboarding;
+
 function updateLoginStateUI() {
   const phone = localStorage.getItem('abiruchi_guest_phone');
   const name = localStorage.getItem('abiruchi_guest_name');
@@ -1676,6 +1942,15 @@ function updateLoginStateUI() {
   const guestPhoneEl = document.getElementById('loggedInGuestPhone');
   const guestNameEl = document.getElementById('loggedInGuestName');
 
+  const lang = localStorage.getItem('abiruchi_guest_lang') || currentLang || 'en';
+  const diet = localStorage.getItem('abiruchi_guest_diet') || currentDietaryFilter || 'ALL';
+  selectLoginLang(lang);
+  selectLoginDiet(diet);
+  const phoneInput = document.getElementById('guestPhoneInput');
+  if (phoneInput && phone) phoneInput.value = phone;
+  const nameInput = document.getElementById('guestNameInput');
+  if (nameInput && name) nameInput.value = name;
+
   if (phone) {
     if (userLabel) userLabel.textContent = name || `+91 ${phone.slice(-4)}`;
     if (logoutBtn) logoutBtn.style.display = 'inline-flex';
@@ -1685,7 +1960,8 @@ function updateLoginStateUI() {
     if (guestPhoneEl) guestPhoneEl.textContent = `+91 ${phone}`;
     if (guestNameEl) guestNameEl.textContent = name || 'Valued Guest';
   } else {
-    if (userLabel) userLabel.textContent = 'Sign In';
+    const dict = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.en;
+    if (userLabel) userLabel.textContent = dict.signIn || 'Sign In';
     if (logoutBtn) logoutBtn.style.display = 'none';
     if (profileSection) profileSection.style.display = 'none';
     if (otpSection) otpSection.style.display = 'block';
@@ -2394,6 +2670,23 @@ async function init() {
 }
 
 function initUserSessionState() {
+  const savedLang = localStorage.getItem('abiruchi_guest_lang');
+  if (savedLang && ['en', 'te', 'hi'].includes(savedLang)) {
+    currentLang = savedLang;
+  }
+  const savedDiet = localStorage.getItem('abiruchi_guest_diet');
+  if (savedDiet) {
+    currentDietaryFilter = savedDiet;
+    const dietBtnMap = {
+      'ALL': document.getElementById('filterAllBtn'),
+      'VEG': document.getElementById('filterVegBtn'),
+      'NON_VEG': document.getElementById('filterNonVegBtn'),
+      'BESTSELLER': document.getElementById('filterBestsellerBtn')
+    };
+    if (dietBtnMap[savedDiet]) {
+      toggleDietFilter(savedDiet, dietBtnMap[savedDiet]);
+    }
+  }
   updateLoginStateUI();
 }
 

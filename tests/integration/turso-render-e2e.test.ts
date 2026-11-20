@@ -29,6 +29,8 @@ describe('Turso & Render Blueprint E2E Integration Suite', () => {
   before(async () => {
     // 1. Start application on random ephemeral port
     server = createOrderApp();
+    server.keepAliveTimeout = 60000;
+    server.headersTimeout = 65000;
     await new Promise<void>((resolve) => {
       server.listen(0, '127.0.0.1', () => resolve());
     });

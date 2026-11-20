@@ -369,7 +369,7 @@ export function createOrderApp() {
         }
       }
 
-      if (pathname === '/kds' && method === 'GET') {
+      if ((pathname === '/kds' || pathname === '/kitchen') && method === 'GET') {
         const kdsHtmlPath = join(repoRoot, 'apps/kds/public/index.html');
         if (existsSync(kdsHtmlPath)) {
           const html = readFileSync(kdsHtmlPath, 'utf-8');
