@@ -88,11 +88,33 @@ const DEMO_USERS: Record<string, { password: string; role: UserRole; tenantId: s
 // In-memory SSE clients for real-time KDS updates
 const sseClients = new Set<ServerResponse>();
 
+// Sequenced Event Hub & Reconnection Buffer
+let eventSeq = 0;
+export interface SequencedServerEvent extends ServerEvent {
+  seq: number;
+  id?: string;
+}
+const eventBuffer: SequencedServerEvent[] = [];
+const MAX_EVENT_BUFFER = 500;
+
 function broadcastEvent(event: ServerEvent) {
-  const data = `data: ${JSON.stringify(event)}\n\n`;
+  eventSeq += 1;
+  const seqEvent: SequencedServerEvent = {
+    ...event,
+    id: (event as any).id || `evt_${eventSeq}`,
+    seq: eventSeq,
+    timestamp: event.timestamp || new Date().toISOString(),
+  };
+
+  eventBuffer.push(seqEvent);
+  if (eventBuffer.length > MAX_EVENT_BUFFER) {
+    eventBuffer.shift();
+  }
+
+  const sseData = `id: ${seqEvent.seq}\nevent: ${seqEvent.type}\ndata: ${JSON.stringify(seqEvent)}\n\n`;
   for (const client of sseClients) {
     try {
-      client.write(data);
+      client.write(sseData);
     } catch {
       sseClients.delete(client);
     }
@@ -570,35 +592,119 @@ export function createOrderApp() {
       // Auth Endpoints (JWT & RBAC Identity)
       // ----------------------------------------------------------------------
       if (pathname === '/api/v1/auth/login' && method === 'POST') {
-        const body = await parseJsonBody<{ email?: string; password?: string }>(req);
-        if (!body.email || !body.password) {
-          sendJson(res, 400, { error: 'Email and password are required' });
+        const body = await parseJsonBody<{ email?: string; username?: string; identifier?: string; password?: string }>(req);
+        const identifier = (body.username || body.identifier || body.email || '').trim();
+        const password = body.password || '';
+
+        if (!identifier || !password) {
+          sendJson(res, 400, { error: 'Username/email and password are required' });
           return;
         }
 
-        const userRecord = DEMO_USERS[body.email.toLowerCase()];
-        if (!userRecord || userRecord.password !== body.password) {
-          sendJson(res, 401, { error: 'Invalid credentials' });
+        // 1. Check DEMO_USERS first
+        const demoUser = DEMO_USERS[identifier.toLowerCase()];
+        if (demoUser && demoUser.password === password) {
+          const assignedTables = demoUser.role === 'WAITER' ? ['T-01', 'T-02', 'T-03', 'T-04', 'T-05'] : undefined;
+          const token = authService.generateToken({
+            userId: `usr_${identifier.split('@')[0]}`,
+            email: identifier.toLowerCase(),
+            role: demoUser.role,
+            tenantId: demoUser.tenantId,
+            outletId: demoUser.outletId,
+            assignedTables,
+          });
+
+          sendJson(res, 200, {
+            token,
+            user: {
+              id: `usr_${identifier.split('@')[0]}`,
+              email: identifier.toLowerCase(),
+              username: identifier.split('@')[0],
+              role: demoUser.role,
+              tenantId: demoUser.tenantId,
+              outletId: demoUser.outletId,
+              assignedTables: assignedTables || [],
+              mustChangePassword: false,
+              status: 'ACTIVE',
+            },
+          });
           return;
         }
 
+        // 2. Authenticate dynamic staff accounts (Waiter, Manager, etc.)
+        const authResult = store.authenticateStaff(identifier, password);
+        if (!authResult.success || !authResult.staff) {
+          const status = authResult.reason?.includes('deactivated') || authResult.reason?.includes('suspended') ? 403 : 401;
+          sendJson(res, status, { error: authResult.reason || 'Invalid credentials' });
+          return;
+        }
+
+        const staff = authResult.staff;
         const token = authService.generateToken({
-          userId: `usr_${body.email.split('@')[0]}`,
-          email: body.email.toLowerCase(),
-          role: userRecord.role,
-          tenantId: userRecord.tenantId,
-          outletId: userRecord.outletId,
+          userId: staff.id,
+          email: staff.email,
+          role: staff.role as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: staff.outletId,
+          assignedTables: staff.assignedTables,
         });
 
         sendJson(res, 200, {
           token,
           user: {
-            email: body.email.toLowerCase(),
-            role: userRecord.role,
-            tenantId: userRecord.tenantId,
-            outletId: userRecord.outletId,
+            id: staff.id,
+            name: staff.name,
+            username: staff.username,
+            email: staff.email,
+            phone: staff.phone,
+            role: staff.role,
+            outletId: staff.outletId,
+            tenantId: 'a0000000-0000-0000-0000-000000000001',
+            assignedTables: staff.assignedTables || [],
+            status: staff.status || 'ACTIVE',
+            mustChangePassword: staff.mustChangePassword,
+            lastLoginAt: staff.lastLoginAt,
           },
         });
+        return;
+      }
+
+      if (pathname === '/api/v1/auth/change-password' && method === 'POST') {
+        const authHeader = req.headers.authorization;
+        const queryToken = reqUrl.searchParams.get('token');
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : queryToken;
+        if (!token) {
+          sendJson(res, 401, { error: 'Authentication token required' });
+          return;
+        }
+
+        const verification = authService.verifyToken(token);
+        if ((!verification.valid && !(verification as any).isValid) || !verification.payload) {
+          sendJson(res, 401, { error: 'Invalid or expired token', code: verification.error });
+          return;
+        }
+
+        const body = await parseJsonBody<{ currentPassword?: string; newPassword?: string; staffId?: string }>(req);
+        if (!body.newPassword || body.newPassword.length < 6) {
+          sendJson(res, 400, { error: 'New password must be at least 6 characters long' });
+          return;
+        }
+
+        const targetId = body.staffId || verification.payload.userId;
+        const result = store.changeStaffPassword(
+          targetId,
+          body.newPassword,
+          body.currentPassword,
+          false,
+          verification.payload.email || verification.payload.userId
+        );
+
+        if (!result.success) {
+          sendJson(res, 400, { error: result.reason || 'Failed to update password' });
+          return;
+        }
+
+        sendJson(res, 200, { success: true, message: 'Password updated successfully' });
         return;
       }
 
@@ -614,7 +720,7 @@ export function createOrderApp() {
         }
 
         const verification = authService.verifyToken(token);
-        if (!verification.isValid || !verification.payload) {
+        if ((!verification.valid && !(verification as any).isValid) || !verification.payload) {
           sendJson(res, 401, { error: 'Invalid or expired token', code: verification.error });
           return;
         }
@@ -732,6 +838,25 @@ export function createOrderApp() {
               reason,
             },
           });
+          broadcastEvent({
+            type: 'CALL_WAITER' as any,
+            tenantId: 'a0000000-0000-0000-0000-000000000001',
+            outletId,
+            timestamp: call.createdAt,
+            payload: {
+              ...call,
+              reason,
+            },
+          });
+          if (category === 'BILL' || (reason && reason.toLowerCase().includes('bill'))) {
+            broadcastEvent({
+              type: 'BILL_REQUESTED' as any,
+              tenantId: 'a0000000-0000-0000-0000-000000000001',
+              outletId,
+              timestamp: call.createdAt,
+              payload: call,
+            });
+          }
           sendJson(res, 200, { ...call, success: true, message: 'Waiter notified', call });
           return;
         }
@@ -850,7 +975,7 @@ export function createOrderApp() {
         return;
       }
 
-      // 2. Real-time Server-Sent Events (SSE) Stream
+      // 2. Real-time Server-Sent Events (SSE) Stream with Reconnection Replay
       if (pathname === '/api/v1/events' && method === 'GET') {
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
@@ -859,10 +984,42 @@ export function createOrderApp() {
           'Access-Control-Allow-Origin': '*',
         });
         res.write(': heartbeat\n\n');
+
+        // Check for missed events via Last-Event-ID header or sinceSeq query parameter
+        const rawSince = req.headers['last-event-id'] || reqUrl.searchParams.get('sinceSeq') || reqUrl.searchParams.get('since');
+        if (rawSince) {
+          const sinceSeq = parseInt(String(rawSince), 10);
+          if (!isNaN(sinceSeq) && sinceSeq >= 0) {
+            const missed = eventBuffer.filter(e => e.seq > sinceSeq);
+            for (const evt of missed) {
+              res.write(`id: ${evt.seq}\nevent: ${evt.type}\ndata: ${JSON.stringify(evt)}\n\n`);
+            }
+          }
+        }
+
         sseClients.add(res);
 
         req.on('close', () => {
           sseClients.delete(res);
+        });
+        return;
+      }
+
+      // 2b. Secure Polling Fallback (Phase 3: Real-Time Communication when SSE is unavailable)
+      if ((pathname === '/api/v1/events/poll' || pathname === '/api/v1/events/since') && method === 'GET') {
+        const rawSince = reqUrl.searchParams.get('sinceSeq') || reqUrl.searchParams.get('since') || '0';
+        const sinceSeq = parseInt(rawSince, 10) || 0;
+        const outletId = reqUrl.searchParams.get('outletId');
+        let missed = eventBuffer.filter(e => e.seq > sinceSeq);
+        if (outletId) {
+          missed = missed.filter(e => !e.outletId || e.outletId === outletId);
+        }
+        sendJson(res, 200, {
+          success: true,
+          events: missed,
+          count: missed.length,
+          lastSeq: eventSeq,
+          timestamp: new Date().toISOString(),
         });
         return;
       }
@@ -1079,9 +1236,10 @@ export function createOrderApp() {
         // Validate menu items & calculate server-side pricing
         const calculatedItems: OrderItem[] = [];
         for (const itemInput of body.items) {
-          const menuItem = store.menuItems.get(itemInput.menuItemId);
+          const itemId = (itemInput as any).menuItemId || (itemInput as any).itemId || (itemInput as any).id;
+          const menuItem = store.menuItems.get(itemId);
           if (!menuItem) {
-            sendJson(res, 400, { error: `Menu item not found: ${itemInput.menuItemId}` });
+            sendJson(res, 400, { error: `Menu item not found: ${itemId}` });
             return;
           }
 
@@ -1221,6 +1379,13 @@ export function createOrderApp() {
           timestamp: now,
           payload: newOrder,
         });
+        broadcastEvent({
+          type: 'NEW_ORDER' as any,
+          tenantId: newOrder.tenantId,
+          outletId: newOrder.outletId,
+          timestamp: now,
+          payload: newOrder,
+        });
 
         sendJson(res, 201, { ...newOrder, token: assignedToken });
         return;
@@ -1249,6 +1414,13 @@ export function createOrderApp() {
 
         broadcastEvent({
           type: 'ORDER_APPROVED',
+          tenantId: order.tenantId,
+          outletId: order.outletId,
+          timestamp: new Date().toISOString(),
+          payload: order,
+        });
+        broadcastEvent({
+          type: 'ORDER_ACCEPTED' as any,
           tenantId: order.tenantId,
           outletId: order.outletId,
           timestamp: new Date().toISOString(),
@@ -1348,6 +1520,40 @@ export function createOrderApp() {
           timestamp: new Date().toISOString(),
           payload: updated,
         });
+
+        broadcastEvent({
+          type: 'ORDER_UPDATED' as any,
+          tenantId: updated.tenantId,
+          outletId: updated.outletId,
+          timestamp: new Date().toISOString(),
+          payload: updated,
+        });
+
+        if (updated.status === 'PREPARING') {
+          broadcastEvent({
+            type: 'ORDER_PREPARING' as any,
+            tenantId: updated.tenantId,
+            outletId: updated.outletId,
+            timestamp: new Date().toISOString(),
+            payload: updated,
+          });
+        } else if (updated.status === 'READY') {
+          broadcastEvent({
+            type: 'ORDER_READY' as any,
+            tenantId: updated.tenantId,
+            outletId: updated.outletId,
+            timestamp: new Date().toISOString(),
+            payload: updated,
+          });
+        } else if (updated.status === 'SERVED' || (updated.status as any) === 'COMPLETED') {
+          broadcastEvent({
+            type: 'ORDER_SERVED' as any,
+            tenantId: updated.tenantId,
+            outletId: updated.outletId,
+            timestamp: new Date().toISOString(),
+            payload: updated,
+          });
+        }
 
         sendJson(res, 200, updated);
         return;
@@ -1916,6 +2122,14 @@ export function createOrderApp() {
         (booking as any).referenceId = refCode;
         (booking as any).code = refCode;
         store.bookings.set(booking.id, booking);
+
+        broadcastEvent({
+          type: 'BOOKING_CREATED' as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: booking.outletId,
+          timestamp: booking.createdAt,
+          payload: booking,
+        });
         sendJson(res, 201, {
           ...booking,
           id: booking.id,
@@ -1959,6 +2173,13 @@ export function createOrderApp() {
         (updated as any).status = 'CHECKED_IN';
         (updated as any).checkedInAt = new Date().toISOString();
         store.bookings.set(bookingId, updated);
+        broadcastEvent({
+          type: 'BOOKING_UPDATED' as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: updated.outletId,
+          timestamp: new Date().toISOString(),
+          payload: updated,
+        });
         sendJson(res, 200, { success: true, booking: updated, id: updated.id, status: 'ARRIVED' });
         return;
       }
@@ -1974,6 +2195,13 @@ export function createOrderApp() {
         (updated as any).status = 'CANCELLED';
         (updated as any).cancelledAt = new Date().toISOString();
         store.bookings.set(bookingId, updated);
+        broadcastEvent({
+          type: 'BOOKING_UPDATED' as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: updated.outletId,
+          timestamp: new Date().toISOString(),
+          payload: updated,
+        });
         sendJson(res, 200, { success: true, booking: updated, id: updated.id, status: 'CANCELLED' });
         return;
       }
@@ -3812,17 +4040,31 @@ export function createOrderApp() {
       }
 
       // ======================================================================
-      // 2. Staff Management & RBAC Controls
+      // 2. Staff & Waiter Management & RBAC Controls (Phase 1 & Phase 2)
       // ======================================================================
-      if (pathname === '/api/v1/owner/staff' && method === 'GET') {
+      const isStaffListRoute = (pathname === '/api/v1/owner/staff' || pathname === '/api/v1/manager/staff') && method === 'GET';
+      const isStaffCreateRoute = (pathname === '/api/v1/owner/staff' || pathname === '/api/v1/manager/staff') && method === 'POST';
+      const isStaffResetPassRoute = ((pathname.startsWith('/api/v1/owner/staff/') || pathname.startsWith('/api/v1/manager/staff/')) && pathname.endsWith('/reset-password')) && method === 'POST';
+      const isStaffResetPinRoute = ((pathname.startsWith('/api/v1/owner/staff/') || pathname.startsWith('/api/v1/manager/staff/')) && pathname.endsWith('/reset-pin')) && method === 'POST';
+      const isStaffTransferRoute = (pathname === '/api/v1/owner/staff/transfer-tables' || pathname === '/api/v1/manager/staff/transfer-tables') && method === 'POST';
+      const isStaffPatchRoute = (pathname.startsWith('/api/v1/owner/staff/') || pathname.startsWith('/api/v1/manager/staff/')) && method === 'PATCH';
+      const isStaffDeleteRoute = (pathname.startsWith('/api/v1/owner/staff/') || pathname.startsWith('/api/v1/manager/staff/')) && method === 'DELETE';
+
+      if (isStaffListRoute) {
+        const auth = getStaffAuth(req);
+        if (auth.authorized && auth.role === 'WAITER') {
+          return sendJson(res, 403, { error: 'Forbidden: Waiters cannot view staff administration records' });
+        }
         const outletId = reqUrl.searchParams.get('outletId') || 'b0000000-0000-0000-0000-000000000001';
         return sendJson(res, 200, store.listStaffMembers(outletId));
       }
 
-      if (pathname === '/api/v1/owner/staff' && method === 'POST') {
+      if (isStaffCreateRoute) {
         const body = await parseJsonBody<{
           outletId?: string;
           name: string;
+          username?: string;
+          password?: string;
           email?: string;
           role: 'OWNER' | 'MANAGER' | 'WAITER' | 'KITCHEN' | 'BAR' | 'CASHIER';
           pinCode?: string;
@@ -3831,14 +4073,38 @@ export function createOrderApp() {
           shiftStart?: string;
           shiftEnd?: string;
         }>(req);
-        if (!body.name || !body.role) {
-          return sendJson(res, 400, { error: 'name and role are required' });
+
+        const auth = getStaffAuth(req);
+        if (auth.authorized && auth.role === 'WAITER') {
+          return sendJson(res, 403, { error: 'Forbidden: Waiters cannot create staff accounts' });
+        }
+
+        if (!body.name || (!body.role && !body.username)) {
+          return sendJson(res, 400, { error: 'name and role/username are required' });
         }
         const outletId = body.outletId || 'b0000000-0000-0000-0000-000000000001';
+        const role = body.role || 'WAITER';
         try {
-          const staff = store.createStaffMember({ ...body, outletId });
+          const staff = store.createStaffMember({
+            ...body,
+            role,
+            outletId,
+            actorId: auth.staffId || 'manager',
+          });
+
+          broadcastEvent({
+            type: 'STAFF_MEMBER_CREATED' as any,
+            tenantId: 'a0000000-0000-0000-0000-000000000001',
+            outletId,
+            timestamp: new Date().toISOString(),
+            payload: staff,
+          });
+
           return sendJson(res, 201, staff);
         } catch (err: any) {
+          if (err.message && err.message.includes('already in use')) {
+            return sendJson(res, 409, { error: err.message });
+          }
           return sendJson(res, 403, {
             error: 'PLAN_LIMIT_REACHED',
             message: err.message || 'Staff limit reached for current subscription plan',
@@ -3847,13 +4113,34 @@ export function createOrderApp() {
         }
       }
 
-      if (pathname.startsWith('/api/v1/owner/staff/') && pathname.endsWith('/reset-pin') && method === 'POST') {
-        const id = pathname.replace('/api/v1/owner/staff/', '').replace('/reset-pin', '');
+      if (isStaffResetPassRoute) {
+        const id = pathname.replace('/api/v1/owner/staff/', '').replace('/api/v1/manager/staff/', '').replace('/reset-password', '');
+        const auth = getStaffAuth(req);
+        if (auth.authorized && auth.role === 'WAITER') {
+          return sendJson(res, 403, { error: 'Forbidden: Waiters cannot reset staff credentials' });
+        }
+        const body = await parseJsonBody<{ newPassword?: string }>(req).catch(() => ({}));
+        const result = store.resetStaffPassword(id, (body as any)?.newPassword, auth.staffId);
+        if (!result) return sendJson(res, 404, { error: 'Staff member not found' });
+
+        broadcastEvent({
+          type: 'STAFF_PASSWORD_RESET' as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: { id, username: result.username },
+        });
+
+        return sendJson(res, 200, result);
+      }
+
+      if (isStaffResetPinRoute) {
+        const id = pathname.replace('/api/v1/owner/staff/', '').replace('/api/v1/manager/staff/', '').replace('/reset-pin', '');
         const body = await parseJsonBody<{ newPin?: string }>(req).catch(() => ({}));
         return sendJson(res, 200, store.resetStaffPin(id, (body as any)?.newPin));
       }
 
-      if (pathname === '/api/v1/owner/staff/transfer-tables' && method === 'POST') {
+      if (isStaffTransferRoute) {
         const body = await parseJsonBody<{
           outletId?: string;
           fromStaffId: string;
@@ -3872,19 +4159,72 @@ export function createOrderApp() {
         }
       }
 
-      if (pathname.startsWith('/api/v1/owner/staff/') && method === 'PATCH') {
-        const id = pathname.replace('/api/v1/owner/staff/', '');
+      if (isStaffPatchRoute) {
+        const id = pathname.replace('/api/v1/owner/staff/', '').replace('/api/v1/manager/staff/', '');
+        const auth = getStaffAuth(req);
+        if (auth.authorized && auth.role === 'WAITER') {
+          return sendJson(res, 403, { error: 'Forbidden: Waiters cannot modify staff permissions' });
+        }
         const updates = await parseJsonBody<any>(req);
-        const updated = store.updateStaffMember(id, updates);
+        const updated = store.updateStaffMember(id, { ...updates, actorId: auth.staffId });
         if (!updated) return sendJson(res, 404, { error: 'Staff member not found' });
+
+        broadcastEvent({
+          type: 'STAFF_MEMBER_UPDATED' as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: updated.outletId,
+          timestamp: new Date().toISOString(),
+          payload: updated,
+        });
+
         return sendJson(res, 200, updated);
       }
 
-      if (pathname.startsWith('/api/v1/owner/staff/') && method === 'DELETE') {
-        const id = pathname.replace('/api/v1/owner/staff/', '');
+      if (isStaffDeleteRoute) {
+        const id = pathname.replace('/api/v1/owner/staff/', '').replace('/api/v1/manager/staff/', '');
+        const auth = getStaffAuth(req);
+        if (auth.authorized && auth.role === 'WAITER') {
+          return sendJson(res, 403, { error: 'Forbidden: Waiters cannot delete staff accounts' });
+        }
         const deleted = store.deleteStaffMember(id);
         if (!deleted) return sendJson(res, 404, { error: 'Staff member not found' });
         return sendJson(res, 200, { success: true, id });
+      }
+
+      // ======================================================================
+      // 2b. Scoped Waiter Terminal Orders & Permissions (Phase 2)
+      // ======================================================================
+      if (pathname === '/api/v1/waiter/orders' && method === 'GET') {
+        const auth = getStaffAuth(req);
+        if (!auth.authorized) {
+          return sendJson(res, 401, { error: 'Authentication required: Waiter credentials needed' });
+        }
+
+        // Fetch staff profile to get assigned tables if staff_ id
+        let assignedTables: string[] = [];
+        if (auth.staffId && auth.staffId.startsWith('staff_')) {
+          const staff = store.getStaffMemberById(auth.staffId);
+          if (!staff || !staff.isActive || staff.status === 'DEACTIVATED' || staff.status === 'SUSPENDED') {
+            return sendJson(res, 403, { error: 'Account is deactivated or suspended' });
+          }
+          assignedTables = staff.assignedTables || [];
+        }
+
+        const outletId = reqUrl.searchParams.get('outletId') || 'b0000000-0000-0000-0000-000000000001';
+        const allActive = store.getActiveOrders(outletId);
+
+        // Filter by permitted tables if assigned
+        const filteredOrders = assignedTables.length > 0
+          ? allActive.filter(o => assignedTables.includes(o.tableNumber))
+          : allActive;
+
+        return sendJson(res, 200, {
+          orders: filteredOrders,
+          count: filteredOrders.length,
+          waiterId: auth.staffId,
+          assignedTables,
+          timestamp: new Date().toISOString(),
+        });
       }
 
       // ======================================================================
@@ -4124,6 +4464,20 @@ export function createOrderApp() {
 
         broadcastEvent({
           type: 'TABLE_CALL_WAITER',
+          tenantId: order.tenantId,
+          outletId: order.outletId,
+          timestamp: new Date().toISOString(),
+          payload: { ...call, reason: 'Request Bill' },
+        });
+        broadcastEvent({
+          type: 'CALL_WAITER' as any,
+          tenantId: order.tenantId,
+          outletId: order.outletId,
+          timestamp: new Date().toISOString(),
+          payload: { ...call, reason: 'Request Bill' },
+        });
+        broadcastEvent({
+          type: 'BILL_REQUESTED' as any,
           tenantId: order.tenantId,
           outletId: order.outletId,
           timestamp: new Date().toISOString(),
@@ -4849,6 +5203,12 @@ View Web Receipt: http://${req.headers.host || 'localhost:3001'}/receipt.html?or
         if (token) {
           const verified = authService.verifyToken(token);
           if ((verified.valid || (verified as any).isValid) && verified.payload) {
+            if (verified.payload.userId && verified.payload.userId.startsWith('staff_')) {
+              const staff = store.getStaffMemberById(verified.payload.userId);
+              if (staff && (!staff.isActive || staff.status === 'DEACTIVATED' || staff.status === 'SUSPENDED')) {
+                return { authorized: false, role: '', staffId: '' };
+              }
+            }
             return {
               authorized: true,
               role: (verified.payload.role || '').toUpperCase(),
@@ -4982,6 +5342,13 @@ View Web Receipt: http://${req.headers.host || 'localhost:3001'}/receipt.html?or
           timestamp: new Date().toISOString(),
           payload: result
         });
+        broadcastEvent({
+          type: 'PAYMENT_SUBMITTED' as any,
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: result
+        });
 
         sendJson(res, 200, result);
         return;
@@ -5025,6 +5392,13 @@ View Web Receipt: http://${req.headers.host || 'localhost:3001'}/receipt.html?or
 
         broadcastEvent({
           type: 'ORDER_PAYMENT_VERIFIED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: result
+        });
+        broadcastEvent({
+          type: 'PAYMENT_VERIFIED' as any,
           tenantId: 'a0000000-0000-0000-0000-000000000001',
           outletId: 'b0000000-0000-0000-0000-000000000001',
           timestamp: new Date().toISOString(),
@@ -5078,6 +5452,13 @@ View Web Receipt: http://${req.headers.host || 'localhost:3001'}/receipt.html?or
 
         broadcastEvent({
           type: 'ORDER_PAYMENT_REJECTED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: 'b0000000-0000-0000-0000-000000000001',
+          timestamp: new Date().toISOString(),
+          payload: result
+        });
+        broadcastEvent({
+          type: 'PAYMENT_REJECTED' as any,
           tenantId: 'a0000000-0000-0000-0000-000000000001',
           outletId: 'b0000000-0000-0000-0000-000000000001',
           timestamp: new Date().toISOString(),

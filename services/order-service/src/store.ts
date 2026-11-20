@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomUUID, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createSignedQRSession, getAutoDishPhoto } from '../../../packages/utils/src/index.ts';
 const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET || process.env.QR_SIGNING_SALT || 'abiruchi-dev-qr-secret-key-32-bytes-min';
 import { auditService } from '../../audit-service/src/audit-service.ts';
@@ -115,6 +115,21 @@ class PersistentMap<K, V> extends Map<K, V> {
     super.set(k, v);
     this.onSet(k, v);
     return this;
+  }
+}
+
+export function hashStaffPassword(password: string, customSalt?: string): { hash: string; salt: string } {
+  const salt = customSalt || randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64).toString('hex');
+  return { hash, salt };
+}
+
+export function verifyStaffPassword(password: string, hash: string, salt: string): boolean {
+  try {
+    const computed = scryptSync(password, salt, 64).toString('hex');
+    return timingSafeEqual(Buffer.from(computed, 'hex'), Buffer.from(hash, 'hex'));
+  } catch {
+    return false;
   }
 }
 
@@ -783,6 +798,15 @@ export class OrderStore {
     try { this.db.exec("ALTER TABLE offer_redemptions ADD COLUMN offer_id TEXT"); } catch {}
     try { this.db.exec("ALTER TABLE offer_redemptions ADD COLUMN order_id TEXT"); } catch {}
     try { this.db.exec("ALTER TABLE offer_redemptions ADD COLUMN created_at TEXT"); } catch {}
+
+    // Staff members alterations for waiter accounts & RBAC
+    try { this.db.exec("ALTER TABLE staff_members ADD COLUMN username TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE staff_members ADD COLUMN password_hash TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE staff_members ADD COLUMN salt TEXT"); } catch {}
+    try { this.db.exec("ALTER TABLE staff_members ADD COLUMN must_change_password INTEGER DEFAULT 1"); } catch {}
+    try { this.db.exec("ALTER TABLE staff_members ADD COLUMN status TEXT DEFAULT 'ACTIVE'"); } catch {}
+    try { this.db.exec("ALTER TABLE staff_members ADD COLUMN last_login_at TEXT"); } catch {}
+    try { this.db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_staff_username ON staff_members(username) WHERE username IS NOT NULL AND username != ''"); } catch {}
   }
 
   private loadFromDb() {
@@ -5334,22 +5358,51 @@ export class OrderStore {
       id: r.id,
       outletId: r.outlet_id,
       name: r.name,
+      username: r.username || (r.email ? r.email.split('@')[0] : r.id),
       email: r.email,
       role: r.role,
       pinCode: r.pin_code,
-      isActive: r.is_active === 1,
+      isActive: r.is_active === 1 && r.status !== 'DEACTIVATED' && r.status !== 'SUSPENDED',
+      status: r.status || (r.is_active === 1 ? 'ACTIVE' : 'DEACTIVATED'),
+      mustChangePassword: r.must_change_password === 1,
+      lastLoginAt: r.last_login_at || null,
       assignedTables: JSON.parse(r.assigned_tables || '[]'),
       shiftStart: r.shift_start,
       shiftEnd: r.shift_end,
-      phone: r.phone,
+      phone: r.phone || '',
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));
   }
 
+  public getStaffMemberById(id: string) {
+    const r = this.db.prepare('SELECT * FROM staff_members WHERE id = ?').get(id) as any;
+    if (!r) return null;
+    return {
+      id: r.id,
+      outletId: r.outlet_id,
+      name: r.name,
+      username: r.username || (r.email ? r.email.split('@')[0] : r.id),
+      email: r.email,
+      role: r.role,
+      phone: r.phone || '',
+      isActive: r.is_active === 1 && r.status !== 'DEACTIVATED' && r.status !== 'SUSPENDED',
+      status: r.status || (r.is_active === 1 ? 'ACTIVE' : 'DEACTIVATED'),
+      mustChangePassword: r.must_change_password === 1,
+      assignedTables: JSON.parse(r.assigned_tables || '[]'),
+      shiftStart: r.shift_start,
+      shiftEnd: r.shift_end,
+      lastLoginAt: r.last_login_at || null,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
   public createStaffMember(params: {
     outletId: string;
     name: string;
+    username?: string;
+    password?: string;
     email?: string;
     role: 'OWNER' | 'MANAGER' | 'WAITER' | 'KITCHEN' | 'BAR' | 'CASHIER';
     pinCode?: string;
@@ -5357,6 +5410,7 @@ export class OrderStore {
     phone?: string;
     shiftStart?: string;
     shiftEnd?: string;
+    actorId?: string;
   }) {
     if (params.role === 'WAITER') {
       const check = this.canAddWaiter(params.outletId);
@@ -5365,21 +5419,40 @@ export class OrderStore {
       }
     }
 
+    const username = (params.username || params.email?.split('@')[0] || params.name.toLowerCase().replace(/[^a-z0-9_]/g, '')).trim();
+    if (!username) {
+      throw new Error('Valid username is required');
+    }
+
+    const duplicate = this.db.prepare('SELECT id FROM staff_members WHERE LOWER(username) = LOWER(?)').get(username) as any;
+    if (duplicate) {
+      throw new Error(`Username "${username}" is already in use`);
+    }
+
     const id = `staff_${randomUUID().slice(0, 8)}`;
     const now = new Date().toISOString();
     const pin = params.pinCode || String(Math.floor(1000 + Math.random() * 9000));
     const assigned = JSON.stringify(params.assignedTables || []);
 
+    const plainPassword = params.password || `Wait@${Math.floor(1000 + Math.random() * 9000)}`;
+    const { hash, salt } = hashStaffPassword(plainPassword);
+
     this.db.prepare(`
-      INSERT INTO staff_members (id, outlet_id, name, email, role, pin_code, is_active, assigned_tables, shift_start, shift_end, phone, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)
+      INSERT INTO staff_members (
+        id, outlet_id, name, username, email, role, pin_code, password_hash, salt,
+        must_change_password, status, is_active, assigned_tables, shift_start, shift_end, phone, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'ACTIVE', 1, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       params.outletId,
       params.name,
-      params.email || `${params.name.toLowerCase().replace(/\s+/g, '.')}@servora.local`,
+      username,
+      params.email || `${username}@servora.local`,
       params.role,
       pin,
+      hash,
+      salt,
       assigned,
       params.shiftStart || '09:00',
       params.shiftEnd || '21:00',
@@ -5389,66 +5462,237 @@ export class OrderStore {
     );
 
     auditService.log({
+      feature: 'STAFF_MANAGEMENT',
       action: 'STAFF_MEMBER_CREATED',
-      actorId: 'owner_manager',
+      actor: params.actorId || 'manager',
       outletId: params.outletId,
-      targetType: 'STAFF',
-      targetId: id,
-      details: { name: params.name, role: params.role },
+      details: { id, name: params.name, username, role: params.role, assignedTables: params.assignedTables || [] },
     });
 
     return {
       id,
       outletId: params.outletId,
       name: params.name,
+      username,
+      email: params.email || `${username}@servora.local`,
       role: params.role,
+      phone: params.phone || '',
       pinCode: pin,
       isActive: true,
+      status: 'ACTIVE',
+      mustChangePassword: true,
       assignedTables: params.assignedTables || [],
+      tempPassword: plainPassword,
+      createdAt: now,
+    };
+  }
+
+  public authenticateStaff(identifier: string, plainPassword: string) {
+    const cleanId = (identifier || '').trim();
+    if (!cleanId || !plainPassword) {
+      return { success: false, reason: 'Identifier and password are required' };
+    }
+
+    const row = this.db.prepare(`
+      SELECT * FROM staff_members 
+      WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) OR phone = ?
+    `).get(cleanId, cleanId, cleanId) as any;
+
+    if (!row) {
+      return { success: false, reason: 'Invalid username or password' };
+    }
+
+    if (row.status === 'SUSPENDED') {
+      return { success: false, reason: 'Account is suspended. Contact management.' };
+    }
+    if (row.status === 'DEACTIVATED' || row.is_active === 0) {
+      return { success: false, reason: 'Account is deactivated. Contact management.' };
+    }
+
+    let isValid = false;
+    if (row.password_hash && row.salt) {
+      isValid = verifyStaffPassword(plainPassword, row.password_hash, row.salt);
+    } else if (row.pin_code) {
+      isValid = row.pin_code === plainPassword;
+    }
+
+    if (!isValid) {
+      return { success: false, reason: 'Invalid username or password' };
+    }
+
+    const now = new Date().toISOString();
+    try {
+      this.db.prepare('UPDATE staff_members SET last_login_at = ?, updated_at = ? WHERE id = ?').run(now, now, row.id);
+    } catch {}
+
+    auditService.log({
+      feature: 'STAFF_MANAGEMENT',
+      action: 'STAFF_LOGIN_SUCCESS',
+      actor: row.username || row.name,
+      outletId: row.outlet_id,
+      details: { staffId: row.id, role: row.role },
+    });
+
+    return {
+      success: true,
+      staff: {
+        id: row.id,
+        outletId: row.outlet_id,
+        name: row.name,
+        username: row.username || (row.email ? row.email.split('@')[0] : row.id),
+        email: row.email,
+        phone: row.phone || '',
+        role: row.role,
+        status: row.status || 'ACTIVE',
+        isActive: row.is_active === 1,
+        mustChangePassword: row.must_change_password === 1,
+        assignedTables: JSON.parse(row.assigned_tables || '[]'),
+        lastLoginAt: now,
+      },
     };
   }
 
   public updateStaffMember(id: string, updates: Partial<{
     name: string;
+    username: string;
     email: string;
     role: string;
+    status: 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED';
     isActive: boolean;
     assignedTables: string[];
     shiftStart: string;
     shiftEnd: string;
     phone: string;
     pinCode: string;
+    mustChangePassword: boolean;
+    actorId: string;
   }>) {
     const existing = this.db.prepare('SELECT * FROM staff_members WHERE id = ?').get(id) as any;
     if (!existing) return null;
 
+    if (updates.username && updates.username !== existing.username) {
+      const duplicate = this.db.prepare('SELECT id FROM staff_members WHERE LOWER(username) = LOWER(?) AND id != ?').get(updates.username, id) as any;
+      if (duplicate) throw new Error(`Username "${updates.username}" is already in use`);
+    }
+
     const name = updates.name ?? existing.name;
+    const username = updates.username ?? existing.username ?? (existing.email ? existing.email.split('@')[0] : id);
     const email = updates.email ?? existing.email;
     const role = updates.role ?? existing.role;
-    const isActive = updates.isActive !== undefined ? (updates.isActive ? 1 : 0) : existing.is_active;
+    
+    let status = updates.status ?? existing.status ?? (existing.is_active === 1 ? 'ACTIVE' : 'DEACTIVATED');
+    if (updates.isActive !== undefined && updates.status === undefined) {
+      status = updates.isActive ? 'ACTIVE' : 'DEACTIVATED';
+    }
+    const isActive = status === 'ACTIVE' ? 1 : 0;
+
     const assignedTables = updates.assignedTables ? JSON.stringify(updates.assignedTables) : existing.assigned_tables;
     const shiftStart = updates.shiftStart ?? existing.shift_start;
     const shiftEnd = updates.shiftEnd ?? existing.shift_end;
     const phone = updates.phone ?? existing.phone;
     const pinCode = updates.pinCode ?? existing.pin_code;
+    const mustChangePassword = updates.mustChangePassword !== undefined ? (updates.mustChangePassword ? 1 : 0) : existing.must_change_password;
     const now = new Date().toISOString();
 
     this.db.prepare(`
       UPDATE staff_members
-      SET name = ?, email = ?, role = ?, is_active = ?, assigned_tables = ?, shift_start = ?, shift_end = ?, phone = ?, pin_code = ?, updated_at = ?
+      SET name = ?, username = ?, email = ?, role = ?, status = ?, is_active = ?, assigned_tables = ?, shift_start = ?, shift_end = ?, phone = ?, pin_code = ?, must_change_password = ?, updated_at = ?
       WHERE id = ?
-    `).run(name, email, role, isActive, assignedTables, shiftStart, shiftEnd, phone, pinCode, now, id);
+    `).run(name, username, email, role, status, isActive, assignedTables, shiftStart, shiftEnd, phone, pinCode, mustChangePassword, now, id);
 
     auditService.log({
+      feature: 'STAFF_MANAGEMENT',
       action: 'STAFF_MEMBER_UPDATED',
-      actorId: 'owner_manager',
+      actor: updates.actorId || 'manager',
       outletId: existing.outlet_id,
-      targetType: 'STAFF',
-      targetId: id,
-      details: updates,
+      details: { id, updates },
     });
 
-    return { id, name, role, isActive: isActive === 1 };
+    return {
+      id,
+      outletId: existing.outlet_id,
+      name,
+      username,
+      email,
+      role,
+      status,
+      isActive: isActive === 1,
+      assignedTables: JSON.parse(assignedTables || '[]'),
+      phone,
+      mustChangePassword: mustChangePassword === 1,
+      updatedAt: now,
+    };
+  }
+
+  public resetStaffPassword(id: string, newPassword?: string, actorId?: string) {
+    const existing = this.db.prepare('SELECT * FROM staff_members WHERE id = ?').get(id) as any;
+    if (!existing) return null;
+
+    const tempPassword = newPassword || `Wait@${Math.floor(1000 + Math.random() * 9000)}`;
+    const { hash, salt } = hashStaffPassword(tempPassword);
+    const now = new Date().toISOString();
+
+    this.db.prepare(`
+      UPDATE staff_members 
+      SET password_hash = ?, salt = ?, must_change_password = 1, updated_at = ?
+      WHERE id = ?
+    `).run(hash, salt, now, id);
+
+    auditService.log({
+      feature: 'STAFF_MANAGEMENT',
+      action: 'STAFF_PASSWORD_RESET',
+      actor: actorId || 'manager',
+      outletId: existing.outlet_id,
+      details: { id, username: existing.username },
+    });
+
+    return {
+      id,
+      username: existing.username,
+      tempPassword,
+      mustChangePassword: true,
+      updatedAt: now,
+    };
+  }
+
+  public changeStaffPassword(id: string, newPassword: string, currentPassword?: string, isManagerReset: boolean = false, actorId?: string) {
+    const existing = this.db.prepare('SELECT * FROM staff_members WHERE id = ?').get(id) as any;
+    if (!existing) {
+      return { success: false, reason: 'Staff member not found' };
+    }
+
+    if (!isManagerReset && existing.password_hash && existing.salt) {
+      if (!currentPassword) {
+        return { success: false, reason: 'Current password is required' };
+      }
+      const isCurrentValid = verifyStaffPassword(currentPassword, existing.password_hash, existing.salt);
+      if (!isCurrentValid) {
+        return { success: false, reason: 'Current password is incorrect' };
+      }
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, reason: 'New password must be at least 6 characters long' };
+    }
+
+    const { hash, salt } = hashStaffPassword(newPassword);
+    const now = new Date().toISOString();
+
+    this.db.prepare(`
+      UPDATE staff_members 
+      SET password_hash = ?, salt = ?, must_change_password = 0, updated_at = ?
+      WHERE id = ?
+    `).run(hash, salt, now, id);
+
+    auditService.log({
+      feature: 'STAFF_MANAGEMENT',
+      action: 'STAFF_PASSWORD_CHANGED',
+      actor: actorId || existing.username || existing.name,
+      outletId: existing.outlet_id,
+      details: { id, username: existing.username },
+    });
+
+    return { success: true, message: 'Password updated successfully' };
   }
 
   public deleteStaffMember(id: string) {

@@ -9,12 +9,17 @@
     :root {
       --bg: #090a0f;
       --card: #121520;
+      --card-hover: #191e2e;
       --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.35);
       --primary: #38bdf8;
       --primary-gradient: linear-gradient(135deg, #0284c7, #0369a1);
       --accent: #10b981;
+      --accent-gradient: linear-gradient(135deg, #059669, #10b981);
       --warning: #f59e0b;
+      --warning-gradient: linear-gradient(135deg, #d97706, #f59e0b);
       --red: #ef4444;
+      --red-gradient: linear-gradient(135deg, #dc2626, #ef4444);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -37,6 +42,14 @@
     @keyframes callPulse {
       0%, 100% { box-shadow: 0 0 0 1px var(--warning), 0 4px 18px rgba(245, 158, 11, 0.25); }
       50% { box-shadow: 0 0 0 3px var(--warning), 0 8px 24px rgba(245, 158, 11, 0.45); }
+    }
+    @keyframes badgeGlow {
+      0%, 100% { opacity: 0.85; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    @keyframes cardEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Header */
@@ -72,6 +85,30 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
+    }
+    .action-pill {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .action-pill:hover {
+      border-color: var(--primary);
+      color: #38bdf8;
+    }
+    .action-pill.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      color: #38bdf8;
     }
     .mic-btn {
       background: linear-gradient(135deg, #ef4444, #dc2626);
@@ -99,9 +136,37 @@
       font-weight: 700;
     }
 
+    /* Waiter Scoping Bar */
+    .waiter-scope-bar {
+      background: #0f131f;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .scope-tables {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .scope-table-tag {
+      background: #1e293b;
+      color: #93c5fd;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
     /* Live Guest Assistance Calls */
     .calls-section {
-      padding: 14px 18px;
+      padding: 12px 14px;
       background: #141117;
       border-bottom: 1px solid rgba(245, 158, 11, 0.3);
     }
@@ -109,16 +174,16 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-weight: 800;
       color: #fed7aa;
-      font-size: 0.92rem;
+      font-size: 0.88rem;
     }
     .call-card {
       background: #1f1922;
       border: 1px solid rgba(245, 158, 11, 0.4);
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -126,65 +191,195 @@
       animation: callPulse 2s infinite ease-in-out;
     }
     .call-info { display: flex; flex-direction: column; gap: 2px; }
-    .call-table { font-size: 1.1rem; font-weight: 900; color: #fff; }
-    .call-reason { font-size: 0.85rem; color: #fde68a; font-weight: 700; }
-    .call-time { font-size: 0.72rem; color: var(--text-muted); }
+    .call-table { font-size: 1.05rem; font-weight: 900; color: #fff; }
+    .call-reason { font-size: 0.82rem; color: #fde68a; font-weight: 700; }
+    .call-time { font-size: 0.7rem; color: var(--text-muted); }
     .ack-btn {
       background: linear-gradient(135deg, #f59e0b, #d97706);
       color: #fff;
       border: none;
-      padding: 8px 16px;
-      border-radius: 10px;
+      padding: 7px 14px;
+      border-radius: 8px;
       font-weight: 800;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
     }
     .ack-btn:active { transform: scale(0.95); }
 
-    /* Floor Grid */
+    /* Orders Main Area */
     main {
       flex: 1;
-      padding: 16px 18px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
-    .section-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #fff;
+    .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
     }
-    .tables-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
-    .table-box {
+
+    /* Order Card */
+    .order-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      position: relative;
+      gap: 10px;
+      animation: cardEnter 0.25s var(--spring);
+      transition: all 0.2s;
     }
-    .table-box.occupied { border-color: rgba(56, 189, 248, 0.4); }
-    .table-num { font-size: 1.1rem; font-weight: 900; color: #fff; }
-    .table-state-pill {
-      font-size: 0.7rem;
-      font-weight: 800;
-      padding: 3px 8px;
+    .order-card:hover {
+      border-color: var(--border-accent);
+      background: var(--card-hover);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .order-table-title {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .order-token-badge {
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 7px;
       border-radius: 6px;
-      width: fit-content;
+      font-size: 0.75rem;
+      font-weight: 800;
     }
-    .table-state-pill.active { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
-    .table-state-pill.vacant { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); }
-    .table-total { font-size: 0.95rem; font-weight: 800; color: var(--accent); margin-top: 4px; }
+    .order-items-list {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    /* Read-only Payment Badges */
+    .pay-badge-paid {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pay-badge-awaiting {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      animation: badgeGlow 2s infinite ease-in-out;
+    }
+    .pay-badge-unpaid {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Service Action Buttons */
+    .service-btn {
+      border: none;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .service-btn:active { transform: scale(0.95); }
+    .btn-approve { background: var(--primary-gradient); color: #fff; }
+    .btn-prep { background: var(--warning-gradient); color: #fff; }
+    .btn-ready { background: var(--accent-gradient); color: #fff; }
+    .btn-serve { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
+
+    /* Login & Modal Overlays */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 9999;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #111827;
+      border: 1px solid var(--border-accent);
+      border-radius: 18px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      animation: cardEnter 0.3s var(--spring);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 5px;
+    }
+    .form-input {
+      width: 100%;
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--primary); }
 
     /* Voice Modal */
     .voice-modal {
@@ -213,12 +408,16 @@
 </head>
 <body>
 
+  <!-- Header -->
   <header>
     <div class="brand-group">
       <span class="staff-badge">FLOOR STAFF</span>
       <h1 class="header-title">Abiruchi Hotel</h1>
     </div>
     <div class="header-actions">
+      <button id="soundToggleBtn" class="action-pill active" onclick="toggleSoundChime()">
+        🔔 Chime: ON
+      </button>
       <button id="btnWaiterVoice" class="mic-btn" onclick="toggleWaiterVoice()">
         🎙️ Voice
       </button>
@@ -227,10 +426,28 @@
         <option value="te-IN">తెలుగు</option>
         <option value="hi-IN">हिंदी</option>
       </select>
+      <button class="action-pill" onclick="handleWaiterLogout()" title="Sign out">
+        🚪 Exit
+      </button>
     </div>
   </header>
 
-  <!-- Live Table Call Requests -->
+  <!-- Waiter Identity & Permitted Scoping Bar -->
+  <div class="waiter-scope-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-weight:800; color:#fff;" id="waiterDisplayName">👤 Waiter Session</span>
+      <span id="scopeNoticeBadge" style="font-size:0.7rem; background:#1e293b; color:#38bdf8; padding:2px 6px; border-radius:4px;">Permitted Tables Only</span>
+    </div>
+    <div class="scope-tables" id="waiterPermittedTablesList">
+      <!-- Injected dynamically -->
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button id="filterMyTablesBtn" class="action-pill active" onclick="setFloorFilter(true)" style="padding:3px 7px; font-size:0.72rem;">My Tables</button>
+      <button id="filterAllTablesBtn" class="action-pill" onclick="setFloorFilter(false)" style="padding:3px 7px; font-size:0.72rem;">All Tables</button>
+    </div>
+  </div>
+
+  <!-- Live Guest Table Requests -->
   <section class="calls-section" id="callsSection">
     <div class="calls-header">
       <span>🔔 Live Guest Table Requests</span>
@@ -241,46 +458,87 @@
     </div>
   </section>
 
-  <!-- First-Order Staff Confirmation Queue -->
-  <section style="padding:14px 18px; background:#121724; border-bottom:1px solid rgba(56,189,248,0.3);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-weight:800; color:#93c5fd; font-size:0.92rem;">
-      <span>⏳ First-Order Approvals Required</span>
-      <span id="approvalCountBadge" style="font-size:0.75rem; background:rgba(56,189,248,0.2); color:#93c5fd; padding:2px 8px; border-radius:10px;">0 Pending</span>
-    </div>
-    <div id="approvalOrdersList">
-      <div style="font-size:0.8rem; color:var(--text-muted); padding:6px 0;">No orders awaiting staff verification.</div>
-    </div>
-  </section>
-
-  <!-- Floor Tables Grid -->
+  <!-- Orders Main Area -->
   <main>
-    <div class="section-title">
-      <span>Floor Tables</span>
-      <span style="font-size:0.78rem; color:var(--text-muted);">Auto-Sync SSE</span>
+    <div class="section-header">
+      <div>
+        <span>Active Dining Orders</span>
+        <span id="activeOrderCount" style="font-size:0.75rem; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 8px; border-radius:8px; margin-left:6px;">0</span>
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+        <span id="syncIndicator">● SSE Live</span>
+        <button class="action-pill" onclick="loadStaffTerminalData()" style="padding:2px 6px; font-size:0.7rem;">🔄 Sync</button>
+      </div>
     </div>
-    <div class="tables-grid" id="tablesGrid">
-      <div class="table-box occupied">
-        <div class="table-num">Table 14</div>
-        <div class="table-state-pill active">Dining (Active)</div>
-        <div class="table-total">₹580.00</div>
-      </div>
-      <div class="table-box">
-        <div class="table-num">Table 7</div>
-        <div class="table-state-pill vacant">Vacant</div>
-        <div class="table-total">₹0.00</div>
-      </div>
-      <div class="table-box occupied">
-        <div class="table-num">Table 4</div>
-        <div class="table-state-pill active">Ordered</div>
-        <div class="table-total">₹290.00</div>
-      </div>
-      <div class="table-box">
-        <div class="table-num">Table 2</div>
-        <div class="table-state-pill vacant">Vacant</div>
-        <div class="table-total">₹0.00</div>
-      </div>
+
+    <!-- Active Orders List -->
+    <div id="ordersContainer" style="display:flex; flex-direction:column; gap:10px;">
+      <div style="text-align:center; color:var(--text-muted); padding:40px;">Checking assigned orders...</div>
     </div>
   </main>
+
+  <!-- 1. WAITER LOGIN MODAL -->
+  <div id="waiterLoginModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div style="font-size:1.8rem; margin-bottom:4px;">🍛</div>
+        <div style="font-size:1.2rem; font-weight:900; color:#fff;">Floor Waitstaff Terminal</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Individual Waiter Login (Phase 2)</div>
+      </div>
+
+      <form id="waiterLoginForm" onsubmit="handleWaiterLogin(event)">
+        <div class="form-group">
+          <label for="loginIdentifier">Username or Mobile Number</label>
+          <input type="text" id="loginIdentifier" class="form-input" placeholder="e.g. waiter_ravi or waiter@abiruchi.local" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="Enter assigned password" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="btn-approve service-btn" style="width:100%; justify-content:center; padding:12px; font-size:0.9rem; margin-top:8px;">
+          Sign In to Terminal →
+        </button>
+        <div id="loginErrorMsg" style="color:#f87171; font-size:0.8rem; font-weight:700; margin-top:10px; text-align:center;"></div>
+      </form>
+
+      <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:12px; text-align:center;">
+        <button type="button" class="action-pill" onclick="fillDemoWaiterCreds()" style="font-size:0.72rem;">
+          ⚡ Quick Demo Credentials
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MANDATORY PASSWORD CHANGE MODAL -->
+  <div id="changePasswordModal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="text-align:center; margin-bottom:14px;">
+        <div style="font-size:1.5rem; margin-bottom:4px;">🔒</div>
+        <div style="font-size:1.15rem; font-weight:900; color:#fff;">Mandatory Password Reset</div>
+        <div style="font-size:0.78rem; color:#f59e0b; margin-top:2px;">
+          Security Policy: You must set a permanent password before taking floor orders.
+        </div>
+      </div>
+
+      <form onsubmit="handleMandatoryPasswordChange(event)">
+        <div class="form-group">
+          <label for="newPasswordInput">New Permanent Password (min 6 chars)</label>
+          <input type="password" id="newPasswordInput" class="form-input" required minlength="6" placeholder="Enter new password">
+        </div>
+        <div class="form-group">
+          <label for="confirmPasswordInput">Confirm New Password</label>
+          <input type="password" id="confirmPasswordInput" class="form-input" required minlength="6" placeholder="Repeat new password">
+        </div>
+
+        <button type="submit" id="changePasswordBtn" class="btn-ready service-btn" style="width:100%; justify-content:center; padding:12px; font-size:0.88rem; margin-top:6px;">
+          ✓ Save Password &amp; Open Terminal
+        </button>
+        <div id="changePasswordError" style="color:#f87171; font-size:0.8rem; font-weight:700; margin-top:8px; text-align:center;"></div>
+      </form>
+    </div>
+  </div>
 
   <!-- Waiter Voice Modal -->
   <div id="waiterVoiceModal" class="voice-modal" onclick="closeWaiterVoiceOnBackdrop(event)">
@@ -299,53 +557,377 @@
 
   <script>
     const API_BASE = window.location.origin;
+    let currentUser = null;
+    let currentToken = null;
+    let permittedTables = [];
+    let filterMyTablesOnly = true;
+    let activeOrdersList = [];
     let pendingCalls = [];
-    let pendingApprovals = [];
+    let soundChimeEnabled = true;
+    let lastEventSeq = 0;
+    let pollInterval = null;
 
-    const savedVoiceLang = localStorage.getItem('abiruchi_waiter_voice_lang') || 'en-IN';
-    const langSelectEl = document.getElementById('waiterLangSelect');
-    if (langSelectEl) langSelectEl.value = savedVoiceLang;
-
-    async function loadInitialData() {
+    // Web Audio Synthesizer Chime
+    let audioCtx = null;
+    function playChime(type = 'notification') {
+      if (!soundChimeEnabled) return;
       try {
-        // Load active tokens for voice matching
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'urgent') {
+          osc.frequency.setValueAtTime(880, now); // A5
+          osc.frequency.setValueAtTime(1174.66, now + 0.15); // D6
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        } else {
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(880, now + 0.12); // A5
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.38);
+        }
+      } catch (e) {}
+    }
+
+    function toggleSoundChime() {
+      soundChimeEnabled = !soundChimeEnabled;
+      const btn = document.getElementById('soundToggleBtn');
+      if (soundChimeEnabled) {
+        btn.textContent = '🔔 Chime: ON';
+        btn.classList.add('active');
+        playChime('notification');
+      } else {
+        btn.textContent = '🔕 Chime: OFF';
+        btn.classList.remove('active');
+      }
+    }
+
+    // Auth Initialization
+    function checkAuthSession() {
+      const storedToken = localStorage.getItem('servora_staff_token');
+      const storedUser = localStorage.getItem('servora_staff_user');
+
+      if (!storedToken || !storedUser) {
+        document.getElementById('waiterLoginModal').classList.add('active');
+        return false;
+      }
+
+      try {
+        currentToken = storedToken;
+        currentUser = JSON.parse(storedUser);
+        permittedTables = Array.isArray(currentUser.assignedTables) ? currentUser.assignedTables : [];
+
+        // Check forced password change
+        if (currentUser.mustChangePassword) {
+          document.getElementById('changePasswordModal').classList.add('active');
+        } else {
+          document.getElementById('changePasswordModal').classList.remove('active');
+        }
+
+        renderWaiterHeader();
+        document.getElementById('waiterLoginModal').classList.remove('active');
+        return true;
+      } catch (e) {
+        localStorage.removeItem('servora_staff_token');
+        localStorage.removeItem('servora_staff_user');
+        document.getElementById('waiterLoginModal').classList.add('active');
+        return false;
+      }
+    }
+
+    function renderWaiterHeader() {
+      if (!currentUser) return;
+      document.getElementById('waiterDisplayName').textContent = `👤 ${currentUser.name || currentUser.username}`;
+
+      const tablesContainer = document.getElementById('waiterPermittedTablesList');
+      if (permittedTables.length > 0) {
+        tablesContainer.innerHTML = permittedTables.map(t => `<span class="scope-table-tag">${t}</span>`).join('');
+      } else {
+        tablesContainer.innerHTML = `<span class="scope-table-tag" style="background:#064e3b; color:#34d399;">All Tables</span>`;
+      }
+    }
+
+    function fillDemoWaiterCreds() {
+      document.getElementById('loginIdentifier').value = 'waiter@abiruchi.local';
+      document.getElementById('loginPassword').value = 'abiruchi123';
+    }
+
+    async function handleWaiterLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errEl = document.getElementById('loginErrorMsg');
+      const btn = document.getElementById('loginSubmitBtn');
+
+      errEl.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Verifying credentials...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+          localStorage.setItem('servora_staff_token', data.token);
+          localStorage.setItem('servora_staff_user', JSON.stringify(data.user));
+          btn.disabled = false;
+          btn.textContent = 'Sign In to Terminal →';
+
+          checkAuthSession();
+          loadStaffTerminalData();
+          initRealtimeConnection();
+        } else {
+          errEl.textContent = data.error || 'Invalid credentials or account inactive';
+          btn.disabled = false;
+          btn.textContent = 'Sign In to Terminal →';
+        }
+      } catch (err) {
+        errEl.textContent = 'Network error connecting to login service';
+        btn.disabled = false;
+        btn.textContent = 'Sign In to Terminal →';
+      }
+    }
+
+    async function handleMandatoryPasswordChange(e) {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPasswordInput').value.trim();
+      const confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
+      const errEl = document.getElementById('changePasswordError');
+      const btn = document.getElementById('changePasswordBtn');
+
+      if (newPassword !== confirmPassword) {
+        errEl.textContent = 'Passwords do not match';
+        return;
+      }
+      if (newPassword.length < 6) {
+        errEl.textContent = 'Password must be at least 6 characters';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ newPassword, staffId: currentUser.id })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          currentUser.mustChangePassword = false;
+          localStorage.setItem('servora_staff_user', JSON.stringify(currentUser));
+          document.getElementById('changePasswordModal').classList.remove('active');
+          playChime('notification');
+        } else {
+          errEl.textContent = data.error || 'Failed to update password';
+        }
+      } catch (err) {
+        errEl.textContent = 'Network error during password update';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Save Password & Open Terminal';
+      }
+    }
+
+    function handleWaiterLogout() {
+      if (!confirm('Log out from waitstaff terminal?')) return;
+      localStorage.removeItem('servora_staff_token');
+      localStorage.removeItem('servora_staff_user');
+      location.reload();
+    }
+
+    function setFloorFilter(myOnly) {
+      filterMyTablesOnly = myOnly;
+      document.getElementById('filterMyTablesBtn').classList.toggle('active', myOnly);
+      document.getElementById('filterAllTablesBtn').classList.toggle('active', !myOnly);
+      document.getElementById('scopeNoticeBadge').textContent = myOnly ? 'Permitted Tables Only' : 'Viewing All Floor Tables';
+      renderOrders();
+    }
+
+    // Data Loading
+    async function loadStaffTerminalData() {
+      if (!currentToken) return;
+
+      try {
+        // Fetch scoped waiter orders
+        const ordersRes = await fetch(`${API_BASE}/api/v1/waiter/orders`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (ordersRes.ok) {
+          const odata = await ordersRes.json();
+          activeOrdersList = odata.orders || [];
+          if (Array.isArray(odata.assignedTables) && odata.assignedTables.length > 0) {
+            permittedTables = odata.assignedTables;
+            renderWaiterHeader();
+          }
+          renderOrders();
+        } else if (ordersRes.status === 401 || ordersRes.status === 403) {
+          // Deactivated or token invalid
+          localStorage.removeItem('servora_staff_token');
+          localStorage.removeItem('servora_staff_user');
+          location.reload();
+          return;
+        }
+
+        // Fetch pending calls
+        const callsRes = await fetch(`${API_BASE}/api/v1/tables/calls/pending`);
+        if (callsRes.ok) {
+          const cdata = await callsRes.json();
+          pendingCalls = cdata.calls || [];
+          renderCalls();
+        }
+
+        // Fetch tokens for voice integration
         const tokensRes = await fetch(`${API_BASE}/api/v1/tokens/active`);
         if (tokensRes.ok) {
           const tdata = await tokensRes.json();
           window.activeTokensCache = tdata.tokens || [];
         }
-
-        // Load pending table calls
-        const callsRes = await fetch(`${API_BASE}/api/v1/tables/calls/pending`);
-        if (callsRes.ok) {
-          const data = await callsRes.json();
-          pendingCalls = data.calls || [];
-          renderCalls();
-        }
-
-        // Load active orders to find PENDING_STAFF_APPROVAL
-        const ordersRes = await fetch(`${API_BASE}/api/v1/orders/active`);
-        if (ordersRes.ok) {
-          const data = await ordersRes.json();
-          pendingApprovals = (data.orders || []).filter(o => o.status === 'PENDING_STAFF_APPROVAL');
-          renderApprovals();
-        }
       } catch (err) {
-        console.warn('Initial load error:', err);
+        console.warn('Terminal refresh error:', err);
+      }
+    }
+
+    function renderOrders() {
+      const container = document.getElementById('ordersContainer');
+      const badge = document.getElementById('activeOrderCount');
+
+      let list = activeOrdersList;
+      if (filterMyTablesOnly && permittedTables.length > 0) {
+        list = list.filter(o => permittedTables.includes(o.tableNumber));
+      }
+
+      badge.textContent = list.length;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div style="background:#111520; border:1px solid var(--border); border-radius:12px; text-align:center; color:var(--text-muted); padding:36px 16px;">
+            <div style="font-size:1.8rem; margin-bottom:6px;">🍽️</div>
+            <div style="font-size:0.95rem; font-weight:700; color:#fff;">All Tables Clear!</div>
+            <div style="font-size:0.8rem; margin-top:4px;">No active orders currently awaiting service for ${filterMyTablesOnly ? 'your tables' : 'the floor'}.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(o => {
+        // Read-only payment badge logic
+        let paymentBadge = `<span class="pay-badge-unpaid">🔴 UNPAID</span>`;
+        if (o.paymentStatus === 'PAID') {
+          paymentBadge = `<span class="pay-badge-paid">🟢 PAID ${o.utr ? `(${o.utr.slice(-6)})` : ''}</span>`;
+        } else if (o.paymentStatus === 'AWAITING_VERIFICATION' || o.status === 'PENDING_PAYMENT') {
+          paymentBadge = `<span class="pay-badge-awaiting">🟡 AWAITING VERIFY ${o.utr ? `(${o.utr.slice(-6)})` : ''}</span>`;
+        }
+
+        // Service progression buttons (No payment verification authority)
+        let actionButtons = '';
+        if (o.status === 'PENDING_STAFF_APPROVAL') {
+          actionButtons = `<button class="service-btn btn-approve" onclick="advanceOrderStatus('${o.id}', 'CONFIRMED')">Approve Order ✓</button>`;
+        } else if (o.status === 'CONFIRMED' || o.status === 'PENDING') {
+          actionButtons = `<button class="service-btn btn-prep" onclick="advanceOrderStatus('${o.id}', 'PREPARING')">Start Prep 👨‍🍳</button>`;
+        } else if (o.status === 'PREPARING') {
+          actionButtons = `<button class="service-btn btn-ready" onclick="advanceOrderStatus('${o.id}', 'READY')">Mark Ready 🔔</button>`;
+        } else if (o.status === 'READY') {
+          actionButtons = `<button class="service-btn btn-serve" onclick="advanceOrderStatus('${o.id}', 'SERVED')">Dish Served 🍽️</button>`;
+        } else {
+          actionButtons = `<span style="font-size:0.75rem; color:#34d399; font-weight:800;">✓ ${o.status}</span>`;
+        }
+
+        const itemsSummary = Array.isArray(o.items)
+          ? o.items.map(i => `<span style="display:inline-block; margin-right:8px;"><strong>${i.quantity}x</strong> ${i.name}</span>`).join('')
+          : 'Items details loading...';
+
+        return `
+          <div class="order-card">
+            <div class="order-header">
+              <div>
+                <div class="order-table-title">
+                  Table ${o.tableNumber || 'Takeaway'}
+                  ${o.token ? `<span class="order-token-badge">Token: ${o.token}</span>` : ''}
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                  Order #${o.id.slice(-6)} &bull; ${new Date(o.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:1.1rem; font-weight:900; color:#4ade80;">₹${((o.totalCents || 0) / 100).toFixed(2)}</div>
+                <div style="margin-top:3px;">${paymentBadge}</div>
+              </div>
+            </div>
+
+            <div class="order-items-list">
+              ${itemsSummary}
+              ${o.guestNotes ? `<div style="font-size:0.78rem; color:#fed7aa; margin-top:4px;">📝 <em>${o.guestNotes}</em></div>` : ''}
+            </div>
+
+            <div class="order-footer">
+              <div style="font-size:0.75rem; color:var(--text-muted);">
+                Status: <strong style="color:#fff;">${o.status}</strong>
+              </div>
+              <div style="display:flex; gap:6px;">
+                ${actionButtons}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function advanceOrderStatus(orderId, nextStatus) {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        if (res.ok) {
+          playChime('notification');
+          loadStaffTerminalData();
+        }
+      } catch (e) {
+        console.warn('Status advance error:', e);
       }
     }
 
     function renderCalls() {
       const container = document.getElementById('callsList');
       const badge = document.getElementById('callCountBadge');
-      badge.textContent = `${pendingCalls.length} Active`;
 
-      if (pendingCalls.length === 0) {
+      let list = pendingCalls;
+      if (filterMyTablesOnly && permittedTables.length > 0) {
+        list = list.filter(c => permittedTables.includes(c.tableNumber));
+      }
+
+      badge.textContent = `${list.length} Active`;
+
+      if (list.length === 0) {
         container.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); padding:6px 0;">No pending guest calls.</div>`;
         return;
       }
 
-      container.innerHTML = pendingCalls.map((call, idx) => `
+      container.innerHTML = list.map((call, idx) => `
         <div class="call-card">
           <div class="call-info">
             <div class="call-table">Table ${call.tableNumber}</div>
@@ -367,65 +949,87 @@
       renderCalls();
     }
 
-    function renderApprovals() {
-      const container = document.getElementById('approvalOrdersList');
-      const badge = document.getElementById('approvalCountBadge');
-      badge.textContent = `${pendingApprovals.length} Pending`;
-
-      if (pendingApprovals.length === 0) {
-        container.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); padding:6px 0;">No orders awaiting staff verification.</div>`;
+    // Real-Time SSE Stream with Reconnection & Missed-Event Replay
+    function initRealtimeConnection() {
+      if (!window.EventSource) {
+        startPollingFallback();
         return;
       }
 
-      container.innerHTML = pendingApprovals.map((order, idx) => `
-        <div style="background:#1b2234; border:1px solid rgba(56,189,248,0.4); border-radius:12px; padding:12px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-size:1.05rem; font-weight:800; color:#fff;">Table ${order.tableNumber} <span style="font-size:0.75rem; color:#93c5fd;">#${order.id}</span></div>
-            <div style="font-size:0.82rem; color:#cbd5e1; margin-top:2px;">${order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</div>
-            <div style="font-size:0.82rem; color:#4ade80; font-weight:700; margin-top:2px;">₹${(order.totalCents / 100).toFixed(2)}</div>
-          </div>
-          <button onclick="approveOrder('${order.id}', ${idx})" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:800; cursor:pointer;">
-            Approve Order ✓
-          </button>
-        </div>
-      `).join('');
-    }
-
-    async function approveOrder(orderId, idx) {
+      const syncEl = document.getElementById('syncIndicator');
       try {
-        const res = await fetch(`${API_BASE}/api/v1/orders/${orderId}/approve`, { method: 'POST' });
-        if (res.ok) {
-          pendingApprovals.splice(idx, 1);
-          renderApprovals();
-        }
+        const sseUrl = `${API_BASE}/api/v1/events?sinceSeq=${lastEventSeq}`;
+        const evtSource = new EventSource(sseUrl);
+
+        evtSource.onopen = () => {
+          if (syncEl) syncEl.innerHTML = '<span style="color:#34d399;">● SSE Live</span>';
+          if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+        };
+
+        evtSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.seq) lastEventSeq = Math.max(lastEventSeq, data.seq);
+
+            handleIncomingRealtimeEvent(data);
+          } catch (e) {}
+        };
+
+        evtSource.onerror = () => {
+          if (syncEl) syncEl.innerHTML = '<span style="color:#fbbf24;">⚡ Polling Fallback</span>';
+          evtSource.close();
+          startPollingFallback();
+        };
       } catch (e) {
-        console.warn('Approval failed:', e);
+        startPollingFallback();
       }
     }
 
-    // Connect to SSE
-    try {
-      const evtSource = new EventSource(`${API_BASE}/api/v1/events`);
-      evtSource.onmessage = (event) => {
+    function startPollingFallback() {
+      if (pollInterval) return;
+      pollInterval = setInterval(async () => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'TABLE_CALL_WAITER' || data.type === 'TABLE_CALL') {
-            pendingCalls.unshift(data.payload);
-            renderCalls();
-          } else if (data.type === 'ORDER_CREATED') {
-            if (data.payload.status === 'PENDING_STAFF_APPROVAL') {
-              pendingApprovals.unshift(data.payload);
-              renderApprovals();
+          const res = await fetch(`${API_BASE}/api/v1/events/poll?sinceSeq=${lastEventSeq}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.events)) {
+              for (const evt of data.events) {
+                if (evt.seq) lastEventSeq = Math.max(lastEventSeq, evt.seq);
+                handleIncomingRealtimeEvent(evt);
+              }
             }
-          } else if (data.type === 'ORDER_APPROVED') {
-            pendingApprovals = pendingApprovals.filter(o => o.id !== data.payload.id);
-            renderApprovals();
           }
         } catch (e) {}
-      };
-    } catch (e) {}
+      }, 3000);
+    }
 
-    loadInitialData();
+    function handleIncomingRealtimeEvent(event) {
+      const type = event.type;
+      const p = event.payload;
+
+      if (type === 'NEW_ORDER' || type === 'ORDER_CREATED') {
+        playChime('notification');
+        loadStaffTerminalData();
+      } else if (type === 'CALL_WAITER' || type === 'TABLE_CALL_WAITER' || type === 'BILL_REQUESTED') {
+        playChime('urgent');
+        if (p && !pendingCalls.some(c => c.id === p.id)) {
+          pendingCalls.unshift(p);
+          renderCalls();
+        }
+      } else if (type === 'PAYMENT_VERIFIED' || type === 'ORDER_PAYMENT_VERIFIED') {
+        playChime('notification');
+        loadStaffTerminalData();
+      } else if (type === 'ORDER_ACCEPTED' || type === 'ORDER_PREPARING' || type === 'ORDER_READY' || type === 'ORDER_SERVED' || type === 'ORDER_STATUS_CHANGED') {
+        loadStaffTerminalData();
+      }
+    }
+
+    // Run on start
+    const authenticated = checkAuthSession();
+    if (authenticated) {
+      loadStaffTerminalData();
+      initRealtimeConnection();
+    }
   </script>
 </body>
 </html>
