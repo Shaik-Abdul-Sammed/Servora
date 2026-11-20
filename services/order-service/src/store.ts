@@ -4,7 +4,17 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createSignedQRSession, getAutoDishPhoto } from '../../../packages/utils/src/index.ts';
-const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET || process.env.QR_SIGNING_SALT || 'abiruchi-dev-qr-secret-key-32-bytes-min';
+function resolveStoreSecret(envKey: string, devDefault: string): string {
+  const envVal = process.env[envKey];
+  if (envVal && !envVal.includes('replace-in-env') && !envVal.includes('dev-')) {
+    return envVal;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return randomBytes(32).toString('hex');
+  }
+  return devDefault;
+}
+const QR_SIGNING_SECRET = resolveStoreSecret('QR_SIGNING_SECRET', 'abiruchi-dev-qr-secret-key-32-bytes-min');
 import { auditService } from '../../audit-service/src/audit-service.ts';
 import { TursoDatabase } from './turso-client.ts';
 import { createSeedMenuItems, SEED_CATEGORIES } from './seed-menu.ts';

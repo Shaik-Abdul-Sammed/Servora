@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomBytes } from 'node:crypto';
 import { URL, fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { readFileSync, existsSync } from 'node:fs';
@@ -41,8 +41,22 @@ const __dirname = dirname(__filename);
 const repoRoot = join(__dirname, '../../..');
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
-const QR_SIGNING_SECRET = process.env.QR_SIGNING_SECRET || process.env.QR_SIGNING_SALT || 'abiruchi-dev-qr-secret-key-32-bytes-min';
-const JWT_SECRET = process.env.JWT_SECRET || 'abiruchi-prod-jwt-secret-replace-in-env-32-chars';
+
+function resolveSecret(envKey: string, devDefault: string): string {
+  const envVal = process.env[envKey];
+  if (envVal && !envVal.includes('replace-in-env') && !envVal.includes('dev-')) {
+    return envVal;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    const generated = randomBytes(32).toString('hex');
+    console.warn(`[SECURITY AUDIT] ${envKey} is unset or placeholder in production. Generated secure cryptographic 256-bit secret.`);
+    return generated;
+  }
+  return devDefault;
+}
+
+const QR_SIGNING_SECRET = resolveSecret('QR_SIGNING_SECRET', 'abiruchi-dev-qr-secret-key-32-bytes-min');
+const JWT_SECRET = resolveSecret('JWT_SECRET', 'abiruchi-dev-jwt-secret-min-32-chars');
 const UPI_MOBILE = process.env.UPI_MOBILE || '9010150809';
 const UPI_VPA = process.env.UPI_VPA || `${UPI_MOBILE}@ybl`;
 const UPI_PAYEE_NAME = process.env.UPI_PAYEE_NAME || 'Abiruchi Hotel';
@@ -114,6 +128,10 @@ function broadcastEvent(event: ServerEvent) {
   const sseData = `id: ${seqEvent.seq}\nevent: ${seqEvent.type}\ndata: ${JSON.stringify(seqEvent)}\n\n`;
   for (const client of sseClients) {
     try {
+      const clientOutlet = (client as any).outletId;
+      if (clientOutlet && seqEvent.outletId && clientOutlet !== seqEvent.outletId) {
+        continue;
+      }
       client.write(sseData);
     } catch {
       sseClients.delete(client);
@@ -985,12 +1003,18 @@ export function createOrderApp() {
         });
         res.write(': heartbeat\n\n');
 
+        const clientOutletId = reqUrl.searchParams.get('outletId');
+        (res as any).outletId = clientOutletId || undefined;
+
         // Check for missed events via Last-Event-ID header or sinceSeq query parameter
         const rawSince = req.headers['last-event-id'] || reqUrl.searchParams.get('sinceSeq') || reqUrl.searchParams.get('since');
         if (rawSince) {
           const sinceSeq = parseInt(String(rawSince), 10);
           if (!isNaN(sinceSeq) && sinceSeq >= 0) {
-            const missed = eventBuffer.filter(e => e.seq > sinceSeq);
+            let missed = eventBuffer.filter(e => e.seq > sinceSeq);
+            if (clientOutletId) {
+              missed = missed.filter(e => !e.outletId || e.outletId === clientOutletId);
+            }
             for (const evt of missed) {
               res.write(`id: ${evt.seq}\nevent: ${evt.type}\ndata: ${JSON.stringify(evt)}\n\n`);
             }
@@ -3524,14 +3548,15 @@ export function createOrderApp() {
 
       // Configurable UPI & Payment Gateway Details (Mobile 9010150809)
       if (pathname === '/api/v1/payments/config' && method === 'GET') {
+        const isLive = process.env.UPI_LIVE_MODE === 'true';
         sendJson(res, 200, {
           upiMobile: UPI_MOBILE,
           upiVpa: UPI_VPA,
           payeeName: UPI_PAYEE_NAME,
           verificationMode: 'MANAGER_RECONCILIATION',
           currency: 'INR',
-          isTestMode: true,
-          supportPhone: '+91 9010150809',
+          isTestMode: !isLive,
+          supportPhone: `+91 ${UPI_MOBILE}`,
         });
         return;
       }
@@ -5216,20 +5241,16 @@ View Web Receipt: http://${req.headers.host || 'localhost:3001'}/receipt.html?or
             };
           }
         }
-        const headerRole = (req.headers['x-staff-role'] as string) || (req.headers['x-role'] as string);
-        if (headerRole) {
-          return {
-            authorized: true,
-            role: headerRole.toUpperCase(),
-            staffId: (req.headers['x-staff-id'] as string) || 'manager',
-          };
-        }
-        if (body && body.role) {
-          return {
-            authorized: true,
-            role: String(body.role).toUpperCase(),
-            staffId: body.staffId || body.managerId || body.verifiedBy || 'manager',
-          };
+        // Header-only role fallback allowed only in non-production environments (e.g. testing)
+        if (process.env.NODE_ENV !== 'production') {
+          const headerRole = (req.headers['x-staff-role'] as string) || (req.headers['x-role'] as string);
+          if (headerRole) {
+            return {
+              authorized: true,
+              role: headerRole.toUpperCase(),
+              staffId: (req.headers['x-staff-id'] as string) || 'manager',
+            };
+          }
         }
         return { authorized: false, role: '', staffId: '' };
       }
