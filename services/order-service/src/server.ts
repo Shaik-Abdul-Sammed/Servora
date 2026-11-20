@@ -359,7 +359,7 @@ export function createOrderApp() {
 
     try {
       // 0. Static Web Frontends (Guest QR PWA, KDS, Owner & Admin Portals)
-      if ((pathname === '/' || pathname === '/guest') && method === 'GET') {
+      if ((pathname === '/' || pathname === '/guest' || pathname === '/menu') && method === 'GET') {
         const guestHtmlPath = join(repoRoot, 'apps/web-guest/public/index.html');
         if (existsSync(guestHtmlPath)) {
           const html = readFileSync(guestHtmlPath, 'utf-8');
@@ -488,8 +488,24 @@ export function createOrderApp() {
           return;
         }
       }
-      if ((pathname === '/qr-manager.html' || pathname === '/owner/qr') && method === 'GET') {
+      if ((pathname === '/qr-manager.html' || pathname === '/owner/qr' || pathname === '/qr-manager' || pathname === '/qr') && method === 'GET') {
         const p = join(repoRoot, 'apps/web-owner/public/qr-manager.html');
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
+      if ((pathname === '/pricing' || pathname === '/pricing.html') && method === 'GET') {
+        const p = join(repoRoot, 'apps/marketing/public/pricing.html');
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
+      if ((pathname === '/for-restaurants' || pathname === '/for-cafes' || pathname === '/for-bars') && method === 'GET') {
+        const p = join(repoRoot, `apps/marketing/public${pathname}.html`);
         if (existsSync(p)) {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
           res.end(readFileSync(p, 'utf-8'));

@@ -44,59 +44,62 @@
   </div>
 
   <!-- Abiruchi Hotel Modern Header -->
-  <header>
-    <div class="brand">
-      <div class="abiruchi-logo-mark">
-        <span class="abiruchi-logo-letter">A</span>
-      </div>
-      <div>
-        <div class="brand-text" id="venueName">Abiruchi Hotel</div>
-        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700;" id="venueSubtitle">The taste of the land, served smartly.</div>
-      </div>
-    </div>
-
-    <div class="header-controls">
-      <!-- Light / Dark / System Theme Toggle -->
-      <div class="theme-switch-group" title="Switch Theme">
-        <button type="button" class="theme-btn active" id="btnThemeLight" onclick="setTheme('light')">☀️</button>
-        <button type="button" class="theme-btn" id="btnThemeDark" onclick="setTheme('dark')">🌙</button>
-        <button type="button" class="theme-btn" id="btnThemeSystem" onclick="setTheme('system')">💻</button>
-      </div>
-
-      <!-- Speaker Voice & Chime Announcements (Default: ON) -->
-      <button type="button" class="theme-btn" id="guestSpeakerToggle" onclick="toggleGuestSpeaker()" title="Toggle voice audio & chime updates" style="display:flex; align-items:center; justify-content:center; padding:5px 8px; border-radius:18px; border:1px solid var(--chip-border); background:var(--chip-bg); color:var(--text); cursor:pointer;">
-        <span id="guestSpeakerIcon">🔊</span>
-      </button>
-
-      <!-- Table Badge -->
-      <div class="table-badge" id="tableBadgeContainer">
-        <div class="table-dot"></div>
-        <span id="tableBadge">Dine-In</span>
-      </div>
-
-      <!-- Table Reservation Link -->
-      <a href="/booking" class="header-action-btn" title="Reserve a table">
-        📅 <span class="hide-mobile" id="headerBookLabel">Reserve</span>
+  <header class="app-header">
+    <div class="header-left">
+      <a href="/" class="brand" aria-label="Abiruchi Hotel Home">
+        <div class="abiruchi-logo-mark">
+          <span class="abiruchi-logo-letter">A</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-text" id="venueName">Abiruchi Hotel</div>
+          <div class="brand-subtitle" id="venueSubtitle">The taste of the land, served smartly.</div>
+        </div>
       </a>
 
-      <!-- Order History Button (Phase 2 UX) -->
-      <button type="button" onclick="openHistoryModal()" class="header-action-btn" title="View past orders & reorder">
-        📋 <span class="hide-mobile" id="historyBtnLabel">Orders</span>
+      <!-- Quick 1-Tap Table Selector Badge -->
+      <button type="button" class="header-table-badge" id="tableBadgeContainer" onclick="openTableSelectorModal()" title="Tap to view or change dining table" aria-label="Selected table, click to change">
+        <span class="table-dot"></span>
+        <span id="tableBadge">Dine-In</span>
+        <span class="table-badge-arrow">🔄</span>
       </button>
+    </div>
 
-      <!-- Optional Profile / Preferences Button -->
-      <button type="button" onclick="openLoginModal()" class="header-action-btn" id="headerLoginBtn" title="Guest Account & Sign In">
-        👤 <span class="hide-mobile" id="userLoginLabel">Sign In</span>
-      </button>
+    <!-- Center Navigation Links (Clean desktop navigation) -->
+    <nav class="header-center-nav" aria-label="Primary Navigation">
+      <a href="#menuContainer" class="header-nav-link active">
+        <span>🍽️</span> <span>Menu</span>
+      </a>
+      <a href="/booking" class="header-nav-link">
+        <span>📅</span> <span id="headerBookLabel">Reserve</span>
+      </a>
+      <a href="#dealsCarousel" class="header-nav-link">
+        <span>🏷️</span> <span>Offers</span>
+      </a>
+      <a href="/receipt" class="header-nav-link">
+        <span>🧾</span> <span>Live Bill</span>
+      </a>
+      <a href="#aboutPanel" class="header-nav-link">
+        <span>ℹ️</span> <span>About</span>
+      </a>
+    </nav>
 
-      <!-- Logout Button (Shown when logged in) -->
-      <button type="button" onclick="handleLogout()" class="header-action-btn" id="headerLogoutBtn" style="display:none; color:#ef4444;" title="Sign Out">
-        🚪 <span class="hide-mobile">Logout</span>
+    <!-- Header Action Controls -->
+    <div class="header-controls">
+      <!-- Light / Dark Theme Switcher (Preserving btnThemeLight, btnThemeDark, btnThemeSystem) -->
+      <div class="theme-switch-group" id="themeSwitchGroup" title="Switch Theme">
+        <button type="button" class="theme-btn active" id="btnThemeLight" onclick="setTheme('light')" title="Light Mode" aria-label="Light mode">☀️</button>
+        <button type="button" class="theme-btn" id="btnThemeDark" onclick="setTheme('dark')" title="Dark Mode" aria-label="Dark mode">🌙</button>
+        <button type="button" class="theme-btn" id="btnThemeSystem" onclick="setTheme('system')" title="System Mode" aria-label="System mode" style="display:none;">💻</button>
+      </div>
+
+      <!-- Speaker Voice Announcements Toggle -->
+      <button type="button" class="header-icon-btn" id="guestSpeakerToggle" onclick="toggleGuestSpeaker()" title="Toggle voice audio & chime updates" aria-label="Toggle speaker announcements">
+        <span id="guestSpeakerIcon">🔊</span>
       </button>
 
       <!-- Multilingual Dropdown (English, Telugu, Hindi) -->
       <div class="lang-wrapper">
-        <div class="lang-icon-pos">
+        <div class="lang-icon-pos" aria-hidden="true">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
         <select id="langSelect" class="lang-select" onchange="switchLanguage(this.value)" aria-label="Select Language">
@@ -104,6 +107,119 @@
           <option value="te">తెలుగు</option>
           <option value="hi">हिंदी</option>
         </select>
+      </div>
+
+      <!-- Order History Button -->
+      <button type="button" onclick="openHistoryModal()" class="header-action-btn" title="View past orders & reorder" aria-label="Order history">
+        <span>📋</span> <span class="hide-mobile" id="historyBtnLabel">Orders</span>
+      </button>
+
+      <!-- Profile / Sign In Button -->
+      <button type="button" onclick="openLoginModal()" class="header-action-btn" id="headerLoginBtn" title="Guest Account & Sign In" aria-label="Guest account sign in">
+        <span>👤</span> <span class="hide-mobile" id="userLoginLabel">Sign In</span>
+      </button>
+
+      <!-- Logout Button (Shown when logged in) -->
+      <button type="button" onclick="handleLogout()" class="header-action-btn danger" id="headerLogoutBtn" style="display:none;" title="Sign Out" aria-label="Sign out">
+        <span>🚪</span> <span class="hide-mobile">Logout</span>
+      </button>
+
+      <!-- All Portals & Roles Dropdown Navigation (Missing routes & buttons fix) -->
+      <div class="portals-menu-wrap" style="position:relative;">
+        <button type="button" class="header-action-btn portals-btn" onclick="togglePortalsMenu()" id="portalsMenuBtn" title="All Restaurant Roles &amp; Portals" aria-label="Open all restaurant portals menu" aria-haspopup="true" aria-expanded="false">
+          <span>🚀</span> <span class="hide-mobile">Portals</span> <span class="portals-arrow">▼</span>
+        </button>
+
+        <div class="portals-dropdown-menu" id="portalsDropdownMenu" style="display:none;" role="menu">
+          <div class="portals-dropdown-header">
+            <div style="font-weight:900; font-size:0.85rem; color:var(--text-title); display:flex; align-items:center; gap:6px;">
+              <span>🚀</span> <span>Servora Restaurant Network</span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Select role or page to navigate directly</div>
+          </div>
+          <div class="portals-dropdown-list">
+            <a href="/" class="portal-link-item active" role="menuitem">
+              <span class="portal-icon">🍽️</span>
+              <div class="portal-info">
+                <div class="portal-title">Customer Dining Menu</div>
+                <div class="portal-desc">Guest ordering, categories &amp; filters</div>
+              </div>
+              <span class="portal-tag">Guest</span>
+            </a>
+            <a href="/booking" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">📅</span>
+              <div class="portal-info">
+                <div class="portal-title">Table Reservations</div>
+                <div class="portal-desc">Pre-book dining tables &amp; advance meals</div>
+              </div>
+              <span class="portal-tag">Book</span>
+            </a>
+            <a href="/receipt" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">🧾</span>
+              <div class="portal-info">
+                <div class="portal-title">Live Bill &amp; Digital Receipt</div>
+                <div class="portal-desc">Order progression, tax breakdown &amp; rating</div>
+              </div>
+              <span class="portal-tag">Live</span>
+            </a>
+            <a href="/waiter" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">🧑‍🍳</span>
+              <div class="portal-info">
+                <div class="portal-title">Floor Waiter Terminal</div>
+                <div class="portal-desc">Assigned tables, voice actions &amp; service calls</div>
+              </div>
+              <span class="portal-tag staff">Staff</span>
+            </a>
+            <a href="/kitchen" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">🍳</span>
+              <div class="portal-info">
+                <div class="portal-title">Kitchen Display System (KDS)</div>
+                <div class="portal-desc">Preparation stations, bump tickets &amp; chime alerts</div>
+              </div>
+              <span class="portal-tag kds">Kitchen</span>
+            </a>
+            <a href="/manager" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">📊</span>
+              <div class="portal-info">
+                <div class="portal-title">Restaurant Manager</div>
+                <div class="portal-desc">UPI reconciliation, staff accounts &amp; live floor</div>
+              </div>
+              <span class="portal-tag manager">Manager</span>
+            </a>
+            <a href="/owner" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">👑</span>
+              <div class="portal-info">
+                <div class="portal-title">Business Owner Console</div>
+                <div class="portal-desc">Sales analytics, profit intelligence &amp; inventory</div>
+              </div>
+              <span class="portal-tag owner">Owner</span>
+            </a>
+            <a href="/qr-manager" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">🏷️</span>
+              <div class="portal-info">
+                <div class="portal-title">Table QR Studio</div>
+                <div class="portal-desc">Printable tents, tokens &amp; table QR generator</div>
+              </div>
+              <span class="portal-tag">QR</span>
+            </a>
+            <a href="/admin" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">🛡️</span>
+              <div class="portal-info">
+                <div class="portal-title">Super-Admin Platform</div>
+                <div class="portal-desc">Multi-tenant management &amp; security logs</div>
+              </div>
+              <span class="portal-tag admin">Admin</span>
+            </a>
+            <a href="/marketing/pricing" class="portal-link-item" role="menuitem">
+              <span class="portal-icon">💎</span>
+              <div class="portal-info">
+                <div class="portal-title">Platform Pricing &amp; Plans</div>
+                <div class="portal-desc">Zero-cost free tier &amp; enterprise features</div>
+              </div>
+              <span class="portal-tag">Pricing</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -365,31 +481,158 @@
   <!-- Menu Content View (Abiruchi Hotel Dish Presentation) -->
   <main class="menu-container" id="menuContainer"></main>
 
-  <!-- Collapsible About Abiruchi Hotel Panel (Case 7) -->
-  <section class="about-abiruchi-panel" id="aboutPanel" style="max-width:900px; margin:20px auto 100px; padding:16px;" aria-label="About Abiruchi Hotel">
+  <!-- Collapsible About Abiruchi Hotel Panel (Fixed Empty Space Below) -->
+  <section class="about-abiruchi-panel" id="aboutPanel" style="max-width:900px; margin:24px auto 16px; padding:20px;" aria-label="About Abiruchi Hotel">
     <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAboutPanel()" role="button" tabindex="0" aria-expanded="false" id="aboutPanelHeader">
-      <h3 style="font-size:16px; font-weight:700; color:var(--text-title); margin:0;" id="aboutHotelTitle">About Abiruchi Hotel</h3>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.3rem;">ℹ️</span>
+        <h3 style="font-size:1.05rem; font-weight:800; color:var(--text-title); margin:0;" id="aboutHotelTitle">About Abiruchi Hotel</h3>
+      </div>
       <span id="aboutPanelChevron" style="font-size:18px; color:var(--primary); transition:transform 0.2s;">▼</span>
     </div>
-    <div id="aboutPanelContent" style="display:none; margin-top:14px; font-size:13px; color:var(--text-muted); line-height:1.6;">
-      <p id="aboutStory" style="margin-bottom:10px;">The taste of the land, served smartly.</p>
-      <div class="about-chef-special" style="padding:10px; border-radius:8px; margin-bottom:10px; border-left:4px solid var(--primary);">
-        <strong style="color:var(--primary);">Today's Chef Special:</strong> <span id="aboutTodaySpecial" style="color:var(--text-title);">Gongura Mutton & Rayalaseema Ragi Sangati</span>
+    <div id="aboutPanelContent" style="display:none; margin-top:16px; font-size:13px; color:var(--text-muted); line-height:1.6;">
+      <p id="aboutStory" style="margin-bottom:12px; font-size:0.92rem; color:var(--text);">
+        The taste of the land, served smartly. Celebrating authentic Rayalaseema spices, wood-fired South Indian specialties, slow-cooked biryanis, and state-of-the-art contact-free dining.
+      </p>
+
+      <!-- Chef's Special Interactive Card -->
+      <div class="about-chef-special" style="padding:14px; border-radius:12px; margin-bottom:14px; background:rgba(252,128,25,0.06); border:1px solid rgba(252,128,25,0.2); border-left:4px solid var(--primary); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase;">🔥 Today's Chef Recommendation</div>
+          <div style="font-weight:900; font-size:0.98rem; color:var(--text-title); margin-top:2px;" id="aboutTodaySpecial">Gongura Mutton &amp; Rayalaseema Ragi Sangati</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">Authentic slow-braised tender meat with sour sorrel leaves</div>
+        </div>
+        <button type="button" class="btn-primary" onclick="handleSearch('Ragi Sangati'); showToast('Showing Gongura Mutton & Ragi Sangati in menu');" style="padding:8px 14px; font-size:0.78rem; font-weight:800; border-radius:8px; border:none; background:var(--primary); color:#fff; cursor:pointer;">
+          Order Special →
+        </button>
       </div>
-      <div style="display:grid; grid-template-columns:1fr; gap:6px; margin-bottom:12px;">
-        <div>📍 <strong>Address:</strong> <span id="aboutAddress">12-4-89 Main Road, Near Clock Tower, Anantapur, AP</span></div>
-        <div>⏰ <strong>Hours:</strong> <span id="aboutHours">11:00 AM - 11:00 PM (Daily)</span></div>
-        <div>📞 <strong>Phone:</strong> <a id="aboutPhone" href="tel:+919876543210" style="color:var(--primary); text-decoration:none;">+91 9876543210</a></div>
-        <div>🗺️ <a id="aboutMapLink" href="https://maps.google.com" target="_blank" rel="noopener" style="color:var(--primary); font-weight:600; text-decoration:underline;">View on Google Maps</a></div>
+
+      <!-- Key Amenities Badges -->
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+        <span class="amenity-pill">⚡ High-Speed Wi-Fi</span>
+        <span class="amenity-pill">❄️ 100% Air Conditioned</span>
+        <span class="amenity-pill">👨‍👩‍👧 Family Dining Section</span>
+        <span class="amenity-pill">💳 Instant UPI Prepay</span>
+        <span class="amenity-pill">🚗 Valet Parking</span>
+        <span class="amenity-pill">🌿 Pure Veg &amp; Halal Kitchens</span>
       </div>
-      <div style="font-size:11px; color:var(--text-muted); border-top:1px solid var(--divider); padding-top:8px;">
-        <span>GSTIN: <span id="aboutGstin">37AAAAA0000A1Z5</span></span> | <span>FSSAI Lic: <span id="aboutFssai">10123999000123</span></span>
+
+      <!-- Contact Info Grid with Action Buttons -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:14px;">
+        <div class="about-info-card">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">📍 Address &amp; Directions</div>
+          <div style="font-weight:700; color:var(--text-title); font-size:0.85rem; margin-top:2px;" id="aboutAddress">12-4-89 Main Road, Near Clock Tower, Anantapur, AP</div>
+          <a id="aboutMapLink" href="https://maps.google.com" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:4px; color:var(--primary); font-weight:800; font-size:0.78rem; margin-top:6px; text-decoration:none;">
+            🗺️ Open Google Maps →
+          </a>
+        </div>
+        <div class="about-info-card">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">⏰ Service Hours</div>
+          <div style="font-weight:700; color:var(--text-title); font-size:0.85rem; margin-top:2px;" id="aboutHours">11:00 AM - 11:00 PM (All 7 Days)</div>
+          <div style="font-size:0.78rem; color:#16a34a; font-weight:700; margin-top:6px;">🟢 Kitchen Currently Serving</div>
+        </div>
+        <div class="about-info-card">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">📞 Contact &amp; Support</div>
+          <div><a id="aboutPhone" href="tel:+919876543210" style="color:var(--primary); font-weight:800; font-size:0.9rem; text-decoration:none;">+91 9876543210</a></div>
+          <a href="https://wa.me/919876543210?text=Hello%20Abiruchi%20Hotel" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:4px; color:#25d366; font-weight:800; font-size:0.78rem; margin-top:4px; text-decoration:none;">
+            💬 WhatsApp Us Directly →
+          </a>
+        </div>
       </div>
-      <div style="margin-top:12px; text-align:right;">
-        <button onclick="forgetGuestSession()" class="forget-session-btn" style="background:var(--surface); border:1px solid var(--chip-border); color:var(--text-muted); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;" aria-label="Forget my device data">🔒 Forget My Device Data</button>
+
+      <!-- Regulatory & Privacy Footer Row -->
+      <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--chip-border); padding-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span>GSTIN: <strong id="aboutGstin" style="color:var(--text-title);">37AAAAA0000A1Z5</strong></span> | 
+          <span>FSSAI Lic: <strong id="aboutFssai" style="color:var(--text-title);">10123999000123</strong></span>
+        </div>
+        <button onclick="forgetGuestSession()" class="forget-session-btn" style="background:var(--surface); border:1px solid var(--chip-border); color:var(--text-muted); font-size:11px; padding:5px 10px; border-radius:6px; cursor:pointer;" aria-label="Forget my device data">
+          🔒 Forget My Device Data
+        </button>
       </div>
     </div>
   </section>
+
+  <!-- Complete Site Footer with Full Route Navigation (Fixed Empty Void) -->
+  <footer class="abiruchi-site-footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <!-- Col 1: Brand & Story -->
+        <div class="footer-col brand-col">
+          <div class="footer-brand-row">
+            <div class="abiruchi-logo-mark small">
+              <span class="abiruchi-logo-letter">A</span>
+            </div>
+            <div>
+              <div class="footer-brand-name">Abiruchi Hotel</div>
+              <div class="footer-brand-tag">The taste of the land, served smartly.</div>
+            </div>
+          </div>
+          <p class="footer-desc">
+            Authentic South Indian dining celebrating traditional recipes, wood-fired flavors, Rayalaseema spices, and smart QR ordering.
+          </p>
+          <div class="footer-badges">
+            <span class="footer-badge">🌿 100% Authentic</span>
+            <span class="footer-badge">⚡ Instant QR Pay</span>
+            <span class="footer-badge">🌟 4.4 Rated</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Dining & Orders -->
+        <div class="footer-col">
+          <h4 class="footer-heading">🍽️ Dining &amp; Orders</h4>
+          <ul class="footer-links">
+            <li><a href="#menuContainer">Full Food Menu</a></li>
+            <li><a href="/booking">Reserve a Dining Table</a></li>
+            <li><a href="/receipt">View Bill &amp; Live Receipt</a></li>
+            <li><a href="javascript:void(0)" onclick="openTableSelectorModal()">Change Table / Parcel</a></li>
+            <li><a href="javascript:void(0)" onclick="openHistoryModal()">My Past Orders</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Staff & Management -->
+        <div class="footer-col">
+          <h4 class="footer-heading">🧑‍🍳 Restaurant Portals</h4>
+          <ul class="footer-links">
+            <li><a href="/waiter">Floor Waiter Terminal</a></li>
+            <li><a href="/kitchen">Kitchen Display System (KDS)</a></li>
+            <li><a href="/manager">Manager Operations</a></li>
+            <li><a href="/owner">Business Owner Console</a></li>
+            <li><a href="/qr-manager">Table QR Studio</a></li>
+            <li><a href="/admin">Super-Admin Platform</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Solutions & Hours -->
+        <div class="footer-col">
+          <h4 class="footer-heading">⏰ Hours &amp; Location</h4>
+          <p class="footer-text">
+            📍 12-4-89 Main Road, Near Clock Tower, Anantapur, AP<br>
+            ⏰ 11:00 AM – 11:00 PM (Daily)<br>
+            📞 <a href="tel:+919876543210" style="color:var(--primary); text-decoration:none;">+91 9876543210</a>
+          </p>
+          <div style="margin-top:10px;">
+            <a href="/marketing" class="footer-sub-link">Solutions for Cafes &amp; Bars →</a><br>
+            <a href="/marketing/pricing" class="footer-sub-link">Platform Pricing &amp; Plans →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compliance & Copyright -->
+      <div class="footer-bottom">
+        <div class="footer-compliance">
+          <span>🏛️ FSSAI Lic No: <strong>10123999000123</strong></span>
+          <span>•</span>
+          <span>🧾 GSTIN: <strong>37AAAAA0000A1Z5</strong></span>
+          <span>•</span>
+          <span>🔒 Zero-Trust Prepayment Verified</span>
+        </div>
+        <div class="footer-copyright">
+          © 2026 Abiruchi Hotel &amp; Servora POS Operating System. All rights reserved.
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <!-- Abiruchi Hotel Floating Action Cart Bar -->
   <div class="abiruchi-floating-cart-bar" id="abiruchiFloatingCart" onclick="openCartModal()" role="button" aria-label="Proceed to cart">

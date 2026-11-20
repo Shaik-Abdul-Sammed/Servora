@@ -984,6 +984,26 @@ function updateCartUI() {
 }
 
 // Modal Handlers
+function togglePortalsMenu() {
+  const menu = document.getElementById('portalsDropdownMenu');
+  const btn = document.getElementById('portalsMenuBtn');
+  if (!menu) return;
+  const isShown = menu.style.display === 'block';
+  menu.style.display = isShown ? 'none' : 'block';
+  if (btn) btn.setAttribute('aria-expanded', !isShown);
+}
+window.togglePortalsMenu = togglePortalsMenu;
+
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.portals-menu-wrap');
+  const menu = document.getElementById('portalsDropdownMenu');
+  if (menu && menu.style.display === 'block' && wrap && !wrap.contains(e.target)) {
+    menu.style.display = 'none';
+    const btn = document.getElementById('portalsMenuBtn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+});
+
 function openCartModal() { document.getElementById('cartModal')?.classList.add('active'); }
 function closeCartModal() { document.getElementById('cartModal')?.classList.remove('active'); }
 function openWaiterModal() { document.getElementById('waiterModal')?.classList.add('active'); }
