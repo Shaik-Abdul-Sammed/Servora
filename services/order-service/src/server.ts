@@ -2026,6 +2026,72 @@ export function createOrderApp() {
         return;
       }
 
+      if (pathname === '/api/v1/tokens/manual' && method === 'POST') {
+        const body = await parseJsonBody<{
+          outletId?: string;
+          bucket?: TokenBucket;
+          orderRef?: string;
+          guestPhone?: string;
+        }>(req);
+        const outletId = body.outletId || 'b0000000-0000-0000-0000-000000000001';
+        const bucket = body.bucket || 'FOOD';
+        const token = store.generateToken(outletId, bucket, body.orderRef, body.guestPhone, true);
+        broadcastEvent({
+          type: 'ORDER_STATUS_CHANGED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId,
+          timestamp: token.createdAt,
+          payload: { tokenId: token.id, code: token.code, state: token.state, bucket: token.bucket, manual_entry: true },
+        });
+        sendJson(res, 201, { ...token, manual_entry: true });
+        return;
+      }
+
+      if ((pathname === '/api/v1/tokens/manual/analytics' || pathname === '/api/v1/analytics/tokens/manual') && method === 'GET') {
+        const allManual = Array.from(store.tokens.values()).filter((t: any) => t.manual_entry === true);
+        const activeManual = allManual.filter((t: any) => t.state !== 'CLOSED' && t.state !== 'SERVED');
+        sendJson(res, 200, {
+          totalManualTokens: allManual.length,
+          activeManualTokens: activeManual.length,
+          tokens: allManual,
+        });
+        return;
+      }
+
+      if (pathname === '/api/v1/tokens/auto-close-stale' && method === 'POST') {
+        const body = await parseJsonBody<{ thresholdMinutes?: number }>(req);
+        const threshold = typeof body.thresholdMinutes === 'number' ? body.thresholdMinutes : 0;
+        const closed = store.autoCloseStaleTokens(threshold);
+        sendJson(res, 200, { closedCount: closed.length, closedTokens: closed });
+        return;
+      }
+
+      if (pathname === '/api/v1/tokens/stale' && method === 'GET') {
+        const stale = store.getStaleTokens();
+        sendJson(res, 200, { staleCount: stale.length, staleTokens: stale });
+        return;
+      }
+
+      if (pathname.startsWith('/api/v1/tokens/recall/') && method === 'POST') {
+        const tokenId = pathname.replace('/api/v1/tokens/recall/', '');
+        const body = await parseJsonBody<{ reason?: string }>(req);
+        const reason = body.reason || 'Staff recalled parcel token';
+        const recalled = store.recallToken(tokenId, reason);
+        if (!recalled) {
+          sendJson(res, 404, { error: 'Token not found' });
+          return;
+        }
+        broadcastEvent({
+          type: 'ORDER_STATUS_CHANGED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId: recalled.outletId,
+          timestamp: recalled.updatedAt,
+          payload: { tokenId: recalled.id, code: recalled.code, state: 'PREPARING', bucket: recalled.bucket, recalled: true, recallReason: reason },
+        });
+        sendJson(res, 200, { ...recalled, token_code: recalled.code, recalled: true, recallReason: reason });
+        return;
+      }
+
       if (pathname === '/api/v1/tokens' && method === 'POST') {
         const body = await parseJsonBody<{
           outletId?: string;

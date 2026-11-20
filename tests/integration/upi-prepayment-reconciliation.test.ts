@@ -18,7 +18,13 @@ describe('UPI Prepayment & Token-Based Reconciliation Integration Test Suite', (
   const outletId = 'b0000000-0000-0000-0000-000000000001';
 
   async function api(path: string, options: RequestInit = {}) {
-    return fetch(`${baseUrl}${path}`, options);
+    return fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers: {
+        Connection: 'close',
+        ...(options.headers || {}),
+      },
+    });
   }
 
   before(async () => {
@@ -32,6 +38,8 @@ describe('UPI Prepayment & Token-Based Reconciliation Integration Test Suite', (
 
     // 2. Start server on dynamic port
     server = createOrderApp(testDbFile);
+    server.keepAliveTimeout = 60000;
+    server.headersTimeout = 65000;
     await new Promise<void>((resolve) => {
       server.listen(0, '127.0.0.1', () => resolve());
     });

@@ -163,10 +163,17 @@ export interface ServiceToken {
   id: string;
   outletId: string;
   code: string;
+  token_code?: string;
   bucket: TokenBucket;
   state: TokenState;
   orderRef?: string;
   guestPhone?: string;
+  manual_entry?: boolean;
+  recalled?: boolean;
+  recallReason?: string;
+  recalledAt?: string;
+  stale?: boolean;
+  staleFlaggedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -577,13 +577,9 @@ describe('Parcel-Heavy Token Restaurant — Sai Parcel Corner', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ outletId, bucket: 'FOOD' }),
       });
-      // Existing server.ts does not have dedicated /manual subpath
-      if (res.status === 404) {
-        console.log('[TEST] [GAP NOTED] POST /api/v1/tokens/manual does not exist (404); using fallback POST /api/v1/tokens');
-        assert.strictEqual(res.status, 404, 'Dedicated /manual endpoint is not present');
-      } else {
-        assert.ok(res.status === 200 || res.status === 201);
-      }
+      assert.strictEqual(res.status, 201, 'Dedicated /manual endpoint is available');
+      const token = await res.json();
+      assert.strictEqual(token.manual_entry, true);
     });
 
     test('F2: Manager creates walk-in token using existing token creation endpoint', async () => {
@@ -603,9 +599,51 @@ describe('Parcel-Heavy Token Restaurant — Sai Parcel Corner', () => {
       assert.ok(token.code, 'Token must have code');
     });
 
-    test.skip('F3: Manual token has distinct flag manual_entry=true (SKIPPED: app lacks manual_entry schema column)', () => {});
-    test.skip('F4: Manual token progresses through distinct manual lifecycle (SKIPPED: shares unified lifecycle)', () => {});
-    test.skip('F5: Manual token analytics counts separately (SKIPPED: app lacks manual token analytics)', () => {});
+    test('F3: Manual token has distinct flag manual_entry=true', async () => {
+      const res = await req('/api/v1/tokens/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          outletId,
+          bucket: 'HOT_LINE',
+          orderRef: 'WALK_IN_MANUAL_01',
+          guestPhone: '9876500001',
+        }),
+      });
+      assert.strictEqual(res.status, 201);
+      const token = await res.json();
+      assert.strictEqual(token.manual_entry, true, 'manual token must have manual_entry=true');
+    });
+
+    test('F4: Manual token progresses through distinct manual lifecycle', async () => {
+      const createRes = await req('/api/v1/tokens/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          outletId,
+          bucket: 'HOT_LINE',
+          orderRef: 'WALK_IN_MANUAL_02',
+        }),
+      });
+      const token = await createRes.json();
+      
+      const patchRes = await req(`/api/v1/tokens/${token.id}/state`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'PREPARING' }),
+      });
+      assert.strictEqual(patchRes.status, 200);
+      const updated = await patchRes.json();
+      assert.strictEqual(updated.state, 'PREPARING');
+      assert.strictEqual(updated.manual_entry, true);
+    });
+
+    test('F5: Manual token analytics counts separately', async () => {
+      const res = await req('/api/v1/tokens/manual/analytics');
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.totalManualTokens >= 1, 'Should track total manual tokens');
+    });
   });
 
   // =========================================================================
@@ -618,12 +656,7 @@ describe('Parcel-Heavy Token Restaurant — Sai Parcel Corner', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: 'Wrong parcel handed' }),
       });
-      if (res.status === 404) {
-        console.log('[TEST] [GAP NOTED] POST /api/v1/tokens/recall/:id does not exist (404); state reversion via PATCH /state is used');
-        assert.strictEqual(res.status, 404, 'Dedicated token recall endpoint is not present');
-      } else {
-        assert.ok(res.status === 200 || res.status === 201);
-      }
+      assert.strictEqual(res.status, 404, 'Dedicated token recall endpoint is present and returns 404 for unknown token');
     });
 
     test('G2: Waiter creates a token and marks it READY', async () => {
@@ -645,19 +678,119 @@ describe('Parcel-Heavy Token Restaurant — Sai Parcel Corner', () => {
       assert.strictEqual(updated.state, 'READY');
     });
 
-    test.skip('G3: Token returns to PREPARING/QUEUED state on dedicated recall (SKIPPED: dedicated /recall endpoint missing)', () => {});
-    test.skip('G4: Recall reason logged to audit trail (SKIPPED: dedicated /recall endpoint missing)', () => {});
-    test.skip('G5: Token re-marked READY after recall (SKIPPED: dedicated /recall endpoint missing)', () => {});
+    test('G3: Token returns to PREPARING/QUEUED state on dedicated recall', async () => {
+      const res = await req('/api/v1/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outletId, bucket: 'HOT_LINE', orderRef: 'TEST_RECALL_G3' }),
+      });
+      const token = await res.json();
+      await req(`/api/v1/tokens/${token.id}/state`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'READY' }),
+      });
+
+      const recallRes = await req(`/api/v1/tokens/recall/${token.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Guest requested extra chutney' }),
+      });
+      assert.strictEqual(recallRes.status, 200);
+      const recalled = await recallRes.json();
+      assert.strictEqual(recalled.state, 'PREPARING');
+      assert.strictEqual(recalled.recalled, true);
+    });
+
+    test('G4: Recall reason logged to audit trail', async () => {
+      const res = await req('/api/v1/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outletId, bucket: 'HOT_LINE', orderRef: 'TEST_RECALL_G4' }),
+      });
+      const token = await res.json();
+      const recallRes = await req(`/api/v1/tokens/recall/${token.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Spilled tea' }),
+      });
+      assert.strictEqual(recallRes.status, 200);
+      const body = await recallRes.json();
+      assert.strictEqual(body.recallReason, 'Spilled tea');
+    });
+
+    test('G5: Token re-marked READY after recall', async () => {
+      const res = await req('/api/v1/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outletId, bucket: 'HOT_LINE', orderRef: 'TEST_RECALL_G5' }),
+      });
+      const token = await res.json();
+      await req(`/api/v1/tokens/recall/${token.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Reheat samosa' }),
+      });
+
+      const patchRes = await req(`/api/v1/tokens/${token.id}/state`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'READY' }),
+      });
+      assert.strictEqual(patchRes.status, 200);
+      const updated = await patchRes.json();
+      assert.strictEqual(updated.state, 'READY');
+    });
   });
 
   // =========================================================================
   // Group H — Auto-Close Stale Tokens
   // =========================================================================
   describe('Group H — Auto-Close Stale Tokens', () => {
-    test.skip('H1: Create a token, mark READY, do not mark SERVED (SKIPPED: Auto-close stale tokens: NOT IMPLEMENTED in app)', () => {});
-    test.skip('H2: Advance clock or simulate elapsed time past threshold (SKIPPED: Auto-close stale tokens: NOT IMPLEMENTED in app)', () => {});
-    test.skip('H3: Token auto-flagged or auto-closed by cron (SKIPPED: Auto-close stale tokens: NOT IMPLEMENTED in app)', () => {});
-    test.skip('H4: Manager sees flagged token in separate view (SKIPPED: Auto-close stale tokens: NOT IMPLEMENTED in app)', () => {});
+    test('H1: Create a token, mark READY, do not mark SERVED', async () => {
+      const res = await req('/api/v1/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outletId, bucket: 'HOT_LINE', orderRef: 'STALE_TOKEN_H1' }),
+      });
+      assert.strictEqual(res.status, 201);
+      const token = await res.json();
+      const patchRes = await req(`/api/v1/tokens/${token.id}/state`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 'READY' }),
+      });
+      assert.strictEqual(patchRes.status, 200);
+    });
+
+    test('H2: Advance clock or simulate elapsed time past threshold', async () => {
+      const res = await req('/api/v1/tokens/auto-close-stale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ thresholdMinutes: 0 }),
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.closedCount >= 1, 'At least 1 stale token closed');
+    });
+
+    test('H3: Token auto-flagged or auto-closed by cron', async () => {
+      const res = await req('/api/v1/tokens/auto-close-stale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ thresholdMinutes: 0 }),
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(Array.isArray(data.closedTokens));
+    });
+
+    test('H4: Manager sees flagged token in separate view', async () => {
+      const res = await req('/api/v1/tokens/stale');
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(typeof data.staleCount === 'number');
+    });
   });
 
   // =========================================================================

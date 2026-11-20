@@ -1902,7 +1902,8 @@ export class OrderStore {
     outletId: string,
     bucket: TokenBucket,
     orderRef?: string,
-    guestPhone?: string
+    guestPhone?: string,
+    manual_entry?: boolean
   ): ServiceToken {
     const settings = this.getOutletSettings(outletId);
     const prefix = settings.tokenPrefix || 'A';
@@ -1920,6 +1921,7 @@ export class OrderStore {
       state: 'QUEUED',
       orderRef,
       guestPhone,
+      manual_entry: manual_entry === true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -1929,7 +1931,7 @@ export class OrderStore {
       action: 'GENERATE_TOKEN',
       actor: guestPhone || 'system',
       outletId,
-      details: { tokenId: token.id, code: token.code, bucket: token.bucket },
+      details: { tokenId: token.id, code: token.code, bucket: token.bucket, manual_entry: token.manual_entry },
     });
     return token;
   }
@@ -1949,6 +1951,58 @@ export class OrderStore {
       details: { tokenId: token.id, code: token.code, newState },
     });
     return token;
+  }
+
+  public recallToken(tokenId: string, reason: string): any | null {
+    const token = this.tokens.get(tokenId) as any;
+    if (!token) return null;
+    token.state = 'PREPARING';
+    token.token_code = token.code;
+    token.recalled = true;
+    token.recallReason = reason;
+    token.recalledAt = new Date().toISOString();
+    token.updatedAt = new Date().toISOString();
+    this.tokens.set(tokenId, token);
+    auditService.log({
+      feature: 'TOKEN_RECALL',
+      action: 'RECALL_TOKEN',
+      actor: 'staff',
+      outletId: token.outletId,
+      details: { tokenId: token.id, code: token.code, reason },
+    });
+    return token;
+  }
+
+  public autoCloseStaleTokens(thresholdMinutes: number = 30): any[] {
+    const cutoff = Date.now() - thresholdMinutes * 60 * 1000;
+    const closed: any[] = [];
+    for (const [id, token] of this.tokens.entries()) {
+      const isStale = (token as any).state === 'READY' && new Date((token as any).updatedAt).getTime() <= cutoff;
+      if (isStale) {
+        (token as any).stale = true;
+        (token as any).state = 'CLOSED';
+        (token as any).token_code = token.code;
+        (token as any).staleFlaggedAt = new Date().toISOString();
+        (token as any).updatedAt = new Date().toISOString();
+        this.tokens.set(id, token);
+        closed.push(token);
+        auditService.log({
+          feature: 'AUTO_CLOSE_STALE',
+          action: 'CLOSE_STALE_TOKEN',
+          actor: 'system',
+          outletId: token.outletId,
+          details: { tokenId: id, code: token.code },
+        });
+      }
+    }
+    return closed;
+  }
+
+  public getStaleTokens(outletId?: string): any[] {
+    return Array.from(this.tokens.values()).filter((t: any) => {
+      if (outletId && t.outletId !== outletId) return false;
+      return t.stale === true || (t.state === 'READY' && Date.now() - new Date(t.updatedAt).getTime() > 10 * 60 * 1000);
+    });
   }
 
   public getActiveTokens(arg?: string): any[] {
