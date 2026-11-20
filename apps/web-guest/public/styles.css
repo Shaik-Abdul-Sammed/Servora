@@ -1590,7 +1590,7 @@ header {
   gap: 4px;
 }
 .qr-quiet-frame {
-  background: #ffffff;
+  background: var(--surface);
   padding: 10px;
   border-radius: 12px;
   border: 2px solid var(--chip-border);
@@ -1600,12 +1600,14 @@ header {
   justify-content: center;
 }
 [data-theme="dark"] .qr-quiet-frame {
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: #161b22 !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 .qr-quiet-frame img {
   display: block;
-  border-radius: 4px;
+  border-radius: 6px;
+  background: #ffffff; /* Minimal QR code module contrast canvas for phone camera optics */
 }
 .qr-footer-ref {
   font-size: 0.72rem;
@@ -1613,4 +1615,321 @@ header {
   color: var(--text-muted);
   margin-top: 6px;
   font-family: monospace;
+}
+
+/* ==========================================================================
+   List View Dish Cards (.abiruchi-dish-card & Children)
+   ========================================================================== */
+.abiruchi-dish-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+.abiruchi-dish-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--card-hover-border);
+}
+.abiruchi-dish-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.abiruchi-dish-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-title);
+  line-height: 1.3;
+  margin-top: 2px;
+  word-break: break-word;
+}
+.abiruchi-dish-price {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--text-title);
+}
+.abiruchi-dish-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+.abiruchi-dish-media {
+  width: 110px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.abiruchi-dish-img {
+  width: 105px;
+  height: 92px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+[data-theme="dark"] .abiruchi-dish-img {
+  background: #1f2430 !important;
+}
+.abiruchi-btn-wrapper {
+  margin-top: -14px;
+  z-index: 2;
+}
+.abiruchi-btn-add {
+  background: var(--surface);
+  color: var(--abiruchi-emerald);
+  border: 1px solid var(--chip-border);
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+.abiruchi-qty-stepper {
+  background: var(--abiruchi-emerald);
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  min-width: 82px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  box-shadow: 0 4px 10px rgba(96, 178, 70, 0.35);
+}
+.abiruchi-step-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.abiruchi-qty-num {
+  padding: 0 4px;
+}
+.abiruchi-dish-tag {
+  background: #fc8019;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Complete Dark Mode Styling: ZERO White Background Leakage
+   ========================================================================== */
+[data-theme="dark"] {
+  --bg: #090d16 !important;
+  --card-bg: #121824 !important;
+  --surface: #121824 !important;
+  --card-border: rgba(255, 255, 255, 0.08) !important;
+  --header-bg: #0e131f !important;
+  --header-border: rgba(255, 255, 255, 0.08) !important;
+  --chip-bg: #182030 !important;
+  --chip-border: rgba(255, 255, 255, 0.12) !important;
+  --divider: rgba(255, 255, 255, 0.06) !important;
+  --text: #f0f6fc !important;
+  --text-title: #ffffff !important;
+  --text-muted: #94a3b8 !important;
+}
+
+[data-theme="dark"] body {
+  background-color: #090d16 !important;
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] header {
+  background: #0e131f !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .grid-dish-card,
+[data-theme="dark"] .abiruchi-dish-card,
+[data-theme="dark"] .deal-coupon-card,
+[data-theme="dark"] .bottom-sheet,
+[data-theme="dark"] .sheet-header,
+[data-theme="dark"] .modal-card,
+[data-theme="dark"] .cart-summary-card,
+[data-theme="dark"] .pickup-slot-chip,
+[data-theme="dark"] .hero-banner {
+  background: #121824 !important;
+  color: #f0f6fc !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+[data-theme="dark"] .abiruchi-btn-add,
+[data-theme="dark"] .grid-dish-btn-add {
+  background: #1c2436 !important;
+  color: #34d399 !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+[data-theme="dark"] .abiruchi-btn-add:hover,
+[data-theme="dark"] .grid-dish-btn-add:hover {
+  background: rgba(52, 211, 153, 0.15) !important;
+}
+
+[data-theme="dark"] .opt-pill,
+[data-theme="dark"] .shift-chip,
+[data-theme="dark"] .diet-chip,
+[data-theme="dark"] .category-tab,
+[data-theme="dark"] .category-chip,
+[data-theme="dark"] .header-action-btn,
+[data-theme="dark"] .theme-btn {
+  background: #182030 !important;
+  color: #f0f6fc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .opt-pill.active,
+[data-theme="dark"] .shift-chip.active,
+[data-theme="dark"] .diet-chip.active,
+[data-theme="dark"] .category-tab.active,
+[data-theme="dark"] .theme-btn.active {
+  background: var(--primary-gradient) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #090d16 !important;
+  color: #f0f6fc !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #8b949e !important;
+}
+
+/* ==========================================================================
+   Responsive Header & Universal Fluid Layout (No Text/Button Overflow)
+   ========================================================================== */
+.header-action-btn {
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.header-action-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  header {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .header-controls {
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .hide-mobile {
+    display: none !important;
+  }
+  .header-action-btn {
+    padding: 5px 8px;
+    font-size: 0.85rem;
+  }
+  .brand-text {
+    font-size: 0.95rem;
+  }
+  .lang-select {
+    max-width: 76px;
+    font-size: 0.72rem;
+    padding: 4px 6px 4px 18px;
+  }
+  .theme-btn {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+  }
+  .abiruchi-dish-card {
+    padding: 12px;
+    gap: 10px;
+  }
+  .abiruchi-dish-media {
+    width: 95px;
+  }
+  .abiruchi-dish-img {
+    width: 90px;
+    height: 82px;
+  }
+  .menu-container.grid-view {
+    gap: 8px !important;
+    padding: 8px 10px !important;
+  }
+  .grid-dish-body {
+    padding: 6px 8px 8px;
+  }
+  .grid-dish-title {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 380px) {
+  header {
+    padding: 6px 8px;
+  }
+  .brand {
+    gap: 6px;
+  }
+  .abiruchi-logo-mark {
+    width: 28px;
+    height: 28px;
+  }
+  .brand-text {
+    font-size: 0.88rem;
+  }
+  #venueSubtitle {
+    display: none;
+  }
+  .table-badge {
+    padding: 3px 8px;
+    font-size: 0.72rem;
+  }
 }

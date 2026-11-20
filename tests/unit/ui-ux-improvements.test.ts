@@ -292,4 +292,22 @@ describe('Abiruchi Hotel 100 UI/UX & Invisible Translation Test Suite', () => {
     assert.match(guestCss, /\.qr-display-card/, 'styles.css must style .qr-display-card');
     assert.match(guestCss, /\[data-theme="dark"\]\s*\.qr-quiet-frame/, 'styles.css must have dark mode quiet frame styling');
   });
+
+  it('Phase 5 Theme Toggle, Dark Mode Zero-White Invariant, & Responsive Fluid Layout', () => {
+    const appJs = readFileSync(join(rootDir, 'apps/web-guest/public/app.js'), 'utf-8');
+    assert.match(appJs, /function setTheme\(theme\)/, 'app.js must define global setTheme function');
+    assert.match(appJs, /window\.setTheme\s*=/, 'window.setTheme must be exported globally');
+    assert.match(appJs, /btnThemeLight[\s\S]*classList\.toggle/, 'applyTheme must sync btnThemeLight active state');
+    assert.match(appJs, /btnThemeDark[\s\S]*classList\.toggle/, 'applyTheme must sync btnThemeDark active state');
+
+    const guestHtml = readFileSync(join(rootDir, 'apps/web-guest/public/index.html'), 'utf-8');
+    assert.doesNotMatch(guestHtml, /style="background:#ffffff;"/, 'index.html must not contain inline white backgrounds');
+    assert.match(guestHtml, /header-action-btn/, 'index.html must use responsive header-action-btn');
+    assert.match(guestHtml, /hide-mobile/, 'index.html must use hide-mobile to prevent mobile text overflow');
+
+    const guestCss = readFileSync(join(rootDir, 'apps/web-guest/public/styles.css'), 'utf-8');
+    assert.match(guestCss, /\[data-theme="dark"\]\s*\{[\s\S]*--bg:\s*#090d16/, 'styles.css dark theme must define deep dark background');
+    assert.match(guestCss, /\.abiruchi-dish-card/, 'styles.css must style .abiruchi-dish-card');
+    assert.match(guestCss, /@media\s*\(max-width:\s*640px\)/, 'styles.css must include mobile responsive query');
+  });
 });

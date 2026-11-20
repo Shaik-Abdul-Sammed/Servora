@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Reserve a Table — Abiruchi Hotel</title>
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('abiruchi_theme') || 'system';
+        const mode = saved === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : saved;
+        document.documentElement.setAttribute('data-theme', mode);
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="/styles.css">
   <script src="/dish-photos.js"></script>
   <style>

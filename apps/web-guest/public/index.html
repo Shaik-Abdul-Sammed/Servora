@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,14 +10,18 @@
   <script>
     (function() {
       try {
-        const savedTheme = localStorage.getItem('abiruchi_theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        const savedTheme = localStorage.getItem('abiruchi_theme') || 'system';
+        const mode = savedTheme === 'system' 
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : savedTheme;
+        document.documentElement.setAttribute('data-theme', mode);
       } catch (e) {}
     })();
   </script>
   <style>
     /* Critical CSS Invariants for Accessibility & Test Compliance */
-    :root { --primary: #fc8019; --card-bg: #ffffff; }
+    :root { --primary: #fc8019; --card-bg: #ffffff; --bg: #f2f4f7; }
+    [data-theme="dark"] { --primary: #fc8019; --card-bg: #121824 !important; --bg: #090d16 !important; --surface: #121824 !important; --text: #f0f6fc !important; --text-title: #ffffff !important; }
     * { box-sizing: border-box; }
     html, body { max-width: 100vw; overflow-x: hidden; }
     header { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
@@ -71,18 +75,18 @@
       </div>
 
       <!-- Table Reservation Link -->
-      <a href="/booking" style="text-decoration:none; background:rgba(252,128,25,0.1); color:var(--primary); font-size:0.78rem; font-weight:800; padding:5px 10px; border-radius:18px; border:1px solid rgba(252,128,25,0.3); display:flex; align-items:center; gap:4px;">
-        📅 <span id="headerBookLabel">Reserve</span>
+      <a href="/booking" class="header-action-btn" title="Reserve a table">
+        📅 <span class="hide-mobile" id="headerBookLabel">Reserve</span>
       </a>
 
       <!-- Order History Button (Phase 2 UX) -->
-      <button onclick="openHistoryModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); padding:5px 10px; border-radius:18px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;" title="View past orders & reorder">
-        📋 <span id="historyBtnLabel">Orders</span>
+      <button type="button" onclick="openHistoryModal()" class="header-action-btn" title="View past orders & reorder">
+        📋 <span class="hide-mobile" id="historyBtnLabel">Orders</span>
       </button>
 
       <!-- Optional Profile / Preferences Button -->
-      <button onclick="openLoginModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); padding:5px 10px; border-radius:18px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
-        👤 <span id="userLoginLabel">Guest</span>
+      <button type="button" onclick="openLoginModal()" class="header-action-btn" title="Guest Account Profile">
+        👤 <span class="hide-mobile" id="userLoginLabel">Guest</span>
       </button>
 
       <!-- Multilingual Dropdown (English, Telugu, Hindi) -->
@@ -90,10 +94,10 @@
         <div class="lang-icon-pos">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
-        <select id="langSelect" class="lang-select" onchange="switchLanguage(this.value)">
-          <option value="en">English (India)</option>
-          <option value="te">తెలుగు (Telugu)</option>
-          <option value="hi">हिंदी (Hindi)</option>
+        <select id="langSelect" class="lang-select" onchange="switchLanguage(this.value)" aria-label="Select Language">
+          <option value="en">English</option>
+          <option value="te">తెలుగు</option>
+          <option value="hi">हिंदी</option>
         </select>
       </div>
     </div>
@@ -625,7 +629,7 @@
         <div style="font-size:0.85rem; color:var(--text-muted); font-weight:700;">Exact Payable Amount</div>
         <div id="upiPayableAmount" style="font-size:1.8rem; font-weight:900; color:var(--text-title); margin:4px 0;">₹0.00</div>
         <div style="display:flex; justify-content:center; margin:10px 0;">
-          <div class="qr-quiet-frame" style="background:#ffffff; padding:8px; border-radius:12px; border:2px solid var(--chip-border); display:inline-flex;">
+          <div class="qr-quiet-frame" style="padding:8px; border-radius:12px; border:2px solid var(--chip-border); display:inline-flex;">
             <img id="upiModalQrImg" src="" alt="UPI QR Code" style="width:150px; height:150px; display:block;" />
           </div>
         </div>

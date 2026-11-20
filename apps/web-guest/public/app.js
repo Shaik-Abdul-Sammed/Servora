@@ -148,6 +148,11 @@ function initTheme() {
   applyTheme(saved);
 }
 
+function setTheme(theme) {
+  applyTheme(theme);
+}
+window.setTheme = setTheme;
+
 function applyTheme(theme) {
   currentTheme = theme;
   localStorage.setItem('abiruchi_theme', theme);
@@ -158,17 +163,30 @@ function applyTheme(theme) {
   }
 
   document.documentElement.setAttribute('data-theme', activeMode);
+  document.body?.setAttribute('data-theme', activeMode);
+
+  // Sync button active states
+  const btnLight = document.getElementById('btnThemeLight');
+  const btnDark = document.getElementById('btnThemeDark');
+  const btnSystem = document.getElementById('btnThemeSystem');
+  if (btnLight) btnLight.classList.toggle('active', theme === 'light');
+  if (btnDark) btnDark.classList.toggle('active', theme === 'dark');
+  if (btnSystem) btnSystem.classList.toggle('active', theme === 'system');
+
   const themeBtn = document.getElementById('themeToggleBtn');
   if (themeBtn) {
     themeBtn.textContent = activeMode === 'dark' ? '☀️' : '🌙';
     themeBtn.title = `Current: ${activeMode.toUpperCase()} (Click to toggle)`;
   }
 }
+window.applyTheme = applyTheme;
 
 function toggleTheme() {
-  const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
 }
+window.toggleTheme = toggleTheme;
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
   if (localStorage.getItem('abiruchi_theme') === 'system') {
