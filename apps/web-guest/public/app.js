@@ -1279,6 +1279,8 @@ async function submitFinalOrder() {
       updateCartUI();
       closeCartModal();
       showToast('Order confirmed by kitchen!');
+      playGuestChime('success');
+      speakGuestAnnouncement('Your order has been submitted to the kitchen.');
       if (created.token) {
         const tokenBadge = document.getElementById('tokenBadgeContainer');
         const tokenCode = document.getElementById('guestTokenCode');
@@ -1403,6 +1405,15 @@ async function submitUpiPaymentReferenceAction() {
   const phone = document.getElementById('upiCustomerPhoneInput')?.value.trim() || '';
   const amountPaid = parseFloat(document.getElementById('upiAmountPaidInput')?.value || '0');
 
+  const rememberGuest = document.getElementById('rememberMeGuest')?.checked ?? true;
+  if (rememberGuest) {
+    if (name) localStorage.setItem('abiruchi_guest_name', name);
+    if (phone) localStorage.setItem('abiruchi_guest_phone', phone);
+  } else {
+    localStorage.removeItem('abiruchi_guest_name');
+    localStorage.removeItem('abiruchi_guest_phone');
+  }
+
   const submitBtn = document.getElementById('upiSubmitRefBtn');
   if (submitBtn) {
     submitBtn.disabled = true;
@@ -1465,12 +1476,16 @@ function startUpiStatusPolling(orderId) {
       if (data.paymentStatus === 'PAID' || data.paymentStatus === 'VERIFIED') {
         clearInterval(upiPollInterval);
         upiPollInterval = null;
+        playGuestChime('success');
+        speakGuestAnnouncement('Payment verified! Your order is now preparing in the kitchen.');
         showToast('🎉 Payment verified by manager! Kitchen is preparing your order.');
         closeUpiPrepaymentModal();
         openOrderStatusModal(orderId);
       } else if (data.paymentStatus === 'REJECTED') {
         clearInterval(upiPollInterval);
         upiPollInterval = null;
+        playGuestChime('alert');
+        speakGuestAnnouncement('Payment reference rejected by manager. Please verify your reference and resubmit.');
         const s2 = document.getElementById('upiStep2Box');
         if (s2) s2.style.display = 'block';
         const alertEl = document.getElementById('upiRejectionAlert');
@@ -1899,6 +1914,72 @@ function closeVoiceModal(event) {
   }
 }
 
+let guestSpeakerEnabled = localStorage.getItem('servora_guest_speaker') !== null ? localStorage.getItem('servora_guest_speaker') === 'true' : true;
+
+function syncGuestSpeakerUI() {
+  const btn = document.getElementById('guestSpeakerToggle');
+  const icon = document.getElementById('guestSpeakerIcon');
+  if (!btn || !icon) return;
+  if (guestSpeakerEnabled) {
+    icon.textContent = '🔊';
+    btn.title = 'Speaker Announcements: ON (Click to mute)';
+    btn.style.color = '#10b981';
+    btn.style.borderColor = 'rgba(16,185,129,0.4)';
+    btn.style.background = 'rgba(16,185,129,0.1)';
+  } else {
+    icon.textContent = '🔇';
+    btn.title = 'Speaker Announcements: OFF (Click to unmute)';
+    btn.style.color = 'var(--text-muted)';
+    btn.style.borderColor = 'var(--chip-border)';
+    btn.style.background = 'var(--chip-bg)';
+  }
+}
+
+function toggleGuestSpeaker() {
+  guestSpeakerEnabled = !guestSpeakerEnabled;
+  localStorage.setItem('servora_guest_speaker', String(guestSpeakerEnabled));
+  syncGuestSpeakerUI();
+  if (guestSpeakerEnabled) {
+    playGuestChime('success');
+    speakFeedback('Speaker voice announcements enabled.');
+  }
+}
+
+function playGuestChime(type = 'notification') {
+  if (!guestSpeakerEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.45);
+    } else {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch (e) {}
+}
+
+function speakGuestAnnouncement(text) {
+  if (!guestSpeakerEnabled) return;
+  speakFeedback(text);
+}
+
 function speakFeedback(text) {
   if ('speechSynthesis' in window) {
     try {
@@ -2075,6 +2156,7 @@ function reorderPastOrder(index) {
 async function init() {
   initTheme();
   initUserSessionState();
+  syncGuestSpeakerUI();
   await loadLanguages();
   await initSession();
   await loadMenu(currentLang);

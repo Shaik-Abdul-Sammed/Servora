@@ -497,7 +497,12 @@
           <input type="password" id="loginPassword" class="form-input" placeholder="Enter assigned password" required autocomplete="current-password">
         </div>
 
-        <button type="submit" id="loginSubmitBtn" class="btn-approve service-btn" style="width:100%; justify-content:center; padding:12px; font-size:0.9rem; margin-top:8px;">
+        <div style="display:flex; align-items:center; gap:8px; margin:10px 0 14px;">
+          <input type="checkbox" id="rememberMeWaiter" checked style="width:16px; height:16px; accent-color:#38bdf8; cursor:pointer;">
+          <label for="rememberMeWaiter" style="font-size:0.8rem; color:var(--text-muted); cursor:pointer; user-select:none;">Remember me on this terminal</label>
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="btn-approve service-btn" style="width:100%; justify-content:center; padding:12px; font-size:0.9rem; margin-top:4px;">
           Sign In to Terminal →
         </button>
         <div id="loginErrorMsg" style="color:#f87171; font-size:0.8rem; font-weight:700; margin-top:10px; text-align:center;"></div>
@@ -563,7 +568,9 @@
     let filterMyTablesOnly = true;
     let activeOrdersList = [];
     let pendingCalls = [];
-    let soundChimeEnabled = true;
+    let soundChimeEnabled = localStorage.getItem('servora_waiter_chime') !== null
+      ? localStorage.getItem('servora_waiter_chime') === 'true'
+      : true; // DEFAULT ON!
     let lastEventSeq = 0;
     let pollInterval = null;
 
@@ -601,6 +608,7 @@
 
     function toggleSoundChime() {
       soundChimeEnabled = !soundChimeEnabled;
+      localStorage.setItem('servora_waiter_chime', String(soundChimeEnabled));
       const btn = document.getElementById('soundToggleBtn');
       if (soundChimeEnabled) {
         btn.textContent = '🔔 Chime: ON';
@@ -612,10 +620,24 @@
       }
     }
 
+    function syncSoundButtonUI() {
+      const btn = document.getElementById('soundToggleBtn');
+      if (btn) {
+        btn.textContent = soundChimeEnabled ? '🔔 Chime: ON' : '🔕 Chime: OFF';
+        btn.classList.toggle('active', soundChimeEnabled);
+      }
+    }
+
     // Auth Initialization
     function checkAuthSession() {
-      const storedToken = localStorage.getItem('servora_staff_token');
-      const storedUser = localStorage.getItem('servora_staff_user');
+      syncSoundButtonUI();
+      const savedId = localStorage.getItem('servora_staff_saved_id');
+      if (savedId && document.getElementById('loginIdentifier') && !document.getElementById('loginIdentifier').value) {
+        document.getElementById('loginIdentifier').value = savedId;
+      }
+
+      const storedToken = localStorage.getItem('servora_staff_token') || sessionStorage.getItem('servora_staff_token');
+      const storedUser = localStorage.getItem('servora_staff_user') || sessionStorage.getItem('servora_staff_user');
 
       if (!storedToken || !storedUser) {
         document.getElementById('waiterLoginModal').classList.add('active');
@@ -640,6 +662,8 @@
       } catch (e) {
         localStorage.removeItem('servora_staff_token');
         localStorage.removeItem('servora_staff_user');
+        sessionStorage.removeItem('servora_staff_token');
+        sessionStorage.removeItem('servora_staff_user');
         document.getElementById('waiterLoginModal').classList.add('active');
         return false;
       }
@@ -682,8 +706,20 @@
         const data = await res.json();
 
         if (res.ok && data.token) {
-          localStorage.setItem('servora_staff_token', data.token);
-          localStorage.setItem('servora_staff_user', JSON.stringify(data.user));
+          const rememberMe = document.getElementById('rememberMeWaiter')?.checked !== false;
+          if (rememberMe) {
+            localStorage.setItem('servora_staff_token', data.token);
+            localStorage.setItem('servora_staff_user', JSON.stringify(data.user));
+            localStorage.setItem('servora_staff_remember', 'true');
+            localStorage.setItem('servora_staff_saved_id', identifier);
+          } else {
+            sessionStorage.setItem('servora_staff_token', data.token);
+            sessionStorage.setItem('servora_staff_user', JSON.stringify(data.user));
+            localStorage.removeItem('servora_staff_token');
+            localStorage.removeItem('servora_staff_user');
+            localStorage.removeItem('servora_staff_remember');
+          }
+
           btn.disabled = false;
           btn.textContent = 'Sign In to Terminal →';
 
@@ -752,6 +788,9 @@
       if (!confirm('Log out from waitstaff terminal?')) return;
       localStorage.removeItem('servora_staff_token');
       localStorage.removeItem('servora_staff_user');
+      localStorage.removeItem('servora_staff_remember');
+      sessionStorage.removeItem('servora_staff_token');
+      sessionStorage.removeItem('servora_staff_user');
       location.reload();
     }
 

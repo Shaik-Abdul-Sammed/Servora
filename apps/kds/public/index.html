@@ -418,8 +418,13 @@
   <script>
     const API_BASE = window.location.origin;
     let orders = [];
-    let currentStation = 'ALL';
-    let audioChimeEnabled = true;
+    let currentStation = localStorage.getItem('servora_kds_station') || 'ALL';
+    let audioChimeEnabled = localStorage.getItem('servora_kds_chime') !== null
+      ? localStorage.getItem('servora_kds_chime') === 'true'
+      : true; // DEFAULT ON!
+    let voiceAlertsEnabled = localStorage.getItem('servora_kds_voice') !== null
+      ? localStorage.getItem('servora_kds_voice') === 'true'
+      : true; // DEFAULT ON!
     let bumpedHistory = [];
 
     // Web Audio Synthesized Kitchen Bell Chime
@@ -444,17 +449,30 @@
       } catch (e) {}
     }
 
+    function speakKitchenTicket(text) {
+      if (!audioChimeEnabled && !voiceAlertsEnabled) return;
+      if ('speechSynthesis' in window) {
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          u.rate = 1.05;
+          window.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+    }
+
     function toggleAudioChime() {
       audioChimeEnabled = !audioChimeEnabled;
+      localStorage.setItem('servora_kds_chime', String(audioChimeEnabled));
+      syncKdsAudioUI();
+      if (audioChimeEnabled) playKdsChime();
+    }
+
+    function syncKdsAudioUI() {
       const btn = document.getElementById('audioToggle');
       const text = document.getElementById('audioStateText');
-      if (audioChimeEnabled) {
-        btn.classList.add('active');
-        text.textContent = 'Bell Sound ON';
-        playKdsChime();
-      } else {
-        btn.classList.remove('active');
-        text.textContent = 'Bell Sound OFF';
+      if (btn && text) {
+        btn.classList.toggle('active', audioChimeEnabled);
+        text.textContent = audioChimeEnabled ? 'Bell Sound ON' : 'Bell Sound OFF';
       }
     }
 
@@ -666,12 +684,13 @@
       evtSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === 'ORDER_CREATED') {
+          if (data.type === 'ORDER_CREATED' || data.type === 'NEW_ORDER') {
             orders.push(data.payload);
             playKdsChime();
+            speakKitchenTicket(`New order Table ${data.payload.tableNumber || data.payload.table || ''}`);
             updateBadges();
             renderTickets();
-          } else if (data.type === 'ORDER_STATUS_CHANGED') {
+          } else if (data.type === 'ORDER_STATUS_CHANGED' || data.type === 'ORDER_ACCEPTED' || data.type === 'ORDER_PREPARING') {
             const idx = orders.findIndex(o => o.id === data.payload.id);
             if (idx !== -1) {
               if (data.payload.status === 'SERVED' || data.payload.status === 'CANCELLED') {
@@ -687,6 +706,7 @@
       };
     }
 
+    syncKdsAudioUI();
     loadTickets();
     initEventStream();
   </script>

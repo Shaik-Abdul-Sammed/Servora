@@ -59,6 +59,11 @@
         <button type="button" class="theme-btn" id="btnThemeSystem" onclick="setTheme('system')">💻</button>
       </div>
 
+      <!-- Speaker Voice & Chime Announcements (Default: ON) -->
+      <button type="button" class="theme-btn" id="guestSpeakerToggle" onclick="toggleGuestSpeaker()" title="Toggle voice audio & chime updates" style="display:flex; align-items:center; justify-content:center; padding:5px 8px; border-radius:18px; border:1px solid var(--chip-border); background:var(--chip-bg); color:var(--text); cursor:pointer;">
+        <span id="guestSpeakerIcon">🔊</span>
+      </button>
+
       <!-- Table Badge -->
       <div class="table-badge" id="tableBadgeContainer">
         <div class="table-dot"></div>
@@ -171,10 +176,10 @@
   </div>
 
   <!-- Repeat My Last Order (Case 31) -->
-  <div id="repeatLastOrderBanner" style="display:none; background:#fff7ed; border:1px solid #fed7aa; padding:12px 16px; margin:10px auto; max-width:900px; border-radius:12px; justify-content:space-between; align-items:center;" aria-label="Repeat last order">
+  <div id="repeatLastOrderBanner" class="repeat-order-banner" style="display:none; padding:12px 16px; margin:10px auto; max-width:900px; border-radius:12px; justify-content:space-between; align-items:center;" aria-label="Repeat last order">
     <div>
-      <strong style="color:#c2410c; display:block; font-size:14px;">🔁 Welcome back!</strong>
-      <span id="repeatOrderSummary" style="font-size:12px; color:#6b7280;">Reorder your recent favorites</span>
+      <strong style="color:var(--primary); display:block; font-size:14px;">🔁 Welcome back!</strong>
+      <span id="repeatOrderSummary" style="font-size:12px; color:var(--text-muted);">Reorder your recent favorites</span>
     </div>
     <button onclick="repeatLastOrder()" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" aria-label="Reorder now">Reorder</button>
   </div>
@@ -322,27 +327,27 @@
   <main class="menu-container" id="menuContainer"></main>
 
   <!-- Collapsible About Abiruchi Hotel Panel (Case 7) -->
-  <section class="about-abiruchi-panel" id="aboutPanel" style="max-width:900px; margin:20px auto 100px; background:#fff; border-radius:12px; border:1px solid #e5e7eb; padding:16px;" aria-label="About Abiruchi Hotel">
+  <section class="about-abiruchi-panel" id="aboutPanel" style="max-width:900px; margin:20px auto 100px; padding:16px;" aria-label="About Abiruchi Hotel">
     <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAboutPanel()" role="button" tabindex="0" aria-expanded="false" id="aboutPanelHeader">
-      <h3 style="font-size:16px; font-weight:700; color:#1f2937; margin:0;" id="aboutHotelTitle">About Abiruchi Hotel</h3>
-      <span id="aboutPanelChevron" style="font-size:18px; color:#ea580c; transition:transform 0.2s;">▼</span>
+      <h3 style="font-size:16px; font-weight:700; color:var(--text-title); margin:0;" id="aboutHotelTitle">About Abiruchi Hotel</h3>
+      <span id="aboutPanelChevron" style="font-size:18px; color:var(--primary); transition:transform 0.2s;">▼</span>
     </div>
-    <div id="aboutPanelContent" style="display:none; margin-top:14px; font-size:13px; color:#4b5563; line-height:1.6;">
+    <div id="aboutPanelContent" style="display:none; margin-top:14px; font-size:13px; color:var(--text-muted); line-height:1.6;">
       <p id="aboutStory" style="margin-bottom:10px;">The taste of the land, served smartly.</p>
-      <div style="background:#fff7ed; padding:10px; border-radius:8px; margin-bottom:10px; border-left:4px solid #ea580c;">
-        <strong style="color:#c2410c;">Today's Chef Special:</strong> <span id="aboutTodaySpecial">Gongura Mutton & Rayalaseema Ragi Sangati</span>
+      <div class="about-chef-special" style="padding:10px; border-radius:8px; margin-bottom:10px; border-left:4px solid var(--primary);">
+        <strong style="color:var(--primary);">Today's Chef Special:</strong> <span id="aboutTodaySpecial" style="color:var(--text-title);">Gongura Mutton & Rayalaseema Ragi Sangati</span>
       </div>
       <div style="display:grid; grid-template-columns:1fr; gap:6px; margin-bottom:12px;">
         <div>📍 <strong>Address:</strong> <span id="aboutAddress">12-4-89 Main Road, Near Clock Tower, Anantapur, AP</span></div>
         <div>⏰ <strong>Hours:</strong> <span id="aboutHours">11:00 AM - 11:00 PM (Daily)</span></div>
-        <div>📞 <strong>Phone:</strong> <a id="aboutPhone" href="tel:+919876543210" style="color:#ea580c; text-decoration:none;">+91 9876543210</a></div>
-        <div>🗺️ <a id="aboutMapLink" href="https://maps.google.com" target="_blank" rel="noopener" style="color:#ea580c; font-weight:600; text-decoration:underline;">View on Google Maps</a></div>
+        <div>📞 <strong>Phone:</strong> <a id="aboutPhone" href="tel:+919876543210" style="color:var(--primary); text-decoration:none;">+91 9876543210</a></div>
+        <div>🗺️ <a id="aboutMapLink" href="https://maps.google.com" target="_blank" rel="noopener" style="color:var(--primary); font-weight:600; text-decoration:underline;">View on Google Maps</a></div>
       </div>
-      <div style="font-size:11px; color:#9ca3af; border-top:1px solid #f3f4f6; padding-top:8px;">
+      <div style="font-size:11px; color:var(--text-muted); border-top:1px solid var(--divider); padding-top:8px;">
         <span>GSTIN: <span id="aboutGstin">37AAAAA0000A1Z5</span></span> | <span>FSSAI Lic: <span id="aboutFssai">10123999000123</span></span>
       </div>
       <div style="margin-top:12px; text-align:right;">
-        <button onclick="forgetGuestSession()" style="background:none; border:1px solid #e5e7eb; color:#9ca3af; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;" aria-label="Forget my device data">🔒 Forget My Device Data</button>
+        <button onclick="forgetGuestSession()" class="forget-session-btn" style="background:var(--surface); border:1px solid var(--chip-border); color:var(--text-muted); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;" aria-label="Forget my device data">🔒 Forget My Device Data</button>
       </div>
     </div>
   </section>
@@ -616,11 +621,13 @@
       </div>
 
       <!-- QR & Intent Box -->
-      <div id="upiStep1Box" style="background:#fff; border-radius:12px; padding:14px; text-align:center; margin-bottom:12px; border:1px solid var(--border);">
-        <div style="font-size:0.85rem; color:#64748b; font-weight:700;">Exact Payable Amount</div>
-        <div id="upiPayableAmount" style="font-size:1.8rem; font-weight:900; color:#0f172a; margin:4px 0;">₹0.00</div>
+      <div id="upiStep1Box" class="upi-step-box" style="background:var(--surface); border-radius:12px; padding:14px; text-align:center; margin-bottom:12px; border:1px solid var(--chip-border);">
+        <div style="font-size:0.85rem; color:var(--text-muted); font-weight:700;">Exact Payable Amount</div>
+        <div id="upiPayableAmount" style="font-size:1.8rem; font-weight:900; color:var(--text-title); margin:4px 0;">₹0.00</div>
         <div style="display:flex; justify-content:center; margin:10px 0;">
-          <img id="upiModalQrImg" src="" alt="UPI QR Code" style="width:160px; height:160px; border-radius:10px; border:2px solid #e2e8f0; padding:6px; background:#fff;" />
+          <div class="qr-quiet-frame" style="background:#ffffff; padding:8px; border-radius:12px; border:2px solid var(--chip-border); display:inline-flex;">
+            <img id="upiModalQrImg" src="" alt="UPI QR Code" style="width:150px; height:150px; display:block;" />
+          </div>
         </div>
         <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:8px;">
           <a id="upiModalIntentBtn" href="#" style="background:var(--primary); color:#fff; text-decoration:none; padding:10px 16px; border-radius:8px; font-weight:800; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
@@ -633,33 +640,37 @@
             📋 Copy Order Ref
           </button>
         </div>
-        <div style="font-size:0.75rem; color:#dc2626; margin-top:10px; font-weight:600; background:#fef2f2; padding:6px 10px; border-radius:6px;">
+        <div class="upi-warning-box" style="font-size:0.75rem; margin-top:10px; font-weight:600; padding:8px 10px; border-radius:8px;">
           ⚠️ Opening your UPI app does not complete your order. Return here to submit your UTR / reference number below.
         </div>
       </div>
 
       <!-- Payment Confirmation Form -->
-      <div id="upiStep2Box" style="background:var(--card-bg, #fff); border-radius:12px; padding:14px; border:1px solid var(--border); margin-bottom:12px;">
+      <div id="upiStep2Box" class="upi-step-box" style="background:var(--surface); border-radius:12px; padding:14px; border:1px solid var(--chip-border); margin-bottom:12px;">
         <div style="font-size:0.9rem; font-weight:800; margin-bottom:10px; color:var(--text-title);">Submit Payment Details for Verification</div>
         <div style="display:flex; flex-direction:column; gap:10px;">
           <div>
             <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">UPI Reference / UTR (12 Digits or Bank Ref) *</label>
-            <input type="text" id="upiUtrInput" placeholder="e.g. 412345678901" style="width:100%; padding:10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.95rem; font-weight:700; font-family:monospace;" aria-label="UPI Transaction Reference or UTR" required>
+            <input type="text" id="upiUtrInput" placeholder="e.g. 412345678901" style="width:100%; padding:10px; background:var(--bg); color:var(--text); border:1px solid var(--chip-border); border-radius:8px; font-size:0.95rem; font-weight:700; font-family:monospace;" aria-label="UPI Transaction Reference or UTR" required>
           </div>
           <div>
             <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Amount Paid (₹) *</label>
-            <input type="number" id="upiAmountPaidInput" step="0.01" style="width:100%; padding:10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.95rem; font-weight:700;" aria-label="Amount Paid in INR" readonly>
+            <input type="number" id="upiAmountPaidInput" step="0.01" style="width:100%; padding:10px; background:var(--bg); color:var(--text); border:1px solid var(--chip-border); border-radius:8px; font-size:0.95rem; font-weight:700;" aria-label="Amount Paid in INR" readonly>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
             <div>
               <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Customer Name</label>
-              <input type="text" id="upiCustomerNameInput" placeholder="Your Name" style="width:100%; padding:8px 10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.85rem;" aria-label="Customer Name">
+              <input type="text" id="upiCustomerNameInput" placeholder="Your Name" style="width:100%; padding:8px 10px; background:var(--bg); color:var(--text); border:1px solid var(--chip-border); border-radius:8px; font-size:0.85rem;" aria-label="Customer Name">
             </div>
             <div>
               <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Phone Number</label>
-              <input type="tel" id="upiCustomerPhoneInput" placeholder="10-digit mobile" style="width:100%; padding:8px 10px; border:1px solid var(--chip-border, #cbd5e1); border-radius:8px; font-size:0.85rem;" aria-label="Customer Phone Number">
+              <input type="tel" id="upiCustomerPhoneInput" placeholder="10-digit mobile" style="width:100%; padding:8px 10px; background:var(--bg); color:var(--text); border:1px solid var(--chip-border); border-radius:8px; font-size:0.85rem;" aria-label="Customer Phone Number">
             </div>
           </div>
+          <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text-muted); cursor:pointer; margin-top:2px;">
+            <input type="checkbox" id="rememberMeGuest" checked style="accent-color:var(--primary); cursor:pointer;">
+            <span>Remember my name & phone on this device</span>
+          </label>
           <button id="upiSubmitRefBtn" class="submit-order-btn" onclick="submitUpiPaymentReferenceAction()" style="margin-top:6px;">
             ✓ Submit Payment Details
           </button>
@@ -667,16 +678,16 @@
       </div>
 
       <!-- Post-Submission Waiting & WhatsApp Status -->
-      <div id="upiStep3Box" style="display:none; background:rgba(38,126,62,0.06); border:1px solid rgba(38,126,62,0.3); border-radius:12px; padding:14px; text-align:center;">
+      <div id="upiStep3Box" style="display:none; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:14px; text-align:center;">
         <div style="font-size:1.2rem; margin-bottom:6px;">⏳</div>
-        <div id="upiStatusBadge" style="font-weight:800; color:#267e3e; font-size:0.95rem; margin-bottom:6px;">Payment details submitted. Your order is waiting for manager verification.</div>
+        <div id="upiStatusBadge" style="font-weight:800; color:var(--accent); font-size:0.95rem; margin-bottom:6px;">Payment details submitted. Your order is waiting for manager verification.</div>
         <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">The manager will verify your transaction reference against the bank account.</div>
 
         <a id="upiWhatsAppBtn" href="#" target="_blank" style="display:none; background:#25D366; color:#fff; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:800; font-size:0.9rem; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;">
           💬 Send Payment Details on WhatsApp
         </a>
 
-        <div id="upiRejectionAlert" style="display:none; background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; border-radius:8px; padding:10px; font-size:0.85rem; font-weight:700; margin-top:8px;"></div>
+        <div id="upiRejectionAlert" class="upi-reject-alert" style="display:none; border-radius:8px; padding:10px; font-size:0.85rem; font-weight:700; margin-top:8px;"></div>
       </div>
     </div>
   </div>

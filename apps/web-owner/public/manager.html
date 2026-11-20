@@ -408,6 +408,7 @@
       <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
       <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+      <button id="mgrSpeakerToggle" class="nav-link" onclick="toggleManagerSpeaker()" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.4); color:#34d399; font-weight:700;" aria-label="Toggle speaker notifications">🔊 Speaker: ON</button>
     </div>
   </nav>
 
@@ -2013,6 +2014,116 @@
       }
     }
 
+    // ========================================================================
+    // Manager Speaker Sound Chimes, Voice Announcements & Real-Time SSE
+    // ========================================================================
+    let mgrSpeakerEnabled = localStorage.getItem('servora_mgr_speaker') !== null
+      ? localStorage.getItem('servora_mgr_speaker') === 'true'
+      : true; // DEFAULT ON
+
+    function syncManagerSpeakerUI() {
+      const btn = document.getElementById('mgrSpeakerToggle');
+      if (!btn) return;
+      if (mgrSpeakerEnabled) {
+        btn.textContent = '🔊 Speaker: ON';
+        btn.style.background = 'rgba(16,185,129,0.18)';
+        btn.style.borderColor = 'rgba(16,185,129,0.4)';
+        btn.style.color = '#34d399';
+      } else {
+        btn.textContent = '🔇 Speaker: OFF';
+        btn.style.background = 'rgba(255,255,255,0.06)';
+        btn.style.borderColor = 'rgba(255,255,255,0.15)';
+        btn.style.color = 'var(--text-muted)';
+      }
+    }
+
+    function toggleManagerSpeaker() {
+      mgrSpeakerEnabled = !mgrSpeakerEnabled;
+      localStorage.setItem('servora_mgr_speaker', String(mgrSpeakerEnabled));
+      syncManagerSpeakerUI();
+      if (mgrSpeakerEnabled) {
+        playManagerChime('notification');
+        speakManagerAnnouncement('Manager speaker announcements enabled.');
+      }
+    }
+
+    function playManagerChime(type = 'notification') {
+      if (!mgrSpeakerEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'alert') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.4);
+        } else {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12);
+          osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.24);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    function speakManagerAnnouncement(text) {
+      if (!mgrSpeakerEnabled) return;
+      if ('speechSynthesis' in window) {
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          u.rate = 1.05;
+          u.pitch = 1.0;
+          window.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+    }
+
+    let mgrEventSeq = 0;
+    function initManagerRealtime() {
+      if (!window.EventSource) return;
+      try {
+        const sse = new EventSource(`/api/v1/events?sinceSeq=${mgrEventSeq}`);
+        sse.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.seq) mgrEventSeq = Math.max(mgrEventSeq, data.seq);
+
+            if (data.type === 'NEW_ORDER' || data.type === 'ORDER_CREATED') {
+              playManagerChime('notification');
+              speakManagerAnnouncement(`New order for table ${data.payload.tableNumber || data.payload.table || ''}`);
+              loadTokens();
+            } else if (data.type === 'PAYMENT_SUBMITTED') {
+              playManagerChime('alert');
+              speakManagerAnnouncement('Payment submitted for verification');
+              loadUpiVerifications();
+            } else if (data.type === 'CALL_WAITER') {
+              playManagerChime('alert');
+              speakManagerAnnouncement(`Waiter assistance requested at table ${data.payload.table || ''}`);
+              loadCalls();
+            } else if (data.type === 'BILL_REQUESTED') {
+              playManagerChime('alert');
+              speakManagerAnnouncement(`Bill requested at table ${data.payload.table || ''}`);
+              loadCalls();
+            }
+          } catch (e) {}
+        };
+      } catch (e) {}
+    }
+
+    syncManagerSpeakerUI();
+    initManagerRealtime();
     renderCreateTablesPicker();
     generateSecurePassword();
   </script>

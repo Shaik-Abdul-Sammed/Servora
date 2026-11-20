@@ -123,9 +123,27 @@
     }
     .btn-print { background: #ff6600; color: #fff; }
     .btn-wa { background: #22c55e; color: #fff; text-decoration: none; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #090d16; color: #f8fafc; }
+      .receipt-container { background: #161b22; border-color: rgba(255, 255, 255, 0.12); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+      .header, .totals-box { border-bottom-color: rgba(255, 255, 255, 0.12); border-top-color: rgba(255, 255, 255, 0.12); }
+      .meta-row { color: #cbd5e1; }
+      .items-table th { border-bottom-color: rgba(255, 255, 255, 0.12); color: #94a3b8; }
+      .items-table td { color: #f8fafc; }
+      .grand-total { color: #f8fafc; border-top-color: rgba(255, 255, 255, 0.12); }
+      .tagline, .tax-license, .footer-msg { color: #94a3b8; }
+    }
+    [data-theme="dark"] body { background: #090d16; color: #f8fafc; }
+    [data-theme="dark"] .receipt-container { background: #161b22; border-color: rgba(255, 255, 255, 0.12); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    [data-theme="dark"] .header, [data-theme="dark"] .totals-box { border-bottom-color: rgba(255, 255, 255, 0.12); border-top-color: rgba(255, 255, 255, 0.12); }
+    [data-theme="dark"] .meta-row { color: #cbd5e1; }
+    [data-theme="dark"] .items-table th { border-bottom-color: rgba(255, 255, 255, 0.12); color: #94a3b8; }
+    [data-theme="dark"] .items-table td { color: #f8fafc; }
+    [data-theme="dark"] .grand-total { color: #f8fafc; border-top-color: rgba(255, 255, 255, 0.12); }
+    [data-theme="dark"] .tagline, [data-theme="dark"] .tax-license, [data-theme="dark"] .footer-msg { color: #94a3b8; }
     @media print {
-      body { background: #fff; padding: 0; }
-      .receipt-container { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+      body { background: #fff !important; color: #000 !important; padding: 0; }
+      .receipt-container { background: #fff !important; color: #000 !important; border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
       .btn-group { display: none; }
     }
   </style>
@@ -199,6 +217,9 @@
   </div>
 
   <script>
+    const savedTheme = localStorage.getItem('abiruchi_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('orderId') || 'ord_demo_001';
 

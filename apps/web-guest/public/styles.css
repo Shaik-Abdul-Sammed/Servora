@@ -1170,6 +1170,11 @@ header {
   color: #f0f6fc !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #8b949e !important;
+  opacity: 1;
+}
 [data-theme="dark"] .bottom-sheet {
   background: #161b22 !important;
   color: #f0f6fc !important;
@@ -1189,6 +1194,57 @@ header {
   background: #21262d !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: #4ade80 !important;
+}
+.about-abiruchi-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+.about-chef-special {
+  background: #fff7ed;
+  border-left: 4px solid var(--primary);
+  color: #c2410c;
+}
+[data-theme="dark"] .about-chef-special {
+  background: rgba(251, 146, 60, 0.12) !important;
+  color: #fdba74 !important;
+}
+.repeat-order-banner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+[data-theme="dark"] .repeat-order-banner {
+  background: rgba(254, 215, 170, 0.08) !important;
+  border-color: rgba(254, 215, 170, 0.25) !important;
+  color: #fdba74 !important;
+}
+.upi-step-box {
+  background: var(--surface);
+  border: 1px solid var(--chip-border);
+  color: var(--text);
+}
+.upi-warning-box {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+[data-theme="dark"] .upi-warning-box {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+.upi-reject-alert {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+}
+[data-theme="dark"] .upi-reject-alert {
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
 }
 
 /* ==========================================================================
