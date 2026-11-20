@@ -71,7 +71,7 @@
       <!-- Table Badge -->
       <div class="table-badge" id="tableBadgeContainer">
         <div class="table-dot"></div>
-        <span id="tableBadge">Table 14</span>
+        <span id="tableBadge">Dine-In</span>
       </div>
 
       <!-- Table Reservation Link -->
@@ -85,8 +85,13 @@
       </button>
 
       <!-- Optional Profile / Preferences Button -->
-      <button type="button" onclick="openLoginModal()" class="header-action-btn" title="Guest Account Profile">
-        👤 <span class="hide-mobile" id="userLoginLabel">Guest</span>
+      <button type="button" onclick="openLoginModal()" class="header-action-btn" id="headerLoginBtn" title="Guest Account & Sign In">
+        👤 <span class="hide-mobile" id="userLoginLabel">Sign In</span>
+      </button>
+
+      <!-- Logout Button (Shown when logged in) -->
+      <button type="button" onclick="handleLogout()" class="header-action-btn" id="headerLogoutBtn" style="display:none; color:#ef4444;" title="Sign Out">
+        🚪 <span class="hide-mobile">Logout</span>
       </button>
 
       <!-- Multilingual Dropdown (English, Telugu, Hindi) -->
@@ -282,28 +287,44 @@
     </div>
   </div>
 
-  <!-- Real-Time Food Shift & Daypart Filtering Bar -->
+  <!-- Real-Time Food Shift & Daypart Filtering Bar (Responsive Dropdowns - No Button Overflow) -->
   <div class="shift-filter-container">
-    <div class="shift-filter-row">
-      <span id="liveClockBadge" class="live-clock-badge">🕒 <span id="clockText">--:--</span> • <span id="currentShiftText">Loading...</span></span>
-      <button class="shift-chip active" id="shiftChipNow" onclick="filterByShift('NOW', this)">
-        <span>⏰ Available Now</span>
-      </button>
-      <button class="shift-chip" id="shiftChipBreakfast" onclick="filterByShift('BREAKFAST', this)">
-        <span>🌅 Breakfast (06:00-11:30)</span>
-      </button>
-      <button class="shift-chip" id="shiftChipLunch" onclick="filterByShift('LUNCH', this)">
-        <span>🍛 Lunch (11:00-16:30)</span>
-      </button>
-      <button class="shift-chip" id="shiftChipSnacks" onclick="filterByShift('SNACKS', this)">
-        <span>☕ Snacks (15:00-23:00)</span>
-      </button>
-      <button class="shift-chip" id="shiftChipDinner" onclick="filterByShift('DINNER', this)">
-        <span>🌙 Dinner (18:00-23:59)</span>
-      </button>
-      <button class="shift-chip" id="shiftChipAll" onclick="filterByShift('ALL', this)">
-        <span>✨ All Items</span>
-      </button>
+    <div class="filter-controls-row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; width:100%; max-width:900px; margin:0 auto;">
+      <span id="liveClockBadge" class="live-clock-badge" style="white-space:nowrap;">🕒 <span id="clockText">--:--</span> • <span id="currentShiftText">Loading...</span></span>
+
+      <!-- Meal Timings Dropdown -->
+      <div style="flex:1; min-width:150px;">
+        <select id="shiftFilterSelect" class="filter-dropdown" onchange="filterByShift(this.value, this)" aria-label="Meal timing filter">
+          <option value="NOW" id="shiftChipNow">⏰ Available Now</option>
+          <option value="BREAKFAST" id="shiftChipBreakfast">🌅 Breakfast (06:00 - 11:30)</option>
+          <option value="LUNCH" id="shiftChipLunch">🍛 Lunch (11:00 - 16:30)</option>
+          <option value="SNACKS" id="shiftChipSnacks">☕ Snacks (15:00 - 23:00)</option>
+          <option value="DINNER" id="shiftChipDinner">🌙 Dinner (18:00 - 23:59)</option>
+          <option value="ALL" id="shiftChipAll">✨ All Items (Full Menu)</option>
+        </select>
+      </div>
+
+      <!-- Sort by Cost & Mostly Ordered Dropdown -->
+      <div style="flex:1; min-width:150px;">
+        <select id="menuSortSelect" class="filter-dropdown" onchange="applyMenuSort(this.value)" aria-label="Sort dishes">
+          <option value="DEFAULT">⭐ Mostly Ordered (Popular)</option>
+          <option value="PRICE_ASC">💰 Cost: Low to High</option>
+          <option value="PRICE_DESC">💎 Cost: High to Low</option>
+          <option value="NAME_ASC">🔤 Name: A to Z</option>
+          <option value="PREP_TIME">⚡ Fast Prep Time (~10 mins)</option>
+        </select>
+      </div>
+
+      <!-- Quick Dietary Preference Dropdown -->
+      <div style="flex:0.8; min-width:130px;">
+        <select id="dietaryFilterSelect" class="filter-dropdown" onchange="applyDietaryFilter(this.value)" aria-label="Dietary preference">
+          <option value="ALL">🥗 All Diets</option>
+          <option value="VEG">🟢 Pure Veg</option>
+          <option value="NON_VEG">🔴 Non-Veg</option>
+          <option value="BESTSELLER">⭐ Bestseller</option>
+          <option value="GLUTEN_FREE">🌾 Gluten-Free</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -514,7 +535,13 @@
         <button type="button" class="opt-pill" style="flex:1; padding:10px; text-align:center; font-weight:700;" onclick="openPreBillModal()">🧾 <span id="cartViewBillLabel">View Pre-Bill</span></button>
       </div>
 
-      <button id="submitOrderBtn" class="submit-order-btn" onclick="handlePreOrderCheckout()">Send Order to Kitchen →</button>
+      <!-- Payment & Kitchen Submit Buttons -->
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button id="payNowBtn" class="submit-order-btn" style="background:#16a34a; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="handleInstantPayment()">
+          <span>💳 Pay Bill / Prepay via UPI (<span id="payNowAmountText">₹0</span>)</span>
+        </button>
+        <button id="submitOrderBtn" class="submit-order-btn" onclick="handlePreOrderCheckout()">Send Order to Kitchen →</button>
+      </div>
     </div>
   </div>
 
@@ -740,16 +767,37 @@
     </div>
   </div>
 
-  <!-- Guest Mobile OTP Login Modal (Indian +91 Phone Format) -->
+  <!-- Guest Mobile OTP Login & Account Modal -->
   <div id="loginModal" class="sheet-overlay" onclick="closeOnBackdrop(event, 'loginModal')">
-    <div class="bottom-sheet">
+    <div class="bottom-sheet" style="max-width:480px;">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
-        <h3 class="sheet-title">Guest Sign In & Preferences</h3>
+        <h3 class="sheet-title" id="loginModalTitle">Guest Account & Sign In</h3>
         <button class="sheet-close" onclick="closeLoginModal()">✕</button>
       </div>
+
+      <!-- Logged In Profile View -->
+      <div id="loggedInProfileSection" style="display:none; text-align:center; padding:12px 0;">
+        <div style="font-size:2.8rem; margin-bottom:8px;">👤</div>
+        <h3 style="font-size:1.15rem; font-weight:900; color:var(--text-title);" id="loggedInGuestName">Valued Guest</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;" id="loggedInGuestPhone">+91 ••••• •••••</p>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+          <button type="button" class="opt-pill" style="padding:10px; text-align:center; font-weight:700;" onclick="closeLoginModal(); openHistoryModal();">
+            📋 View My Order History
+          </button>
+          <button type="button" class="opt-pill" style="padding:10px; text-align:center; font-weight:700;" onclick="togglePrefsView()">
+            ⚙️ Dietary Preferences
+          </button>
+          <button type="button" class="submit-order-btn" style="background:#dc2626; color:#fff;" onclick="handleLogout()">
+            🚪 Log Out of Account
+          </button>
+        </div>
+      </div>
+
+      <!-- Logged Out Mobile OTP Step -->
       <div id="loginOtpStep">
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Sign in with your Indian mobile number to save your favorite dishes, spice levels, and dietary preferences.</p>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">Sign in with your Indian mobile number to save your favorite dishes, spice levels, and order history.</p>
         <div style="margin-bottom:14px;">
           <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Indian Mobile Number</label>
           <div style="display:flex; gap:8px; margin-top:4px;">
@@ -764,6 +812,8 @@
         <button id="sendOtpBtn" class="submit-order-btn" onclick="requestGuestOTP()">Send OTP</button>
         <button id="verifyOtpBtn" class="submit-order-btn" onclick="verifyGuestOTP()" style="display:none;">Verify &amp; Sign In</button>
       </div>
+
+      <!-- Preferences Step -->
       <div id="prefsStep" style="display:none;">
         <div style="margin-bottom:14px;">
           <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Dietary & Allergies</label>
@@ -774,6 +824,17 @@
           </div>
         </div>
         <button class="submit-order-btn" onclick="saveGuestPreferences()">Save Preferences</button>
+      </div>
+
+      <!-- Staff & Management Portal Shortcuts -->
+      <div style="border-top:1px dashed var(--chip-border); margin-top:16px; padding-top:12px;">
+        <div style="font-size:0.72rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Staff &amp; Operator Access</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.78rem;">
+          <a href="/waiter" style="padding:8px; background:var(--surface); border:1px solid var(--card-border); border-radius:8px; text-decoration:none; color:var(--text); font-weight:700; text-align:center;">🤵 Waiter App</a>
+          <a href="/owner" style="padding:8px; background:var(--surface); border:1px solid var(--card-border); border-radius:8px; text-decoration:none; color:var(--text); font-weight:700; text-align:center;">👔 Manager Portal</a>
+          <a href="/kds" style="padding:8px; background:var(--surface); border:1px solid var(--card-border); border-radius:8px; text-decoration:none; color:var(--text); font-weight:700; text-align:center;">🍳 Kitchen KDS</a>
+          <a href="/admin" style="padding:8px; background:var(--surface); border:1px solid var(--card-border); border-radius:8px; text-decoration:none; color:var(--text); font-weight:700; text-align:center;">⚡ Super-Admin</a>
+        </div>
       </div>
     </div>
   </div>
@@ -831,7 +892,17 @@
         </p>
       </div>
 
-      <button class="submit-order-btn" id="dishModalAddBtn" onclick="addCurrentModalDishToCart()">Add to Order</button>
+      <!-- Quantity Selection & Add to Order -->
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--chip-border); border-radius:12px; padding:6px 12px;">
+          <button type="button" class="step-btn" onclick="adjustModalDishQty(-1)" style="width:36px; height:36px; font-size:1.2rem; font-weight:900; border-radius:8px; background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--text); cursor:pointer;">−</button>
+          <span id="dishModalQtyDisplay" style="font-size:1.1rem; font-weight:900; min-width:28px; text-align:center; color:var(--text-title);">1</span>
+          <button type="button" class="step-btn" onclick="adjustModalDishQty(1)" style="width:36px; height:36px; font-size:1.2rem; font-weight:900; border-radius:8px; background:var(--primary); color:#fff; border:none; cursor:pointer;">+</button>
+        </div>
+        <button class="submit-order-btn" id="dishModalAddBtn" onclick="addCurrentModalDishToCart()" style="flex:1; margin:0;">
+          Add to Order • <span id="dishModalTotalPrice">₹0</span>
+        </button>
+      </div>
     </div>
   </div>
 

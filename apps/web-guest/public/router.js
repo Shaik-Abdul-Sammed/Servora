@@ -48,11 +48,13 @@
         if (route.mode === 'TOKEN') {
           tableBadge.textContent = 'Counter / Token Pickup';
         } else if (route.mode === 'BOOKING') {
-          tableBadge.textContent = route.bookingId ? 'Reserved Table' : 'Table Reservation';
+          tableBadge.textContent = route.bookingId ? `Reserved (Ref: ${route.bookingId})` : 'Reserve a Table';
         } else if (route.mode === 'MENU_ONLY') {
           tableBadge.textContent = 'Digital Menu (Browse)';
         } else if (route.tableNumber) {
           tableBadge.textContent = `Table ${route.tableNumber}`;
+        } else {
+          tableBadge.textContent = 'Dine-In (Table Not Set)';
         }
       }
 

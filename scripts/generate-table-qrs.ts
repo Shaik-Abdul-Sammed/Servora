@@ -9,7 +9,7 @@ import { createSignedQRSession } from '../packages/utils/src/qr-crypto.ts';
 const TENANT_ID = process.env.TENANT_ID || 'a0000000-0000-0000-0000-000000000001';
 const OUTLET_ID = process.env.OUTLET_ID || 'b0000000-0000-0000-0000-000000000001';
 const SECRET_KEY = process.env.QR_SIGNING_SALT || 'abiruchi-dev-qr-secret-key-32-bytes-min';
-const BASE_URL = process.env.ABIRUCHI HOTEL_PUBLIC_URL || 'https://order.abiruchi.local';
+const BASE_URL = process.env.ABIRUCHI_HOTEL_PUBLIC_URL || process.env.SERVORA_PUBLIC_URL || 'https://order.abiruchi.local';
 
 const tables = [
   { id: 'c0000000-0000-0000-0000-000000000001', number: 'T-01', cap: 2, zone: 'Main Dining' },

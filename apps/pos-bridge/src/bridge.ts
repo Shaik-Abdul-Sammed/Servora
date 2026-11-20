@@ -1,7 +1,7 @@
 import { ThermalReceiptFormatter } from './printer.ts';
 import type { ServerEvent, Order } from '../../../packages/shared-types/src/index.ts';
 
-const CLOUD_URL = process.env.ABIRUCHI HOTEL_API_URL || 'http://localhost:3001';
+const CLOUD_URL = process.env.ABIRUCHI_HOTEL_API_URL || process.env.SERVORA_API_URL || 'http://localhost:3001';
 
 export class POSBridgeDaemon {
   private active = false;

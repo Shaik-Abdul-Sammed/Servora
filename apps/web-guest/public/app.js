@@ -448,12 +448,38 @@ function updateLiveClock() {
   if (shiftEl) shiftEl.textContent = shiftName;
 }
 
+let currentSortOrder = 'DEFAULT';
+
 function filterByShift(shiftKey, btn) {
   currentShiftFilter = shiftKey;
+  const select = document.getElementById('shiftFilterSelect');
+  if (select && select.value !== shiftKey) select.value = shiftKey;
   document.querySelectorAll('.shift-chip').forEach(c => c.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  if (btn && btn.classList) btn.classList.add('active');
   renderMenu();
 }
+window.filterByShift = filterByShift;
+
+function applyMenuSort(sortKey) {
+  currentSortOrder = sortKey || 'DEFAULT';
+  const select = document.getElementById('menuSortSelect');
+  if (select && select.value !== currentSortOrder) select.value = currentSortOrder;
+  renderMenu();
+}
+window.applyMenuSort = applyMenuSort;
+
+function applyDietaryFilter(diet) {
+  currentDietaryFilter = diet || 'ALL';
+  const select = document.getElementById('dietaryFilterSelect');
+  if (select && select.value !== currentDietaryFilter) select.value = currentDietaryFilter;
+  document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => b.classList.remove('active', 'active-veg', 'active-nonveg'));
+  if (diet === 'ALL') document.getElementById('filterAllBtn')?.classList.add('active');
+  if (diet === 'VEG') document.getElementById('filterVegBtn')?.classList.add('active-veg');
+  if (diet === 'NON_VEG') document.getElementById('filterNonVegBtn')?.classList.add('active-nonveg');
+  if (diet === 'BESTSELLER') document.getElementById('filterBestsellerBtn')?.classList.add('active');
+  renderMenu();
+}
+window.applyDietaryFilter = applyDietaryFilter;
 
 function setViewMode(mode) {
   currentViewMode = mode;
@@ -466,6 +492,7 @@ function setViewMode(mode) {
   }
   renderMenu();
 }
+window.setViewMode = setViewMode;
 
 // ==========================================================================
 // Abiruchi Hotel Food Presentation (Compact 2-Col Grid & Detailed List)
@@ -483,7 +510,7 @@ function renderMenu() {
   } else if (currentDietaryFilter === 'NON_VEG') {
     displayList = displayList.filter(i => i.dietaryType === 'NON_VEG' || !i.dietaryType);
   } else if (currentDietaryFilter === 'BESTSELLER') {
-    displayList = displayList.filter((_, idx) => idx % 2 === 0);
+    displayList = displayList.filter(i => (i.tags && i.tags.includes('bestseller')) || i.basePriceCents > 8000);
   } else if (currentDietaryFilter === 'GLUTEN_FREE') {
     displayList = displayList.filter(i => !(i.allergens || []).includes('GLUTEN'));
   }
@@ -515,6 +542,24 @@ function renderMenu() {
       const from = timeStringToMinutes(i.servingFrom || '18:00');
       const until = timeStringToMinutes(i.servingUntil || '23:59');
       return from <= 1439 && until >= 1080; // Overlaps 18:00 - 23:59
+    });
+  }
+
+  // 3. Cost and Popularity Sorting
+  if (currentSortOrder === 'PRICE_ASC') {
+    displayList.sort((a, b) => a.basePriceCents - b.basePriceCents);
+  } else if (currentSortOrder === 'PRICE_DESC') {
+    displayList.sort((a, b) => b.basePriceCents - a.basePriceCents);
+  } else if (currentSortOrder === 'NAME_ASC') {
+    displayList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  } else if (currentSortOrder === 'PREP_TIME') {
+    displayList.sort((a, b) => (a.prepTimeMinutes || 15) - (b.prepTimeMinutes || 15));
+  } else if (currentSortOrder === 'DEFAULT') {
+    // Mostly ordered / bestsellers first
+    displayList.sort((a, b) => {
+      const aBest = (a.tags && a.tags.includes('bestseller')) ? 1 : 0;
+      const bBest = (b.tags && b.tags.includes('bestseller')) ? 1 : 0;
+      return bBest - aBest;
     });
   }
 
@@ -732,6 +777,7 @@ function updateCartUI() {
   if (document.getElementById('sumTip')) document.getElementById('sumTip').textContent = formatINR(tipCents);
   if (document.getElementById('sumDiscount')) document.getElementById('sumDiscount').textContent = `-${formatINR(discountCents)}`;
   if (document.getElementById('sumTotal')) document.getElementById('sumTotal').textContent = formatINR(totalCents);
+  if (document.getElementById('payNowAmountText')) document.getElementById('payNowAmountText').textContent = formatINR(totalCents);
 }
 
 // Modal Handlers
@@ -748,7 +794,21 @@ function setPaymentMethod(btn, method) {
   });
   btn.classList.add('active');
   paymentMethod = method;
+
+  const payBtn = document.getElementById('payNowBtn');
+  const submitBtn = document.getElementById('submitOrderBtn');
+  if (method === 'UPI') {
+    if (payBtn) payBtn.style.display = 'flex';
+    if (submitBtn) submitBtn.textContent = 'Send Order to Kitchen & Pay via UPI →';
+  } else if (method === 'CASH') {
+    if (payBtn) payBtn.style.display = 'none';
+    if (submitBtn) submitBtn.textContent = 'Send Order to Kitchen & Pay Cash at Counter →';
+  } else if (method === 'CARD') {
+    if (payBtn) payBtn.style.display = 'none';
+    if (submitBtn) submitBtn.textContent = 'Send Order to Kitchen & Pay via Card →';
+  }
 }
+window.setPaymentMethod = setPaymentMethod;
 
 // Group O Gratuity Handlers
 function setTipPreset(btn, pct) {
@@ -1101,8 +1161,27 @@ function printBillPreview() {
 
 function initiateUpiFromBill() {
   closeBillPreviewModal();
-  openCartModal();
+  if (currentBillOrderId) {
+    openUpiPrepaymentModal(currentBillOrderId);
+  } else if (cart.length > 0) {
+    openCartModal();
+  } else {
+    showToast('No active order or items in cart to pay.');
+  }
 }
+window.initiateUpiFromBill = initiateUpiFromBill;
+
+async function handleInstantPayment() {
+  if (cart.length > 0) {
+    paymentMethod = 'UPI';
+    await handlePreOrderCheckout();
+  } else if (currentBillOrderId) {
+    openUpiPrepaymentModal(currentBillOrderId);
+  } else {
+    showToast('Cart is empty. Please select food items first.');
+  }
+}
+window.handleInstantPayment = handleInstantPayment;
 
 // ==========================================================================
 // Water Bottle Checkout Flow
@@ -1585,8 +1664,87 @@ async function submitReviewAction() {
   showToast('Thank you for your valuable feedback!');
 }
 
-// Optional Guest Profile / Phone
-function openLoginModal() { document.getElementById('loginModal')?.classList.add('active'); }
+// Guest Profile, Sign In & Sign Out System
+function updateLoginStateUI() {
+  const phone = localStorage.getItem('abiruchi_guest_phone');
+  const name = localStorage.getItem('abiruchi_guest_name');
+  const userLabel = document.getElementById('userLoginLabel');
+  const logoutBtn = document.getElementById('headerLogoutBtn');
+  const profileSection = document.getElementById('loggedInProfileSection');
+  const otpSection = document.getElementById('loginOtpStep');
+  const prefsSection = document.getElementById('prefsStep');
+  const guestPhoneEl = document.getElementById('loggedInGuestPhone');
+  const guestNameEl = document.getElementById('loggedInGuestName');
+
+  if (phone) {
+    if (userLabel) userLabel.textContent = name || `+91 ${phone.slice(-4)}`;
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (profileSection) profileSection.style.display = 'block';
+    if (otpSection) otpSection.style.display = 'none';
+    if (prefsSection) prefsSection.style.display = 'none';
+    if (guestPhoneEl) guestPhoneEl.textContent = `+91 ${phone}`;
+    if (guestNameEl) guestNameEl.textContent = name || 'Valued Guest';
+  } else {
+    if (userLabel) userLabel.textContent = 'Sign In';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (profileSection) profileSection.style.display = 'none';
+    if (otpSection) otpSection.style.display = 'block';
+    if (prefsSection) prefsSection.style.display = 'none';
+  }
+}
+window.updateLoginStateUI = updateLoginStateUI;
+
+function togglePrefsView() {
+  const profileSection = document.getElementById('loggedInProfileSection');
+  const prefsSection = document.getElementById('prefsStep');
+  if (prefsSection && profileSection) {
+    const isShowingPrefs = prefsSection.style.display === 'block';
+    prefsSection.style.display = isShowingPrefs ? 'none' : 'block';
+    profileSection.style.display = isShowingPrefs ? 'block' : 'none';
+  }
+}
+window.togglePrefsView = togglePrefsView;
+
+function handleLogout() {
+  localStorage.removeItem('abiruchi_guest_phone');
+  localStorage.removeItem('abiruchi_guest_name');
+  localStorage.removeItem('abiruchi_token');
+  localStorage.removeItem('abiruchi_session');
+  showToast('✓ Successfully logged out');
+  updateLoginStateUI();
+  closeLoginModal();
+}
+window.handleLogout = handleLogout;
+
+function switchCustomerJourney(journey) {
+  currentJourney = journey;
+  document.querySelectorAll('.journey-tab').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('scheduledOrderPanel');
+
+  if (journey === 'ORDER_NOW') {
+    document.getElementById('journeyOrderNow')?.classList.add('active');
+    if (panel) panel.style.display = 'none';
+    showToast('⚡ Dine-in Instant Order active');
+  } else if (journey === 'ORDER_LATER') {
+    document.getElementById('journeyOrderLater')?.classList.add('active');
+    if (panel) panel.style.display = 'block';
+    if (typeof loadScheduledPickupSlots === 'function') loadScheduledPickupSlots();
+    showToast('🕒 Scheduled Pickup Order active');
+  } else if (journey === 'BOOK_TABLE') {
+    document.getElementById('journeyBookTable')?.classList.add('active');
+    window.location.href = '/booking';
+  } else if (journey === 'DINE_IN') {
+    document.getElementById('journeyDineIn')?.classList.add('active');
+    if (panel) panel.style.display = 'none';
+    showToast('🍽️ Dine-In QR Mode active');
+  }
+}
+window.switchCustomerJourney = switchCustomerJourney;
+
+function openLoginModal() {
+  updateLoginStateUI();
+  document.getElementById('loginModal')?.classList.add('active');
+}
 function closeLoginModal() { document.getElementById('loginModal')?.classList.remove('active'); }
 
 async function requestGuestOTP() {
@@ -1627,12 +1785,7 @@ async function verifyGuestOTP() {
     if (res.ok) {
       localStorage.setItem('abiruchi_guest_phone', phone);
       showToast('Signed in successfully! Welcome back.');
-      const lbl = document.getElementById('userLoginLabel');
-      if (lbl) lbl.textContent = `+91 ${phone.slice(-4)}`;
-      const otpStep = document.getElementById('loginOtpStep');
-      const prefsStep = document.getElementById('prefsStep');
-      if (otpStep) otpStep.style.display = 'none';
-      if (prefsStep) prefsStep.style.display = 'block';
+      updateLoginStateUI();
     } else {
       showToast('Invalid OTP code. Try demo code 1234.');
     }
@@ -1698,18 +1851,43 @@ function showToast(msg) {
 
 // Dish Details & Allergen Modal
 let currentModalDishId = null;
+let currentModalDishQty = 1;
+
+function updateModalDishQtyDisplay() {
+  const item = (menuData.items || []).find(i => i.id === currentModalDishId);
+  const qtyEl = document.getElementById('dishModalQtyDisplay');
+  const priceEl = document.getElementById('dishModalTotalPrice');
+  if (qtyEl) qtyEl.textContent = currentModalDishQty;
+  if (priceEl && item) {
+    priceEl.textContent = formatINR(item.basePriceCents * currentModalDishQty);
+  }
+}
+
+function adjustModalDishQty(delta) {
+  currentModalDishQty = Math.max(1, currentModalDishQty + delta);
+  updateModalDishQtyDisplay();
+}
+window.adjustModalDishQty = adjustModalDishQty;
 
 function openDishDetailsModal(itemId) {
   const item = (menuData.items || []).find(i => i.id === itemId);
   if (!item) return;
   currentModalDishId = itemId;
 
+  const existingInCart = cart.find(ci => ci.itemId === itemId);
+  currentModalDishQty = existingInCart ? existingInCart.quantity : 1;
+
   const titleEl = document.getElementById('dishModalTitle');
   const imgEl = document.getElementById('dishModalImg');
   const priceEl = document.getElementById('dishModalPrice');
   const descEl = document.getElementById('dishModalDesc');
   if (titleEl) titleEl.textContent = item.name;
-  if (imgEl) imgEl.src = item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80';
+  if (imgEl) {
+    const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+      ? item.imageUrl
+      : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&q=80');
+    imgEl.src = photo;
+  }
   if (priceEl) priceEl.textContent = formatINR(item.basePriceCents);
   if (descEl) descEl.textContent = item.description || 'Crafted with premium artisanal ingredients by our master chef.';
 
@@ -1726,6 +1904,7 @@ function openDishDetailsModal(itemId) {
     allergenEl.textContent = `Verified restaurant data: Contains ${list}. Prepared in a shared kitchen facility; cross-contact advisory applies.`;
   }
 
+  updateModalDishQtyDisplay();
   document.getElementById('dishDetailModal')?.classList.add('active');
 }
 
@@ -1736,8 +1915,26 @@ function closeDishDetailModal() {
 
 function addCurrentModalDishToCart() {
   if (currentModalDishId) {
-    addToCart(currentModalDishId);
+    const item = (menuData.items || []).find(i => i.id === currentModalDishId);
+    if (!item) return;
+
+    const existing = cart.find(i => i.itemId === currentModalDishId);
+    if (existing) {
+      existing.quantity = currentModalDishQty;
+    } else {
+      cart.push({
+        itemId: item.id,
+        name: item.name,
+        unitPriceCents: item.basePriceCents,
+        quantity: currentModalDishQty,
+        course: 'MAIN'
+      });
+    }
+
+    updateCartUI();
+    renderMenu();
     closeDishDetailModal();
+    showToast(`✓ Added ${currentModalDishQty} × ${item.name} to order`);
   }
 }
 
@@ -2197,11 +2394,7 @@ async function init() {
 }
 
 function initUserSessionState() {
-  const phone = localStorage.getItem('abiruchi_guest_phone');
-  if (phone) {
-    const lbl = document.getElementById('userLoginLabel');
-    if (lbl) lbl.textContent = `+91 ${phone.slice(-4)}`;
-  }
+  updateLoginStateUI();
 }
 
 window.addEventListener('DOMContentLoaded', init);

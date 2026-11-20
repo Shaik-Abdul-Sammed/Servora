@@ -310,4 +310,39 @@ describe('Abiruchi Hotel 100 UI/UX & Invisible Translation Test Suite', () => {
     assert.match(guestCss, /\.abiruchi-dish-card/, 'styles.css must style .abiruchi-dish-card');
     assert.match(guestCss, /@media\s*\(max-width:\s*640px\)/, 'styles.css must include mobile responsive query');
   });
+
+  it('Phase 6: Unique Dish Images, Quantity Steppers, Payment & Login/Logout Controls, and Dropdown Filters', () => {
+    // 1. Verify all 56 dishes in seed-menu.ts have 100% unique image URLs
+    const seedMenuTs = readFileSync(join(rootDir, 'services/order-service/src/seed-menu.ts'), 'utf-8');
+    const items = [...seedMenuTs.matchAll(/name:\s*['"]([^'"]+)['"][\s\S]*?imageUrl:\s*['"]([^'"]+)['"]/g)];
+    const urls = items.map(m => m[2]);
+    const uniqueUrls = new Set(urls);
+    assert.equal(items.length, 56, 'Must have 56 menu items seeded');
+    assert.equal(uniqueUrls.size, 56, 'All 56 dishes must have 100% unique image URLs (no duplicate pictures)');
+
+    // 2. Verify HTML contains Login/Logout buttons, Payment buttons, Quantity Stepper, and Dropdowns
+    const guestHtml = readFileSync(join(rootDir, 'apps/web-guest/public/index.html'), 'utf-8');
+    assert.match(guestHtml, /id="headerLogoutBtn"/, 'Header must contain dedicated logout button');
+    assert.match(guestHtml, /id="headerLoginBtn"/, 'Header must contain dedicated login button');
+    assert.match(guestHtml, /id="payNowBtn"/, 'Cart drawer must contain dedicated Pay Now button');
+    assert.match(guestHtml, /id="dishModalQtyDisplay"/, 'Individual dish modal must have quantity count display');
+    assert.match(guestHtml, /adjustModalDishQty\(1\)/, 'Individual dish modal must have + button');
+    assert.match(guestHtml, /adjustModalDishQty\(-1\)/, 'Individual dish modal must have - button');
+    assert.match(guestHtml, /id="shiftFilterSelect"/, 'Shift timings must use responsive dropdown instead of overflowing buttons');
+    assert.match(guestHtml, /id="menuSortSelect"/, 'Menu must support sorting by cost and mostly ordered via dropdown');
+
+    // 3. Verify app.js exports required state handlers
+    const appJs = readFileSync(join(rootDir, 'apps/web-guest/public/app.js'), 'utf-8');
+    assert.match(appJs, /window\.updateLoginStateUI\s*=/, 'app.js must export updateLoginStateUI');
+    assert.match(appJs, /window\.handleLogout\s*=/, 'app.js must export handleLogout');
+    assert.match(appJs, /window\.adjustModalDishQty\s*=/, 'app.js must export adjustModalDishQty');
+    assert.match(appJs, /window\.applyMenuSort\s*=/, 'app.js must export applyMenuSort');
+    assert.match(appJs, /window\.applyDietaryFilter\s*=/, 'app.js must export applyDietaryFilter');
+    assert.match(appJs, /window\.handleInstantPayment\s*=/, 'app.js must export handleInstantPayment');
+    assert.match(appJs, /window\.switchCustomerJourney\s*=/, 'app.js must export switchCustomerJourney');
+
+    // 4. Verify router.js does not claim "Reserved Table" without bookingId
+    const routerJs = readFileSync(join(rootDir, 'apps/web-guest/public/router.js'), 'utf-8');
+    assert.match(routerJs, /Reserve a Table/, 'router.js must show Reserve a Table when no bookingId is present');
+  });
 });

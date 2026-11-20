@@ -28,7 +28,7 @@ const WAITER_VOICE_RESPONSES = {
   'hi-IN': {
     tokenGiven: (code) => `टोकन ${code} ग्राहक को दे दिया गया है।`,
     itemGiven: (name) => `${name} सर्व कर दिया गया है।`,
-    noReadyToken: () => 'देने के लिए कोई तैयार टोकन उपलब्ध नहीं है।`,
+    noReadyToken: () => 'देने के लिए कोई तैयार टोकन उपलब्ध नहीं है।',
     filterApplied: (desc) => `${desc} फ़िल्टर कर दिया गया है।`,
     listening: 'आर्डर वॉयस कमांड सुन रहे हैं...',
     error: 'कमांड समझ नहीं आई। कृपया पुनः प्रयास करें।',
