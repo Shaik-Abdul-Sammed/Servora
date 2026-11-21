@@ -252,7 +252,7 @@
 
     async function loadReceipt() {
       try {
-        const res = await fetch(\`/api/v1/orders/\${orderId}/receipt?format=standard\`);
+        const res = await fetch(`/api/v1/orders/${orderId}/receipt?format=standard`);
         const data = await res.json();
 
         document.getElementById('orderIdVal').textContent = '#' + (data.orderId || orderId).slice(-6).toUpperCase();
@@ -297,13 +297,13 @@
         }
 
         const items = data.items || [];
-        document.getElementById('receiptItemsBody').innerHTML = items.map(i => \`
+        document.getElementById('receiptItemsBody').innerHTML = items.map(i => `
           <tr>
-            <td style="font-weight:600;">\${i.name}</td>
-            <td class="qty">\${i.quantity}</td>
-            <td class="price">₹\${i.totalINR}</td>
+            <td style="font-weight:600;">${i.name}</td>
+            <td class="qty">${i.quantity}</td>
+            <td class="price">₹${i.totalINR}</td>
           </tr>
-        \`).join('');
+        `).join('');
       } catch (err) {
         console.warn('Fallback loading', err);
       }

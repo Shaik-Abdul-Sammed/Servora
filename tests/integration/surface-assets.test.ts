@@ -1,0 +1,56 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createOrderApp } from '../../services/order-service/src/server.ts';
+import type { AddressInfo } from 'node:net';
+
+test('Surface Routes & Static Assets Verification', async (t) => {
+  const server = createOrderApp();
+
+  await new Promise<void>((resolve) => {
+    server.listen(0, '127.0.0.1', () => resolve());
+  });
+
+  const address = server.address() as AddressInfo;
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+
+  t.after(() => {
+    server.close();
+  });
+
+  const routes = [
+    '/',
+    '/guest/styles.css',
+    '/guest/app.js',
+    '/guest/dish-photos.js',
+    '/guest/router.js',
+    '/receipt',
+    '/booking',
+    '/manifest.json',
+    '/owner',
+    '/owner.html',
+    '/owner/tokens',
+    '/qr-manager.html',
+    '/owner/dish-photos.js',
+    '/owner/shared.js',
+    '/staff.html',
+    '/staff/waiter-voice.js',
+    '/staff/shared.js',
+    '/waiter',
+    '/admin',
+    '/kitchen',
+    '/api/v1/menu',
+    '/api/v1/payments/config',
+    '/api/v1/outlets',
+    '/api/v1/tables/calls/pending',
+    '/api/v1/tokens/active',
+  ];
+
+  for (const r of routes) {
+    await t.test(`GET ${r} returns 200 OK`, async () => {
+      const res = await fetch(`${baseUrl}${r}`);
+      assert.equal(res.status, 200, `Expected 200 for ${r}, got ${res.status}`);
+      const text = await res.text();
+      assert.ok(text.length > 0, `Expected non-empty body for ${r}`);
+    });
+  }
+});

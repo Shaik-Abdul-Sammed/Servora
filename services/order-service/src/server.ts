@@ -1797,6 +1797,39 @@ export function createOrderApp() {
         return;
       }
 
+      // List Outlets (Multi-Outlet Support)
+      if (pathname === '/api/v1/outlets' && method === 'GET') {
+        const tenantId = reqUrl.searchParams.get('tenantId');
+        let list = Array.from(store.outlets.values());
+        if (tenantId) {
+          list = list.filter(o => o.tenantId === tenantId);
+        }
+        if (list.length === 0) {
+          list = [
+            {
+              id: 'b0000000-0000-0000-0000-000000000001',
+              tenantId: tenantId || 'a0000000-0000-0000-0000-000000000001',
+              name: 'Abiruchi Hotel - Indiranagar Flagship',
+              address: '14 MG Road, Indiranagar, Bengaluru, KA 560038',
+              currency: 'INR',
+              timezone: 'Asia/Kolkata',
+              createdAt: new Date().toISOString()
+            } as any,
+            {
+              id: 'b0000000-0000-0000-0000-000000000002',
+              tenantId: tenantId || 'a0000000-0000-0000-0000-000000000001',
+              name: 'Abiruchi Hotel - Koramangala Express',
+              address: '80ft Road, 4th Block, Koramangala, Bengaluru, KA 560034',
+              currency: 'INR',
+              timezone: 'Asia/Kolkata',
+              createdAt: new Date().toISOString()
+            } as any
+          ];
+        }
+        sendJson(res, 200, { outlets: list, total: list.length });
+        return;
+      }
+
       // 10c. Get Outlet Config & P0 Settings (Achievement 16 / 50)
       if (pathname.startsWith('/api/v1/outlets/') && pathname.endsWith('/config') && method === 'GET') {
         const outletId = pathname.replace('/api/v1/outlets/', '').replace('/config', '');

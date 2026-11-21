@@ -246,26 +246,26 @@
           return;
         }
 
-        container.innerHTML = tables.map(t => \`
+        container.innerHTML = tables.map(t => `
           <div class="table-card">
             <div>
-              <div class="table-name">\${t.name}</div>
-              <span class="table-zone">\${t.zone}</span>
-              <div class="token-text">Token: \${t.qr_token || 'N/A'}</div>
+              <div class="table-name">${t.name}</div>
+              <span class="table-zone">${t.zone}</span>
+              <div class="token-text">Token: ${t.qr_token || 'N/A'}</div>
             </div>
             <div class="card-actions">
-              <a href="/api/v1/qr/tables/\${t.id}/pdf" class="btn btn-pdf" aria-label="Download printable PDF for \${t.name}">
+              <a href="/api/v1/qr/tables/${t.id}/pdf" class="btn btn-pdf" aria-label="Download printable PDF for ${t.name}">
                 🖨️ PDF
               </a>
-              <button class="btn btn-edit" onclick="openEditModal('\${t.id}', '\${t.name}', '\${t.zone}')" aria-label="Rename or change zone for \${t.name}">
+              <button class="btn btn-edit" onclick="openEditModal('${t.id}', '${t.name}', '${t.zone}')" aria-label="Rename or change zone for ${t.name}">
                 ✏️ Edit
               </button>
-              <button class="btn btn-delete" onclick="deleteTable('\${t.id}', '\${t.name}')" aria-label="Soft delete table \${t.name}">
+              <button class="btn btn-delete" onclick="deleteTable('${t.id}', '${t.name}')" aria-label="Soft delete table ${t.name}">
                 🗑️ Delete
               </button>
             </div>
           </div>
-        \`).join('');
+        `).join('');
       } catch (e) {
         console.error('Failed to load tables', e);
       }
@@ -306,7 +306,7 @@
       try {
         if (id) {
           // PUT update
-          const res = await fetch(\`/api/v1/qr/tables/\${id}\`, {
+          const res = await fetch(`/api/v1/qr/tables/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, zone })
@@ -333,9 +333,9 @@
     }
 
     async function deleteTable(id, name) {
-      if (!confirm(\`Delete \${name}? Scanning this QR will immediately return 410 Gone.\`)) return;
+      if (!confirm(`Delete ${name}? Scanning this QR will immediately return 410 Gone.`)) return;
       try {
-        const res = await fetch(\`/api/v1/qr/tables/\${id}\`, { method: 'DELETE' });
+        const res = await fetch(`/api/v1/qr/tables/${id}`, { method: 'DELETE' });
         if (res.ok) loadTables();
       } catch (e) {
         alert('Error deleting table');

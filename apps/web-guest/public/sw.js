@@ -3,6 +3,8 @@ const CACHE_NAME = 'abiruchi-pwa-v1';
 const PRECACHE_ASSETS = [
   '/',
   '/guest/styles.css',
+  '/guest/dish-photos.js',
+  '/guest/router.js',
   '/guest/app.js',
   '/manifest.json',
   '/booking'

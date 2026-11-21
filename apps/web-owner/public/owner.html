@@ -325,8 +325,8 @@
         from = d.toISOString();
       }
 
-      let url = \`/api/v1/analytics/revenue?payment_method=\${currentPaymentFilter}\`;
-      if (from) url += \`&from=\${encodeURIComponent(from)}\`;
+      let url = `/api/v1/analytics/revenue?payment_method=${currentPaymentFilter}`;
+      if (from) url += `&from=${encodeURIComponent(from)}`;
 
       try {
         const res = await fetch(url);
@@ -354,11 +354,11 @@
         } else {
           tbody.innerHTML = cats.map(([name, amt]) => {
             const share = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;
-            return \`<tr>
-              <td style="font-weight:700;">\${name}</td>
-              <td style="color:#10b981; font-weight:700;">₹\${amt.toFixed(2)}</td>
-              <td>\${share}%</td>
-            </tr>\`;
+            return `<tr>
+              <td style="font-weight:700;">${name}</td>
+              <td style="color:#10b981; font-weight:700;">₹${amt.toFixed(2)}</td>
+              <td>${share}%</td>
+            </tr>`;
           }).join('');
         }
       } catch (err) {
@@ -370,8 +370,8 @@
       try {
         const res = await fetch('/api/v1/analytics/qr-adoption');
         const data = await res.json();
-        document.getElementById('adoptionHeadline').textContent = \`QR Adoption: \${data.qrPercentage}% Today\`;
-        document.getElementById('adoptionSub').textContent = \`\${data.qrOrders} digital orders submitted via QR vs \${data.waiterOrders} waiter-punched orders\`;
+        document.getElementById('adoptionHeadline').textContent = `QR Adoption: ${data.qrPercentage}% Today`;
+        document.getElementById('adoptionSub').textContent = `${data.qrOrders} digital orders submitted via QR vs ${data.waiterOrders} waiter-punched orders`;
         document.getElementById('adoptionPct').textContent = data.qrPercentage + '%';
       } catch (e) {
         console.warn('Adoption fetch failed', e);
