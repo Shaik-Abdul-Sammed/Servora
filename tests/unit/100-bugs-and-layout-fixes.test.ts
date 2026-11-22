@@ -128,4 +128,20 @@ describe('100 Bugs, Layout, and Typo Fixes Verification Suite', () => {
     assert.match(owner, /--primary:\s*#fc8019/);
     assert.match(staff, /--primary:\s*#fc8019/);
   });
+
+  it('Overflow Fix: Dietary toggles wrap and dish modal veg/non-veg tags do not overflow', () => {
+    const css = fs.readFileSync(path.join(rootDir, 'apps/web-guest/public/styles.css'), 'utf8');
+    const appJs = fs.readFileSync(path.join(rootDir, 'apps/web-guest/public/app.js'), 'utf8');
+    const forBars = fs.readFileSync(path.join(rootDir, 'apps/marketing/public/for-bars.html'), 'utf8');
+
+    // Dietary filter row wrapping
+    assert.match(css, /\.abiruchi-toggles-row\s*\{[^}]*flex-wrap:\s*wrap/);
+    // Floating cart bar mobile sizing
+    assert.match(css, /@media\s*\(max-width:\s*480px\)\s*\{[^}]*\.abiruchi-floating-cart-bar/s);
+    // Concise VEG / NON-VEG badge labels
+    assert.ok(appJs.includes('>VEG</span>'), 'app.js missing concise VEG badge label');
+    assert.ok(appJs.includes('>NON-VEG</span>'), 'app.js missing concise NON-VEG badge label');
+    // Marketing button constraints
+    assert.match(forBars, /\.btn\s*\{[^}]*max-width:\s*320px/);
+  });
 });

@@ -629,29 +629,30 @@ header, .app-header {
 .abiruchi-toggles-row {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
+  flex-wrap: wrap;
+  align-items: center;
   padding: 4px 0;
+  width: 100%;
 }
 .abiruchi-toggles-row::-webkit-scrollbar { display: none; }
 .abiruchi-pill-toggle {
   background: var(--chip-bg);
   border: 1px solid var(--chip-border);
   color: var(--text);
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   flex-shrink: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .abiruchi-pill-toggle.active {
   background: rgba(252, 128, 25, 0.1);
@@ -1161,6 +1162,9 @@ header, .app-header {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-width: 0;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 .opt-pill.active {
   background: var(--primary);
@@ -1537,6 +1541,8 @@ header, .app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   max-width: 900px;
   margin: 0 auto 8px;
   padding: 0 16px;
@@ -1598,6 +1604,7 @@ header, .app-header {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
   cursor: pointer;
+  min-width: 0;
 }
 .grid-dish-card:hover {
   transform: translateY(-2px);
@@ -1622,6 +1629,7 @@ header, .app-header {
   flex-direction: column;
   flex: 1;
   justify-content: space-between;
+  min-width: 0;
 }
 .grid-dish-title {
   font-size: 0.82rem;
@@ -1633,6 +1641,7 @@ header, .app-header {
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin: 3px 0 4px;
+  word-break: break-word;
 }
 .grid-dish-bottom {
   display: flex;
@@ -1640,6 +1649,7 @@ header, .app-header {
   justify-content: space-between;
   margin-top: 6px;
   gap: 6px;
+  flex-wrap: wrap;
 }
 .grid-dish-price {
   font-size: 0.85rem;
@@ -2159,6 +2169,35 @@ header, .app-header {
   }
   .grid-dish-title {
     font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .abiruchi-floating-cart-bar {
+    padding: 10px 14px !important;
+    width: calc(100% - 20px) !important;
+    border-radius: 12px !important;
+  }
+  .floating-cart-items-total {
+    gap: 6px !important;
+  }
+  .floating-cart-cta {
+    font-size: 0.8rem !important;
+    gap: 4px !important;
+  }
+  .floating-cart-amount {
+    font-size: 0.95rem !important;
+  }
+  .floating-cart-count {
+    font-size: 0.68rem !important;
+  }
+  .abiruchi-toggles-row {
+    gap: 6px !important;
+  }
+  .abiruchi-pill-toggle {
+    padding: 5px 10px !important;
+    font-size: 0.74rem !important;
+    gap: 4px !important;
   }
 }
 

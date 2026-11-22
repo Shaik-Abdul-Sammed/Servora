@@ -975,9 +975,9 @@ function renderDishCard(item, now, mode, catMap) {
 
         <div class="grid-dish-body">
           <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
-              ${catName ? `<span class="dish-cat-pill">${catIcon} ${catName}</span>` : ''}
-              <span class="time-badge ${availableNow ? 'now' : 'future'}">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px; flex-wrap:wrap;">
+              ${catName ? `<span class="dish-cat-pill" style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${catIcon} ${catName}</span>` : ''}
+              <span class="time-badge ${availableNow ? 'now' : 'future'}" style="white-space:nowrap;">
                 ${availableNow ? '✓ Available' : `⏰ ${formatShiftTime(item.servingFrom)}`}
               </span>
             </div>
@@ -2577,8 +2577,8 @@ function openDishDetailsModal(itemId) {
   const dietBadge = document.getElementById('dishModalDietBadge');
   if (dietBadge) {
     dietBadge.innerHTML = item.dietaryType === 'VEG'
-      ? '<span class="fssai-symbol fssai-veg"><span class="fssai-veg-dot"></span></span> <span style="font-size:0.8rem; font-weight:800; color:var(--success-text, #15803d);">VEGETARIAN</span>'
-      : '<span class="fssai-symbol fssai-nonveg"><span class="fssai-nonveg-dot"></span></span> <span style="font-size:0.8rem; font-weight:800; color:var(--abiruchi-ruby, #e43b4f);">NON-VEGETARIAN</span>';
+      ? '<span class="fssai-symbol fssai-veg"><span class="fssai-veg-dot"></span></span> <span style="font-size:0.75rem; font-weight:800; color:var(--success-text, #15803d); white-space:nowrap;">VEG</span>'
+      : '<span class="fssai-symbol fssai-nonveg"><span class="fssai-nonveg-dot"></span></span> <span style="font-size:0.75rem; font-weight:800; color:var(--abiruchi-ruby, #e43b4f); white-space:nowrap;">NON-VEG</span>';
   }
 
   const allergenEl = document.getElementById('dishModalAllergenNotice');
