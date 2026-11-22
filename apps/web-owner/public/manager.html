@@ -436,6 +436,9 @@
       <button type="button" class="chip" role="tab" aria-selected="false" id="tabBtnStaff" onclick="selectTab('staff', this)">
         👨‍🍳 Staff &amp; Waiters (Phases 1 &amp; 2)
       </button>
+      <button type="button" class="chip" role="tab" aria-selected="false" id="tabBtnPricing" onclick="selectTab('pricing', this)">
+        💰 GST &amp; Pricing Hub
+      </button>
     </div>
 
     <!-- TAB 1: FLOOR OPS (Active Calls, Tokens, Recon) -->
@@ -817,6 +820,224 @@
       </section>
     </div>
 
+    <!-- TAB 5: GST & PRICING HUB -->
+    <div id="tab-pricing" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnPricing">
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+        <!-- Panel 1: GST & Tax Configuration -->
+        <section class="panel" aria-labelledby="gstConfigTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="gstConfigTitle">🏛️ Goods &amp; Services Tax (GST)</div>
+            <span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981;">Legal Compliance</span>
+          </div>
+          <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:16px;">
+            Set GST rate, statutory GSTIN, and automated equal split between CGST and SGST.
+          </div>
+
+          <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-hover); padding:10px 14px; border-radius:10px; margin-bottom:14px;">
+            <div>
+              <label for="gstMasterToggle" style="font-weight:700; font-size:0.9rem; cursor:pointer;">Enable GST Calculation</label>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Apply GST on all customer bills and orders</div>
+            </div>
+            <input type="checkbox" id="gstMasterToggle" checked onchange="onPricingInputChange()" style="width:20px; height:20px; cursor:pointer;">
+          </div>
+
+          <div class="form-group">
+            <label>GST Rate Preset (India)</label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+              <button type="button" class="btn btn-secondary" onclick="setGstPreset(0)" id="gstPreset0" style="flex:1; min-width:65px;">0% (Exempt)</button>
+              <button type="button" class="btn btn-secondary active" onclick="setGstPreset(5)" id="gstPreset5" style="flex:1; min-width:65px; border-color:var(--primary); color:var(--primary);">5% (Standard)</button>
+              <button type="button" class="btn btn-secondary" onclick="setGstPreset(12)" id="gstPreset12" style="flex:1; min-width:65px;">12% (Outdoor)</button>
+              <button type="button" class="btn btn-secondary" onclick="setGstPreset(18)" id="gstPreset18" style="flex:1; min-width:65px;">18% (AC/Bar)</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="customGstRateInput">Custom / Configured GST Rate (%)</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="number" id="customGstRateInput" class="form-input" min="0" max="40" step="0.1" value="5.0" oninput="onPricingInputChange()" style="flex:1;">
+              <span style="font-weight:700; color:var(--text-muted);">%</span>
+            </div>
+          </div>
+
+          <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-around; text-align:center;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">CGST (Central)</div>
+              <div id="splitCgstDisplay" style="font-size:1.15rem; font-weight:900; color:#60a5fa;">2.5%</div>
+            </div>
+            <div style="border-left:1px solid rgba(59,130,246,0.25);"></div>
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">SGST (State)</div>
+              <div id="splitSgstDisplay" style="font-size:1.15rem; font-weight:900; color:#60a5fa;">2.5%</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="gstinInput">Restaurant GSTIN (Goods &amp; Services Tax Identification Number)</label>
+            <input type="text" id="gstinInput" class="form-input" placeholder="e.g. 29ABCDE1234F1Z5" maxlength="15" style="font-family:monospace; font-weight:700; text-transform:uppercase;">
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Printed on guest digital &amp; thermal receipts</div>
+          </div>
+
+          <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="pricesTaxInclusive" onchange="onPricingInputChange()" style="width:16px; height:16px; cursor:pointer;">
+            <label for="pricesTaxInclusive" style="font-size:0.83rem; cursor:pointer; margin:0;">Menu prices already include GST</label>
+          </div>
+        </section>
+
+        <!-- Panel 2: Operational Surcharges & Multipliers -->
+        <section class="panel" aria-labelledby="surchargesTitle">
+          <div class="panel-header">
+            <div class="panel-title" id="surchargesTitle">📦 Packaging, Surcharges &amp; Minimums</div>
+            <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid #f59e0b;">Operations</span>
+          </div>
+          <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:16px;">
+            Configure takeaway packaging containers, optional service charges, and surge multipliers.
+          </div>
+
+          <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-hover); padding:10px 14px; border-radius:10px; margin-bottom:10px;">
+            <div>
+              <label for="serviceChargeToggle" style="font-weight:700; font-size:0.9rem; cursor:pointer;">Discretionary Service Charge</label>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Add percentage staff hospitality fee</div>
+            </div>
+            <input type="checkbox" id="serviceChargeToggle" onchange="onPricingInputChange()" style="width:20px; height:20px; cursor:pointer;">
+          </div>
+
+          <div class="form-group" id="serviceChargeRateGroup">
+            <label for="serviceChargeRateInput">Service Charge Percentage (%)</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="number" id="serviceChargeRateInput" class="form-input" min="0" max="25" step="0.5" value="0.0" oninput="onPricingInputChange()" style="flex:1;">
+              <span style="font-weight:700; color:var(--text-muted);">%</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="packagingChargeInput">Takeaway / Parcel Packaging Charge (₹ per order)</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-weight:700; color:var(--text-muted);">₹</span>
+              <input type="number" id="packagingChargeInput" class="form-input" min="0" max="500" step="1" value="0" oninput="onPricingInputChange()" style="flex:1;" placeholder="0">
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Applied automatically to takeaway and counter token orders</div>
+          </div>
+
+          <div class="form-group">
+            <label for="minOrderValueInput">Minimum Order Value (₹)</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-weight:700; color:var(--text-muted);">₹</span>
+              <input type="number" id="minOrderValueInput" class="form-input" min="0" max="10000" step="10" value="0" oninput="onPricingInputChange()" style="flex:1;" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Surge / Rush Hours Multiplier</label>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+              <button type="button" class="btn btn-secondary active" onclick="setSurgeMultiplier(1.0)" id="surgePreset10" style="flex:1; font-size:0.75rem;">1.0x (Normal)</button>
+              <button type="button" class="btn btn-secondary" onclick="setSurgeMultiplier(1.1)" id="surgePreset11" style="flex:1; font-size:0.75rem;">1.1x (+10%)</button>
+              <button type="button" class="btn btn-secondary" onclick="setSurgeMultiplier(1.15)" id="surgePreset115" style="flex:1; font-size:0.75rem;">1.15x (+15%)</button>
+              <button type="button" class="btn btn-secondary" onclick="setSurgeMultiplier(1.2)" id="surgePreset12" style="flex:1; font-size:0.75rem;">1.2x (Festive)</button>
+            </div>
+            <input type="hidden" id="surgePricingMultiplier" value="1.0">
+          </div>
+
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button type="button" class="btn btn-verify" onclick="savePricingConfig()" style="flex:1; padding:12px; font-weight:800; font-size:0.95rem;">
+              💾 Save All Pricing &amp; GST Settings
+            </button>
+          </div>
+          <div id="pricingSaveStatus" style="margin-top:10px; font-size:0.85rem; font-weight:700; text-align:center;"></div>
+        </section>
+
+        <!-- Panel 3: Live Bill Calculation Simulator -->
+        <section class="panel" aria-labelledby="billSimTitle" style="grid-column: 1 / -1;">
+          <div class="panel-header">
+            <div class="panel-title" id="billSimTitle">🧮 Real-Time Bill Calculation Simulator</div>
+            <span style="font-size:0.8rem; color:var(--text-muted);">Preview exact guest receipt calculation</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; align-items:center;">
+            <div style="background:var(--surface-hover); padding:16px; border-radius:12px;">
+              <div class="form-group" style="margin-bottom:12px;">
+                <label for="simSubtotalInput">Test Subtotal (₹)</label>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-weight:700;">₹</span>
+                  <input type="number" id="simSubtotalInput" class="form-input" min="10" max="50000" step="10" value="500" oninput="updateSimulatedBill()" style="flex:1;">
+                </div>
+              </div>
+              <div class="form-group" style="display:flex; align-items:center; gap:8px; margin:0;">
+                <input type="checkbox" id="simIsTakeaway" onchange="updateSimulatedBill()" style="width:16px; height:16px; cursor:pointer;">
+                <label for="simIsTakeaway" style="font-size:0.85rem; cursor:pointer; margin:0;">Simulate Takeaway / Parcel Order</label>
+              </div>
+            </div>
+
+            <!-- Receipt Bill Card -->
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:12px; padding:16px; font-family:monospace; font-size:0.88rem; color:#e2e8f0;">
+              <div style="text-align:center; font-weight:800; border-bottom:1px dashed #475569; padding-bottom:8px; margin-bottom:8px;">
+                ABIRUCHI HOTEL RECEIPT PREVIEW
+                <div id="simGstinDisplay" style="font-size:0.75rem; color:#94a3b8;">GSTIN: 29ABCDE1234F1Z5</div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span>Food Subtotal:</span>
+                <span id="simBillSubtotal">₹500.00</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;" id="simCgstRow">
+                <span id="simCgstLabel">CGST (2.5%):</span>
+                <span id="simBillCgst">₹12.50</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;" id="simSgstRow">
+                <span id="simSgstLabel">SGST (2.5%):</span>
+                <span id="simBillSgst">₹12.50</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px; display:none;" id="simServiceChargeRow">
+                <span id="simServiceChargeLabel">Service Charge:</span>
+                <span id="simBillServiceCharge">₹0.00</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px; display:none;" id="simPackagingRow">
+                <span>Takeaway Packaging:</span>
+                <span id="simBillPackaging">₹0.00</span>
+              </div>
+
+              <div style="border-top:1px dashed #475569; padding-top:8px; margin-top:8px; display:flex; justify-content:space-between; font-size:1.05rem; font-weight:900; color:#38bdf8;">
+                <span>GRAND TOTAL:</span>
+                <span id="simBillTotal">₹525.00</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Panel 4: Quick Menu Dish Price Management -->
+        <section class="panel" aria-labelledby="menuPricingTitle" style="grid-column: 1 / -1;">
+          <div class="panel-header">
+            <div class="panel-title" id="menuPricingTitle">🍽️ Quick Menu Item Price Management</div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="dishPriceSearchInput" class="form-input" placeholder="🔍 Search dish..." oninput="filterMenuPricingTable()" style="padding:4px 10px; font-size:0.8rem; width:180px;">
+              <select id="dishPriceCategorySelect" class="form-input" onchange="filterMenuPricingTable()" style="padding:4px 8px; font-size:0.8rem;">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:14px;">
+            Update food prices on the fly. Changes apply instantly to guest QR menus and kitchen KDS.
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table class="table" style="width:100%; border-collapse:collapse;" id="menuPricingTable">
+              <thead>
+                <tr style="border-bottom:1px solid var(--chip-border); text-align:left; font-size:0.8rem; color:var(--text-muted);">
+                  <th style="padding:8px 12px;">Dish</th>
+                  <th style="padding:8px 12px;">Category</th>
+                  <th style="padding:8px 12px;">Current Price</th>
+                  <th style="padding:8px 12px; width:180px;">Update Price (₹)</th>
+                  <th style="padding:8px 12px; text-align:right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="menuPricingTableBody">
+                <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">Loading menu items...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
     <!-- MODAL: Reset Password -->
     <div id="resetPasswordModal" class="modal-overlay" onclick="if(event.target === this) closeResetModal()">
       <div class="modal-box">
@@ -878,6 +1099,7 @@
       if (tabId === 'payments') { loadReconciliation(); loadUpiVerifications(); }
       if (tabId === 'bookings') checkSlots();
       if (tabId === 'staff') { loadStaffList(); }
+      if (tabId === 'pricing') { loadPricingConfig(); loadMenuPricing(); }
     }
 
     // ------------------------------------------------------------------------
@@ -2048,6 +2270,12 @@
       localStorage.setItem('servora_mgr_speaker', String(mgrSpeakerEnabled));
       syncManagerSpeakerUI();
       if (mgrSpeakerEnabled) {
+        speakManagerAnnouncement('Speaker audio enabled');
+      }
+    }
+
+    syncManagerSpeakerUI();
+      if (mgrSpeakerEnabled) {
         playManagerChime('notification');
         speakManagerAnnouncement('Manager speaker announcements enabled.');
       }
@@ -2126,6 +2354,301 @@
           } catch (e) {}
         };
       } catch (e) {}
+    }
+
+    // ------------------------------------------------------------------------
+    // GST & Pricing Hub
+    // ------------------------------------------------------------------------
+    let allMenuItemsForPricing = [];
+
+    async function loadPricingConfig() {
+      try {
+        const res = await fetch('/api/v1/manager/pricing-config');
+        if (!res.ok) return;
+        const config = await res.json();
+
+        document.getElementById('gstMasterToggle').checked = config.gstEnabled;
+        document.getElementById('customGstRateInput').value = config.gstRate;
+        document.getElementById('gstinInput').value = config.gstin || '';
+        document.getElementById('serviceChargeToggle').checked = config.serviceChargeEnabled;
+        document.getElementById('serviceChargeRateInput').value = config.serviceChargeRate;
+        document.getElementById('packagingChargeInput').value = Math.round(config.packagingChargeCents / 100);
+        document.getElementById('minOrderValueInput').value = Math.round(config.minOrderValueCents / 100);
+        document.getElementById('pricesTaxInclusive').checked = Boolean(config.pricesTaxInclusive);
+
+        setSurgeMultiplier(config.surgePricingMultiplier || 1.0);
+        highlightGstPreset(config.gstRate);
+        onPricingInputChange();
+      } catch (err) {
+        console.warn('Failed to load pricing config', err);
+      }
+    }
+
+    function setGstPreset(rate) {
+      document.getElementById('customGstRateInput').value = rate;
+      document.getElementById('gstMasterToggle').checked = rate > 0;
+      highlightGstPreset(rate);
+      onPricingInputChange();
+    }
+
+    function highlightGstPreset(rate) {
+      [0, 5, 12, 18].forEach(r => {
+        const btn = document.getElementById(`gstPreset${r}`);
+        if (btn) {
+          const isMatch = Math.abs(rate - r) < 0.01;
+          btn.classList.toggle('active', isMatch);
+          btn.style.borderColor = isMatch ? 'var(--primary)' : '';
+          btn.style.color = isMatch ? 'var(--primary)' : '';
+        }
+      });
+    }
+
+    function setSurgeMultiplier(val) {
+      document.getElementById('surgePricingMultiplier').value = val;
+      const presets = [
+        { v: 1.0, id: 'surgePreset10' },
+        { v: 1.1, id: 'surgePreset11' },
+        { v: 1.15, id: 'surgePreset115' },
+        { v: 1.2, id: 'surgePreset12' },
+      ];
+      presets.forEach(p => {
+        const el = document.getElementById(p.id);
+        if (el) {
+          const isMatch = Math.abs(val - p.v) < 0.01;
+          el.classList.toggle('active', isMatch);
+          el.style.borderColor = isMatch ? '#f59e0b' : '';
+          el.style.color = isMatch ? '#f59e0b' : '';
+        }
+      });
+      updateSimulatedBill();
+    }
+
+    function onPricingInputChange() {
+      const gstEnabled = document.getElementById('gstMasterToggle').checked;
+      const gstRate = gstEnabled ? parseFloat(document.getElementById('customGstRateInput').value || '0') : 0;
+      const halfRate = (gstRate / 2).toFixed(2).replace(/\.00$/, '');
+
+      document.getElementById('splitCgstDisplay').textContent = `${halfRate}%`;
+      document.getElementById('splitSgstDisplay').textContent = `${halfRate}%`;
+
+      const scEnabled = document.getElementById('serviceChargeToggle').checked;
+      document.getElementById('serviceChargeRateGroup').style.opacity = scEnabled ? '1' : '0.5';
+
+      updateSimulatedBill();
+    }
+
+    function updateSimulatedBill() {
+      const subtotalINR = parseFloat(document.getElementById('simSubtotalInput').value || '0');
+      const isTakeaway = document.getElementById('simIsTakeaway').checked;
+      const gstEnabled = document.getElementById('gstMasterToggle').checked;
+      const gstRate = gstEnabled ? parseFloat(document.getElementById('customGstRateInput').value || '0') : 0;
+      const gstin = (document.getElementById('gstinInput').value || '29ABCDE1234F1Z5').toUpperCase();
+
+      const scEnabled = document.getElementById('serviceChargeToggle').checked;
+      const scRate = scEnabled ? parseFloat(document.getElementById('serviceChargeRateInput').value || '0') : 0;
+
+      const packagingINR = isTakeaway ? parseFloat(document.getElementById('packagingChargeInput').value || '0') : 0;
+      const surgeMultiplier = parseFloat(document.getElementById('surgePricingMultiplier').value || '1.0');
+
+      const effectiveSubtotal = subtotalINR * surgeMultiplier;
+      const totalTax = effectiveSubtotal * (gstRate / 100);
+      const cgst = totalTax / 2;
+      const sgst = totalTax / 2;
+      const serviceCharge = effectiveSubtotal * (scRate / 100);
+      const grandTotal = effectiveSubtotal + totalTax + serviceCharge + packagingINR;
+
+      document.getElementById('simGstinDisplay').textContent = `GSTIN: ${gstin}`;
+      document.getElementById('simBillSubtotal').textContent = `₹${effectiveSubtotal.toFixed(2)}`;
+
+      const cgstRow = document.getElementById('simCgstRow');
+      const sgstRow = document.getElementById('simSgstRow');
+      if (gstEnabled && gstRate > 0) {
+        cgstRow.style.display = 'flex';
+        sgstRow.style.display = 'flex';
+        document.getElementById('simCgstLabel').textContent = `CGST (${(gstRate/2).toFixed(2)}%):`;
+        document.getElementById('simSgstLabel').textContent = `SGST (${(gstRate/2).toFixed(2)}%):`;
+        document.getElementById('simBillCgst').textContent = `₹${cgst.toFixed(2)}`;
+        document.getElementById('simBillSgst').textContent = `₹${sgst.toFixed(2)}`;
+      } else {
+        cgstRow.style.display = 'none';
+        sgstRow.style.display = 'none';
+      }
+
+      const scRow = document.getElementById('simServiceChargeRow');
+      if (scEnabled && scRate > 0) {
+        scRow.style.display = 'flex';
+        document.getElementById('simServiceChargeLabel').textContent = `Service Charge (${scRate}%):`;
+        document.getElementById('simBillServiceCharge').textContent = `₹${serviceCharge.toFixed(2)}`;
+      } else {
+        scRow.style.display = 'none';
+      }
+
+      const packRow = document.getElementById('simPackagingRow');
+      if (packagingINR > 0) {
+        packRow.style.display = 'flex';
+        document.getElementById('simBillPackaging').textContent = `₹${packagingINR.toFixed(2)}`;
+      } else {
+        packRow.style.display = 'none';
+      }
+
+      document.getElementById('simBillTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+    }
+
+    async function savePricingConfig() {
+      const statusEl = document.getElementById('pricingSaveStatus');
+      statusEl.style.color = '#93c5fd';
+      statusEl.textContent = 'Saving settings...';
+
+      const payload = {
+        gstEnabled: document.getElementById('gstMasterToggle').checked,
+        gstRate: parseFloat(document.getElementById('customGstRateInput').value || '0'),
+        gstin: document.getElementById('gstinInput').value.trim(),
+        serviceChargeEnabled: document.getElementById('serviceChargeToggle').checked,
+        serviceChargeRate: parseFloat(document.getElementById('serviceChargeRateInput').value || '0'),
+        packagingChargeCents: Math.round(parseFloat(document.getElementById('packagingChargeInput').value || '0') * 100),
+        minOrderValueCents: Math.round(parseFloat(document.getElementById('minOrderValueInput').value || '0') * 100),
+        surgePricingMultiplier: parseFloat(document.getElementById('surgePricingMultiplier').value || '1.0'),
+        pricesTaxInclusive: document.getElementById('pricesTaxInclusive').checked,
+      };
+
+      try {
+        const res = await fetch('/api/v1/manager/pricing-config', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          statusEl.style.color = '#10b981';
+          statusEl.textContent = '✓ GST and pricing configuration saved successfully! Syncing to all guest menus.';
+          setTimeout(() => { statusEl.textContent = ''; }, 4000);
+        } else {
+          statusEl.style.color = '#ef4444';
+          statusEl.textContent = 'Failed to save configuration. Please try again.';
+        }
+      } catch (err) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = 'Network error saving pricing settings.';
+      }
+    }
+
+    async function loadMenuPricing() {
+      try {
+        const res = await fetch('/api/v1/menu');
+        if (!res.ok) return;
+        const data = await res.json();
+        allMenuItemsForPricing = data.items || [];
+
+        // Populate category dropdown
+        const catSelect = document.getElementById('dishPriceCategorySelect');
+        if (catSelect && data.categories) {
+          let catHtml = '<option value="">All Categories</option>';
+          data.categories.forEach(c => {
+            catHtml += `<option value="${c.id}">${c.name}</option>`;
+          });
+          catSelect.innerHTML = catHtml;
+        }
+
+        renderMenuPricingTable(allMenuItemsForPricing);
+      } catch (e) {
+        console.warn('Failed to load menu for pricing', e);
+      }
+    }
+
+    function filterMenuPricingTable() {
+      const q = (document.getElementById('dishPriceSearchInput').value || '').toLowerCase().trim();
+      const catId = document.getElementById('dishPriceCategorySelect').value;
+
+      let filtered = allMenuItemsForPricing;
+      if (catId) filtered = filtered.filter(i => i.categoryId === catId);
+      if (q) filtered = filtered.filter(i => i.name.toLowerCase().includes(q) || (i.description && i.description.toLowerCase().includes(q)));
+
+      renderMenuPricingTable(filtered);
+    }
+
+    function renderMenuPricingTable(items) {
+      const tbody = document.getElementById('menuPricingTableBody');
+      if (!tbody) return;
+
+      if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">No dishes found matching filters.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = items.map(item => {
+        const priceINR = (item.basePriceCents / 100).toFixed(2);
+        const photo = item.imageUrl || (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name) : '');
+        return `
+          <tr style="border-bottom:1px solid var(--chip-border);">
+            <td style="padding:10px 12px; display:flex; align-items:center; gap:10px;">
+              <img src="${photo}" alt="" style="width:36px; height:36px; border-radius:6px; object-fit:cover;" onerror="this.style.display='none';">
+              <div>
+                <div style="font-weight:700; font-size:0.88rem; color:var(--text-title);">${escapeHtml(item.name)}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${item.dietaryType === 'VEG' ? '🟢 Veg' : '🔴 Non-Veg'}</div>
+              </div>
+            </td>
+            <td style="padding:10px 12px; font-size:0.82rem; color:var(--text-muted);">${item.categoryId ? item.categoryId.substring(0, 8) : 'General'}</td>
+            <td style="padding:10px 12px; font-weight:800; font-size:0.92rem; color:#10b981;">₹${priceINR}</td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:700; color:var(--text-muted);">₹</span>
+                <input type="number" id="dishPriceInput_${item.id}" class="form-input" min="1" max="10000" step="1" value="${Math.round(item.basePriceCents / 100)}" style="padding:4px 8px; font-size:0.85rem; width:100px;">
+              </div>
+            </td>
+            <td style="padding:10px 12px; text-align:right;">
+              <button type="button" class="btn btn-secondary" onclick="updateSingleDishPrice('${item.id}', this)" style="padding:5px 12px; font-size:0.8rem; font-weight:700;">
+                Update
+              </button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    async function updateSingleDishPrice(itemId, btn) {
+      const input = document.getElementById(`dishPriceInput_${itemId}`);
+      if (!input) return;
+      const newINR = parseFloat(input.value);
+      if (isNaN(newINR) || newINR <= 0) {
+        alert('Please enter a valid price in INR.');
+        return;
+      }
+      const newPriceCents = Math.round(newINR * 100);
+
+      const origText = btn.textContent;
+      btn.textContent = '...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/manager/menu-pricing', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: [{ id: itemId, basePriceCents: newPriceCents }]
+          })
+        });
+
+        if (res.ok) {
+          btn.textContent = '✓ Saved';
+          btn.style.borderColor = '#10b981';
+          btn.style.color = '#10b981';
+          const match = allMenuItemsForPricing.find(i => i.id === itemId);
+          if (match) match.basePriceCents = newPriceCents;
+          setTimeout(() => {
+            btn.textContent = origText;
+            btn.disabled = false;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            filterMenuPricingTable();
+          }, 1200);
+        } else {
+          btn.textContent = 'Failed';
+          btn.style.borderColor = '#ef4444';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        btn.textContent = 'Error';
+        btn.disabled = false;
+      }
     }
 
     syncManagerSpeakerUI();

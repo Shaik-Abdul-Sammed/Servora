@@ -2376,3 +2376,38 @@ header, .app-header {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* Instant Skeleton Loading Shimmer */
+.skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--chip-border);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  min-height: 120px;
+  display: flex;
+  flex-direction: row;
+  padding: 12px;
+  gap: 12px;
+}
+.skeleton-box {
+  background: linear-gradient(90deg, var(--chip-bg) 25%, var(--chip-border) 50%, var(--chip-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+.skeleton-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.skeleton-text-line {
+  height: 14px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

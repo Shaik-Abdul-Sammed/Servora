@@ -1393,16 +1393,27 @@ export function createOrderApp() {
           });
         }
 
-        // Calculate order totals (supports configurable taxRate or default)
-        const taxRate = (body as any).taxRate !== undefined ? (body as any).taxRate : 8.25;
+        // Calculate order totals using manager's pricing & tax configuration
+        const effectiveGstRate = outletSettings.gstEnabled !== false
+          ? ((body as any).taxRate !== undefined ? (body as any).taxRate : (outletSettings.gstRate !== undefined ? outletSettings.gstRate : 8.25))
+          : 0.0;
+        const effectiveServiceChargeRate = outletSettings.serviceChargeEnabled ? (outletSettings.serviceChargeRate || 0.0) : 0.0;
+        const isTakeaway = tableNumber === 'Takeaway' || (body as any).isTakeaway || (body as any).mode === 'TOKEN';
+        const effectiveTrayChargeCents = isTakeaway ? (outletSettings.packagingChargeCents || 0) : 0;
+        const surgeMult = outletSettings.surgePricingMultiplier || 1.0;
+
+        const itemsForTotals = calculatedItems.map((i) => ({
+          unitPriceCents: surgeMult > 1.0 ? Math.round(i.unitPriceCents * surgeMult) : i.unitPriceCents,
+          quantity: i.quantity,
+          selectedModifiers: i.selectedModifiers,
+        }));
+
         const totals = calculateOrderTotals(
-          calculatedItems.map((i) => ({
-            unitPriceCents: i.unitPriceCents,
-            quantity: i.quantity,
-            selectedModifiers: i.selectedModifiers,
-          })),
-          taxRate,
-          body.tipCents || 0
+          itemsForTotals,
+          effectiveGstRate,
+          body.tipCents || 0,
+          effectiveServiceChargeRate,
+          effectiveTrayChargeCents
         );
 
         if (outletSettings.minOrderValueCents && totals.subtotalCents < outletSettings.minOrderValueCents) {
@@ -1450,6 +1461,10 @@ export function createOrderApp() {
           createdAt: now,
           updatedAt: now,
         };
+        (newOrder as any).serviceChargeCents = Math.round(totals.subtotalCents * (effectiveServiceChargeRate / 100));
+        (newOrder as any).packagingChargeCents = effectiveTrayChargeCents;
+        (newOrder as any).taxRate = effectiveGstRate;
+        (newOrder as any).gstin = outletSettings.gstin || '29ABCDE1234F1Z5';
 
         const guestSession = (req.headers['x-guest-session'] as string) || (body as any).guestSessionId;
         if (guestSession) {
@@ -1468,8 +1483,8 @@ export function createOrderApp() {
             (newOrder as any).discountCents = promoDiscountCents;
             (newOrder as any).discount_cents = promoDiscountCents;
             newOrder.subtotalCents = Math.max(0, totals.subtotalCents - promoDiscountCents);
-            newOrder.taxCents = Math.round(newOrder.subtotalCents * 0.05);
-            newOrder.totalCents = newOrder.subtotalCents + newOrder.taxCents + (body.tipCents || 0);
+            newOrder.taxCents = Math.round(newOrder.subtotalCents * (effectiveGstRate / 100));
+            newOrder.totalCents = newOrder.subtotalCents + newOrder.taxCents + (totals.serviceChargeCents || 0) + (effectiveTrayChargeCents || 0) + (body.tipCents || 0);
             if (promoResult.offer?.id) {
               store.recordOfferRedemption(promoResult.offer.id, orderId, tableNumber, promoDiscountCents);
             }
@@ -1931,6 +1946,140 @@ export function createOrderApp() {
         });
 
         sendJson(res, 200, current);
+        return;
+      }
+
+      // 10d-2. Manager Pricing & GST Management Configuration (GET)
+      if ((pathname === '/api/v1/manager/pricing-config' || (pathname.startsWith('/api/v1/outlets/') && pathname.endsWith('/pricing-config'))) && method === 'GET') {
+        const outletId = pathname.includes('/outlets/')
+          ? pathname.replace('/api/v1/outlets/', '').replace('/pricing-config', '')
+          : (reqUrl.searchParams.get('outletId') || 'demo_outlet_01');
+        const config = store.getPricingConfig(outletId);
+        sendJson(res, 200, config);
+        return;
+      }
+
+      // 10d-3. Manager Pricing & GST Management Configuration (PATCH/POST)
+      if ((pathname === '/api/v1/manager/pricing-config' || (pathname.startsWith('/api/v1/outlets/') && pathname.endsWith('/pricing-config'))) && (method === 'PATCH' || method === 'POST')) {
+        const outletId = pathname.includes('/outlets/')
+          ? pathname.replace('/api/v1/outlets/', '').replace('/pricing-config', '')
+          : (reqUrl.searchParams.get('outletId') || 'demo_outlet_01');
+        const body = await parseJsonBody<any>(req);
+
+        if (body.packagingChargeINR !== undefined && body.packagingChargeCents === undefined) {
+          body.packagingChargeCents = Math.round(parseFloat(body.packagingChargeINR) * 100);
+        }
+        if (body.minOrderValueINR !== undefined && body.minOrderValueCents === undefined) {
+          body.minOrderValueCents = Math.round(parseFloat(body.minOrderValueINR) * 100);
+        }
+
+        const updated = store.updatePricingConfig(outletId, body);
+
+        broadcastEvent({
+          type: 'PRICING_CONFIG_UPDATED',
+          tenantId: 'a0000000-0000-0000-0000-000000000001',
+          outletId,
+          timestamp: updated.updatedAt,
+          payload: updated,
+        });
+
+        sendJson(res, 200, { success: true, config: updated, ...updated });
+        return;
+      }
+
+      // 10d-4. Manager Menu Price Adjustment (Single dish or bulk adjustment)
+      if (pathname === '/api/v1/manager/menu-pricing' && (method === 'PATCH' || method === 'POST')) {
+        const body = await parseJsonBody<{
+          itemId?: string;
+          priceINR?: number;
+          basePriceCents?: number;
+          multiplier?: number;
+          categoryId?: string;
+          items?: Array<{ id?: string; itemId?: string; basePriceCents?: number; priceINR?: number }>;
+        }>(req);
+
+        // Bulk / Array of dish price adjustments
+        if (Array.isArray(body.items) && body.items.length > 0) {
+          let count = 0;
+          for (const itemEntry of body.items) {
+            const targetId = itemEntry.id || itemEntry.itemId;
+            if (!targetId) continue;
+            const item = store.menuItems.get(targetId);
+            if (!item) continue;
+            const newPrice = itemEntry.basePriceCents !== undefined
+              ? Math.round(itemEntry.basePriceCents)
+              : Math.round((itemEntry.priceINR || 0) * 100);
+            if (newPrice > 0) {
+              item.basePriceCents = newPrice;
+              store.menuItems.set(item.id, item);
+              count++;
+            }
+          }
+
+          broadcastEvent({
+            type: 'MENU_UPDATED',
+            tenantId: 'a0000000-0000-0000-0000-000000000001',
+            outletId: 'demo_outlet_01',
+            timestamp: new Date().toISOString(),
+            payload: { bulkUpdated: count },
+          });
+
+          sendJson(res, 200, { success: true, updatedCount: count });
+          return;
+        }
+
+        if (body.itemId) {
+          const item = store.menuItems.get(body.itemId);
+          if (!item) {
+            sendJson(res, 404, { error: 'Menu item not found' });
+            return;
+          }
+          const newPriceCents = body.basePriceCents !== undefined
+            ? Math.round(body.basePriceCents)
+            : Math.round((body.priceINR || 0) * 100);
+          if (newPriceCents <= 0) {
+            sendJson(res, 400, { error: 'Price must be greater than zero' });
+            return;
+          }
+          item.basePriceCents = newPriceCents;
+          store.menuItems.set(item.id, item);
+
+          broadcastEvent({
+            type: 'MENU_UPDATED',
+            tenantId: 'a0000000-0000-0000-0000-000000000001',
+            outletId: 'demo_outlet_01',
+            timestamp: new Date().toISOString(),
+            payload: { itemId: item.id, item },
+          });
+
+          sendJson(res, 200, { success: true, item });
+          return;
+        }
+
+        if (body.multiplier) {
+          const mult = Math.max(0.5, Math.min(2.0, body.multiplier));
+          let count = 0;
+          for (const [id, it] of store.menuItems.entries()) {
+            if (!body.categoryId || it.categoryId === body.categoryId) {
+              it.basePriceCents = Math.round(it.basePriceCents * mult);
+              store.menuItems.set(id, it);
+              count++;
+            }
+          }
+
+          broadcastEvent({
+            type: 'MENU_UPDATED',
+            tenantId: 'a0000000-0000-0000-0000-000000000001',
+            outletId: 'demo_outlet_01',
+            timestamp: new Date().toISOString(),
+            payload: { bulkUpdated: count, multiplier: mult },
+          });
+
+          sendJson(res, 200, { success: true, updatedCount: count, multiplier: mult });
+          return;
+        }
+
+        sendJson(res, 400, { error: 'itemId or multiplier is required' });
         return;
       }
 
@@ -4622,6 +4771,13 @@ export function createOrderApp() {
           } catch {}
         }
 
+        const outletSettings = store.getOutletSettings(order.outletId || 'demo_outlet_01');
+        const gstRateVal = (order as any).taxRate !== undefined ? (order as any).taxRate : (outletSettings.gstRate ?? 5.0);
+        const cgstRateVal = parseFloat((gstRateVal / 2).toFixed(2));
+        const sgstRateVal = parseFloat((gstRateVal / 2).toFixed(2));
+        const gstinVal = (order as any).gstin || outletSettings.gstin || '29ABCDE1234F1Z5';
+        const taxRateLabel = gstRateVal > 0 ? `GST ${gstRateVal}% (CGST ${cgstRateVal}% + SGST ${sgstRateVal}%)` : 'GST Exempt (0%)';
+
         return sendJson(res, 200, {
           format,
           receiptNumber: `REC-${order.id.slice(-6).toUpperCase()}`,
@@ -4632,7 +4788,7 @@ export function createOrderApp() {
             tagline: 'Abiruchi Hotel — The taste of the land, served smartly.',
             address: '14 MG Road, Indiranagar, Bengaluru, KA 560038',
             phone: '+91 9010150809',
-            gstin: '29ABCDE1234F1Z5',
+            gstin: gstinVal,
             fssai: '11223344556677',
           },
           date: new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -4640,7 +4796,7 @@ export function createOrderApp() {
           items,
           subtotalINR,
           taxINR,
-          taxRate: 'GST 5% (CGST 2.5% + SGST 2.5%)',
+          taxRate: taxRateLabel,
           tipINR,
           serviceChargeINR,
           loyaltyStamps,
@@ -4682,6 +4838,9 @@ export function createOrderApp() {
         const serviceChargeINR = '0.00';
         const finalPayableINR = (order.totalCents / 100).toFixed(2);
 
+        const billOutletSettings = store.getOutletSettings(order.outletId || 'demo_outlet_01');
+        const billGstRate = (order as any).taxRate !== undefined ? (order as any).taxRate : (billOutletSettings.gstRate ?? 5.0);
+
         return sendJson(res, 200, {
           orderId: order.id,
           restaurantName: 'Abiruchi Hotel',
@@ -4700,7 +4859,7 @@ export function createOrderApp() {
           taxBreakdown: {
             cgstINR,
             sgstINR,
-            taxRatePercent: 5.0,
+            taxRatePercent: billGstRate,
             totalTaxINR,
           },
           serviceChargeINR,
@@ -5049,15 +5208,22 @@ export function createOrderApp() {
         const order = store.orders.get(orderId);
         if (!order) return sendJson(res, 404, { error: 'Order not found' });
         const title = 'Abiruchi Hotel - Tax Invoice';
+        const rcptOutletSettings = store.getOutletSettings(order.outletId || 'demo_outlet_01');
+        const rcptGstRate = (order as any).taxRate !== undefined ? (order as any).taxRate : (rcptOutletSettings.gstRate ?? 5.0);
+        const rcptGstin = (order as any).gstin || rcptOutletSettings.gstin || '29ABCDE1234F1Z5';
+        const rcptCgst = (rcptGstRate / 2).toFixed(1);
+        const rcptSgst = (rcptGstRate / 2).toFixed(1);
+        const rcptGstLabel = rcptGstRate > 0 ? `GST ${rcptGstRate}% (CGST ${rcptCgst}% + SGST ${rcptSgst}%)` : 'GST Exempt (0%)';
+
         const lines = [
           'Venue: Abiruchi Hotel - Indiranagar, Bengaluru',
           `Order ID: ${order.id}`,
           `Table / Token: ${order.tableNumber || 'Takeaway'}`,
           `Date: ${order.createdAt}`,
           `Subtotal: INR ${(order.subtotalCents / 100).toFixed(2)}`,
-          `GST 5% (CGST 2.5% + SGST 2.5%): INR ${(order.taxCents / 100).toFixed(2)}`,
+          `${rcptGstLabel}: INR ${(order.taxCents / 100).toFixed(2)}`,
           `Total Payable: INR ${(order.totalCents / 100).toFixed(2)}`,
-          'GSTIN: 29ABCDE1234F1Z5 | FSSAI: 11223344556677',
+          `GSTIN: ${rcptGstin} | FSSAI: 11223344556677`,
           'Thank you for dining at Abiruchi Hotel'
         ];
         const pdfBuf = generateSimplePdf(title, lines);
@@ -5074,6 +5240,13 @@ export function createOrderApp() {
         const orderId = pathname.replace('/api/v1/receipts/', '');
         const order = store.orders.get(orderId);
         if (!order) return sendJson(res, 404, { error: 'Order not found' });
+        const htmlOutletSettings = store.getOutletSettings(order.outletId || 'demo_outlet_01');
+        const htmlGstRate = (order as any).taxRate !== undefined ? (order as any).taxRate : (htmlOutletSettings.gstRate ?? 5.0);
+        const htmlGstin = (order as any).gstin || htmlOutletSettings.gstin || '29ABCDE1234F1Z5';
+        const htmlCgst = (htmlGstRate / 2).toFixed(1);
+        const htmlSgst = (htmlGstRate / 2).toFixed(1);
+        const htmlGstLabel = htmlGstRate > 0 ? `GST ${htmlGstRate}% (CGST ${htmlCgst}% + SGST ${htmlSgst}%)` : 'GST Exempt (0%)';
+
         const htmlReceipt = `<!DOCTYPE html>
 <html>
 <head>
@@ -5094,7 +5267,7 @@ export function createOrderApp() {
   <h2>Abiruchi Hotel</h2>
   <div class="center">The taste of the land, served smartly.</div>
   <div class="center" style="font-size:12px;">14 MG Road, Indiranagar, Bengaluru, KA 560038</div>
-  <div class="center" style="font-size:12px;">GSTIN: 29ABCDE1234F1Z5 | FSSAI: 11223344556677</div>
+  <div class="center" style="font-size:12px;">GSTIN: ${htmlGstin} | FSSAI: 11223344556677</div>
   <div class="line"></div>
   <div class="row"><span>Order:</span><span class="bold">${order.id}</span></div>
   <div class="row"><span>TAX INVOICE</span><span class="bold">PAID</span></div>
@@ -5104,7 +5277,7 @@ export function createOrderApp() {
   ${order.items.map((i: any) => `<div class="row"><span>${i.quantity}x ${i.name || 'Dish'}</span><span>₹${((i.unitPriceCents * i.quantity)/100).toFixed(2)}</span></div>`).join('')}
   <div class="line"></div>
   <div class="row"><span>Subtotal:</span><span>₹${(order.subtotalCents / 100).toFixed(2)}</span></div>
-  <div class="row"><span>GST 5% (CGST 2.5% + SGST 2.5%):</span><span>₹${(order.taxCents / 100).toFixed(2)}</span></div>
+  <div class="row"><span>${htmlGstLabel}:</span><span>₹${(order.taxCents / 100).toFixed(2)}</span></div>
   <div class="row bold" style="font-size:16px;"><span>Total:</span><span>₹${(order.totalCents / 100).toFixed(2)}</span></div>
   <div class="line"></div>
   <div class="center bold">Thank you for dining at Abiruchi Hotel</div>
@@ -5155,6 +5328,13 @@ export function createOrderApp() {
         (order as any).customerEmail = email;
         store.orders.set(order.id, order);
 
+        const mailOutletSettings = store.getOutletSettings(order.outletId || 'demo_outlet_01');
+        const mailGstRate = (order as any).taxRate !== undefined ? (order as any).taxRate : (mailOutletSettings.gstRate ?? 5.0);
+        const mailGstin = (order as any).gstin || mailOutletSettings.gstin || '29ABCDE1234F1Z5';
+        const mailCgst = (mailGstRate / 2).toFixed(1);
+        const mailSgst = (mailGstRate / 2).toFixed(1);
+        const mailGstLabel = mailGstRate > 0 ? `GST ${mailGstRate}% (CGST ${mailCgst}% + SGST ${mailSgst}%)` : 'GST Exempt (0%)';
+
         const subtotalINR = (order.subtotalCents / 100).toFixed(2);
         const taxINR = (order.taxCents / 100).toFixed(2);
         const totalINR = (order.totalCents / 100).toFixed(2);
@@ -5164,7 +5344,7 @@ export function createOrderApp() {
         const textBody = `TAX INVOICE & RECEIPT
 Venue: Abiruchi Hotel
 Address: 14 MG Road, Indiranagar, Bengaluru, KA 560038
-GSTIN: 29ABCDE1234F1Z5 | FSSAI: 11223344556677
+GSTIN: ${mailGstin} | FSSAI: 11223344556677
 ------------------------------------------------
 Order ID: #${order.id.slice(-6).toUpperCase()}
 Token: ${token}
@@ -5176,7 +5356,7 @@ ITEMS:
 ${order.items.map((i: any) => `${i.quantity}x ${i.name || 'Dish'} - INR ${((i.unitPriceCents * i.quantity) / 100).toFixed(2)}`).join('\n')}
 ------------------------------------------------
 Subtotal: INR ${subtotalINR}
-GST 5% (CGST 2.5% + SGST 2.5%): INR ${taxINR}
+${mailGstLabel}: INR ${taxINR}
 Total Paid: INR ${totalINR}
 ------------------------------------------------
 Thank you for dining at Abiruchi Hotel!

@@ -536,6 +536,22 @@ function updateTableConfirmationUI() {
 }
 window.updateTableConfirmationUI = updateTableConfirmationUI;
 
+function loadCachedMenuImmediately() {
+  try {
+    const raw = localStorage.getItem('abiruchi_cached_menu_' + currentLang);
+    if (raw) {
+      const cached = JSON.parse(raw);
+      if (cached && Array.isArray(cached.items) && cached.items.length > 0) {
+        menuData = cached;
+        filteredItems = [...cached.items];
+        applyInvisibleLanguageStyles(currentLang, cached.dir || 'ltr');
+        renderCategories();
+        renderMenu();
+      }
+    }
+  } catch (e) {}
+}
+
 async function loadMenu(lang = 'en') {
   if (menuCacheByLang.has(lang)) {
     const cached = menuCacheByLang.get(lang);
@@ -546,12 +562,33 @@ async function loadMenu(lang = 'en') {
     renderMenu();
     return;
   }
+  // Check localStorage for 0ms initial render if memory cache missed
+  try {
+    const raw = localStorage.getItem('abiruchi_cached_menu_' + lang);
+    if (raw) {
+      const localCached = JSON.parse(raw);
+      if (localCached && Array.isArray(localCached.items) && localCached.items.length > 0) {
+        menuCacheByLang.set(lang, localCached);
+        if (!menuData || !menuData.items || menuData.items.length === 0) {
+          menuData = localCached;
+          filteredItems = [...localCached.items];
+          applyInvisibleLanguageStyles(lang, localCached.dir || 'ltr');
+          renderCategories();
+          renderMenu();
+        }
+      }
+    }
+  } catch (e) {}
+
   try {
     const url = lang === 'en' ? `${API_BASE}/api/v1/menu` : `${API_BASE}/api/v1/menu?lang=${encodeURIComponent(lang)}`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       menuCacheByLang.set(lang, data);
+      try {
+        localStorage.setItem('abiruchi_cached_menu_' + lang, JSON.stringify(data));
+      } catch (e) {}
       menuData = data;
       filteredItems = [...menuData.items];
       applyInvisibleLanguageStyles(lang, data.dir || 'ltr');
@@ -828,15 +865,18 @@ function renderMenu() {
       const qty = cartItem ? cartItem.quantity : 0;
       const isVeg = item.dietaryType === 'VEG';
       const availableNow = isItemAvailableNow(item, now);
-      const photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+      let photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
         ? item.imageUrl
-        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80');
+        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format');
+      if (photoUrl && photoUrl.includes('images.unsplash.com')) {
+        photoUrl = photoUrl.replace(/w=\d+/, 'w=360').replace(/q=\d+/, 'q=75');
+      }
 
       return `
         <div class="grid-dish-card" onclick="openDishDetailsModal('${item.id}')">
           <div class="grid-dish-media">
-            <img src="${photoUrl}" alt="${item.name}" loading="lazy" class="grid-dish-img"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';" />
+            <img src="${photoUrl}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" class="grid-dish-img"
+                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format';" />
             <div style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.65); padding:2px 4px; border-radius:4px; display:flex; align-items:center;">
               <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
                 <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
@@ -882,9 +922,12 @@ function renderMenu() {
       const qty = cartItem ? cartItem.quantity : 0;
       const isVeg = item.dietaryType === 'VEG';
       const availableNow = isItemAvailableNow(item, now);
-      const photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+      let photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
         ? item.imageUrl
-        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80');
+        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format');
+      if (photoUrl && photoUrl.includes('images.unsplash.com')) {
+        photoUrl = photoUrl.replace(/w=\d+/, 'w=360').replace(/q=\d+/, 'q=75');
+      }
 
       return `
         <div class="abiruchi-dish-card" onclick="openDishDetailsModal('${item.id}')">
@@ -904,8 +947,8 @@ function renderMenu() {
           </div>
 
           <div class="abiruchi-dish-media" onclick="event.stopPropagation()">
-            <img src="${photoUrl}" alt="${item.name}" loading="lazy" class="abiruchi-dish-img"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';" />
+            <img src="${photoUrl}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" class="abiruchi-dish-img"
+                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format';" />
 
             <div class="abiruchi-btn-wrapper">
               ${qty === 0 ? `
@@ -964,13 +1007,40 @@ function removeFromCart(itemId) {
   renderMenu();
 }
 
+let managerPricingConfig = null;
+
+async function loadManagerPricingConfig() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/manager/pricing-config`);
+    if (res.ok) {
+      managerPricingConfig = await res.json();
+      updateCartUI();
+    }
+  } catch (e) {}
+}
+
 function updateCartUI() {
   const totalCount = cart.reduce((s, i) => s + i.quantity, 0);
   const subtotalCents = cart.reduce((s, i) => s + (i.unitPriceCents * i.quantity), 0);
-  const taxCents = Math.round(subtotalCents * 0.05);
+
+  // Dynamic GST calculation from manager configuration
+  const effectiveGstRate = (managerPricingConfig && managerPricingConfig.gstEnabled !== false)
+    ? (managerPricingConfig.gstRate !== undefined ? managerPricingConfig.gstRate : 5.0)
+    : 0.0;
+  const taxCents = Math.round(subtotalCents * (effectiveGstRate / 100));
+
+  // Service charge and takeaway packaging
+  const serviceChargeRate = (managerPricingConfig && managerPricingConfig.serviceChargeEnabled)
+    ? (managerPricingConfig.serviceChargeRate || 0.0)
+    : 0.0;
+  const serviceChargeCents = Math.round(subtotalCents * (serviceChargeRate / 100));
+
+  const isTakeaway = (activeTable && (activeTable.number === 'Takeaway' || activeTable.number === 'TOKEN'));
+  const packagingCents = (isTakeaway && managerPricingConfig) ? (managerPricingConfig.packagingChargeCents || 0) : 0;
+
   const tipCents = currentTipAmount * 100;
   const discountCents = bestOffer && bestOffer.savedCents ? bestOffer.savedCents : 0;
-  const totalCents = Math.max(0, subtotalCents - discountCents) + taxCents + tipCents;
+  const totalCents = Math.max(0, subtotalCents - discountCents) + taxCents + serviceChargeCents + packagingCents + tipCents;
 
   const bar = document.getElementById('abiruchiFloatingCart') || document.getElementById('floatingCartBar');
   if (bar) {
@@ -1014,7 +1084,13 @@ function updateCartUI() {
   }
 
   if (document.getElementById('sumSubtotal')) document.getElementById('sumSubtotal').textContent = formatINR(subtotalCents);
-  if (document.getElementById('sumTax')) document.getElementById('sumTax').textContent = formatINR(taxCents);
+  if (document.getElementById('sumTax')) {
+    document.getElementById('sumTax').textContent = formatINR(taxCents);
+    const taxLabel = document.getElementById('sumTaxLabel');
+    if (taxLabel) {
+      taxLabel.textContent = effectiveGstRate > 0 ? `GST (${effectiveGstRate}%)` : 'Tax';
+    }
+  }
   if (document.getElementById('sumTip')) document.getElementById('sumTip').textContent = formatINR(tipCents);
   if (document.getElementById('sumDiscount')) document.getElementById('sumDiscount').textContent = `-${formatINR(discountCents)}`;
   if (document.getElementById('sumTotal')) document.getElementById('sumTotal').textContent = formatINR(totalCents);
@@ -2801,9 +2877,15 @@ async function init() {
   initTheme();
   initUserSessionState();
   syncGuestSpeakerUI();
-  await loadLanguages();
-  await initSession();
-  await loadMenu(currentLang);
+  // 0ms instant display from local storage cache
+  loadCachedMenuImmediately();
+  // Fetch session, languages, menu, and pricing config in parallel without blocking waterfalls
+  await Promise.allSettled([
+    loadLanguages(),
+    initSession(),
+    loadMenu(currentLang),
+    loadManagerPricingConfig(),
+  ]);
   loadSpecials();
   loadBestOffer(0);
   loadAIRecommendations();

@@ -28,6 +28,7 @@ import type {
   OrderStatus,
   ShiftPaymentMode,
   OutletP0Settings,
+  ManagerPricingConfig,
   TableAssistanceCall,
   MenuItemAuditLog,
   ServiceToken,
@@ -1510,7 +1511,16 @@ export class OrderStore {
 
   public getOutletSettings(outletId: string): OutletP0Settings {
     const existing = this.outletSettings.get(outletId);
-    if (existing) return existing;
+    if (existing) {
+      if (existing.gstEnabled === undefined) existing.gstEnabled = true;
+      if (!existing.gstin) existing.gstin = '29ABCDE1234F1Z5';
+      if (existing.serviceChargeEnabled === undefined) existing.serviceChargeEnabled = false;
+      if (existing.serviceChargeRate === undefined) existing.serviceChargeRate = 0.0;
+      if (existing.packagingChargeCents === undefined) existing.packagingChargeCents = 0;
+      if (existing.surgePricingMultiplier === undefined) existing.surgePricingMultiplier = 1.0;
+      if (existing.pricesTaxInclusive === undefined) existing.pricesTaxInclusive = false;
+      return existing;
+    }
     const defaultSettings: OutletP0Settings = {
       outletId,
       paymentMode: 'PAY_LATER',
@@ -1518,10 +1528,55 @@ export class OrderStore {
       pauseReason: '',
       pauseEtaMinutes: 0,
       requireFirstOrderApproval: false,
+      gstEnabled: true,
+      gstin: '29ABCDE1234F1Z5',
+      serviceChargeEnabled: false,
+      serviceChargeRate: 0.0,
+      packagingChargeCents: 0,
+      surgePricingMultiplier: 1.0,
+      pricesTaxInclusive: false,
       updatedAt: new Date().toISOString(),
     };
     this.outletSettings.set(outletId, defaultSettings);
     return defaultSettings;
+  }
+
+  public getPricingConfig(outletId: string): ManagerPricingConfig {
+    const s = this.getOutletSettings(outletId);
+    const gstRate = s.gstRate ?? 5.0;
+    return {
+      outletId,
+      gstEnabled: s.gstEnabled !== false,
+      gstRate,
+      gstin: s.gstin || '29ABCDE1234F1Z5',
+      cgstRate: parseFloat((gstRate / 2).toFixed(2)),
+      sgstRate: parseFloat((gstRate / 2).toFixed(2)),
+      serviceChargeEnabled: Boolean(s.serviceChargeEnabled),
+      serviceChargeRate: s.serviceChargeRate || 0.0,
+      packagingChargeCents: s.packagingChargeCents || 0,
+      packagingChargeINR: ((s.packagingChargeCents || 0) / 100).toFixed(2),
+      surgePricingMultiplier: s.surgePricingMultiplier || 1.0,
+      minOrderValueCents: s.minOrderValueCents || 0,
+      minOrderValueINR: ((s.minOrderValueCents || 0) / 100).toFixed(2),
+      pricesTaxInclusive: Boolean(s.pricesTaxInclusive),
+      updatedAt: s.updatedAt,
+    };
+  }
+
+  public updatePricingConfig(outletId: string, updates: Partial<ManagerPricingConfig>): ManagerPricingConfig {
+    const current = this.getOutletSettings(outletId);
+    if (updates.gstEnabled !== undefined) current.gstEnabled = Boolean(updates.gstEnabled);
+    if (updates.gstRate !== undefined) current.gstRate = Math.max(0, Math.min(50, Number(updates.gstRate)));
+    if (updates.gstin !== undefined) current.gstin = String(updates.gstin).trim();
+    if (updates.serviceChargeEnabled !== undefined) current.serviceChargeEnabled = Boolean(updates.serviceChargeEnabled);
+    if (updates.serviceChargeRate !== undefined) current.serviceChargeRate = Math.max(0, Math.min(30, Number(updates.serviceChargeRate)));
+    if (updates.packagingChargeCents !== undefined) current.packagingChargeCents = Math.max(0, Math.round(Number(updates.packagingChargeCents)));
+    if (updates.surgePricingMultiplier !== undefined) current.surgePricingMultiplier = Math.max(0.5, Math.min(3.0, Number(updates.surgePricingMultiplier)));
+    if (updates.minOrderValueCents !== undefined) current.minOrderValueCents = Math.max(0, Math.round(Number(updates.minOrderValueCents)));
+    if (updates.pricesTaxInclusive !== undefined) current.pricesTaxInclusive = Boolean(updates.pricesTaxInclusive);
+    current.updatedAt = new Date().toISOString();
+    this.outletSettings.set(outletId, current);
+    return this.getPricingConfig(outletId);
   }
 
   public setOutletPaymentMode(outletId: string, mode: ShiftPaymentMode): OutletP0Settings {

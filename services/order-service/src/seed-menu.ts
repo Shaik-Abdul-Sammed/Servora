@@ -86,7 +86,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Sambar Idli',
       description: 'Two soft idlis submerged in a bowl of piping hot spiced drumstick sambar garnished with coriander and ghee',
       basePriceCents: 5500, // ₹55.00
-      imageUrl: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80&dish=sambar-idli',
+      imageUrl: 'https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?auto=format&fit=crop&w=600&q=80&dish=sambar-idli',
       allergens: ['dairy'],
       dietaryType: 'VEG',
       course: 'STARTER',
@@ -154,7 +154,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Ghee Karam Dosa',
       description: 'Fiery Rayalaseema style dosa smeared with spicy garlic-red chili chutney and pure desi ghee',
       basePriceCents: 9500, // ₹95.00
-      imageUrl: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=600&q=80&dish=ghee-karam-dosa',
+      imageUrl: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=600&q=80&dish=ghee-karam-dosa',
       allergens: ['dairy'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -171,7 +171,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Onion Dosa',
       description: 'Thin crispy dosa generously topped with finely chopped sweet onions, cumin seeds, and fresh green chilies',
       basePriceCents: 8500, // ₹85.00
-      imageUrl: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=600&q=80&dish=onion-dosa',
+      imageUrl: 'https://images.unsplash.com/photo-1645177628172-a94c1f96e6db?auto=format&fit=crop&w=600&q=80&dish=onion-dosa',
       allergens: [],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -222,7 +222,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Poori',
       description: 'Two fluffy puffed deep-fried whole wheat flatbreads served with traditional spiced potato sagu',
       basePriceCents: 7500, // ₹75.00
-      imageUrl: 'https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=600&q=80&dish=poori',
+      imageUrl: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=600&q=80&dish=poori',
       allergens: ['gluten'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -256,7 +256,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Vada',
       description: 'Two crispy golden savory fried urad dal donuts with soft airy center, served with coconut chutney & sambar',
       basePriceCents: 5500, // ₹55.00
-      imageUrl: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80&dish=medu-vada',
+      imageUrl: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80&dish=medu-vada',
       allergens: [],
       dietaryType: 'VEG',
       course: 'STARTER',
@@ -290,7 +290,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Mysore Masala Dosa',
       description: 'Famous Mysore style crispy dosa layered inside with spicy red garlic chutney and savory potato filling',
       basePriceCents: 9000, // ₹90.00
-      imageUrl: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=600&q=80&dish=mysore-masala-dosa',
+      imageUrl: 'https://images.unsplash.com/photo-1625398407796-82650a8c135f?auto=format&fit=crop&w=600&q=80&dish=mysore-masala-dosa',
       allergens: ['dairy'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -498,7 +498,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Special Thali',
       description: 'Grand executive royal feast: paneer butter masala, dal tadka, jeera rice, two butter naans, raita, salad, and gulab jamun',
       basePriceCents: 26000, // ₹260.00
-      imageUrl: 'https://images.unsplash.com/photo-1546833998-877b37c2e5c6?auto=format&fit=crop&w=600&q=80&dish=special-thali',
+      imageUrl: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=600&q=80&dish=special-thali',
       allergens: ['dairy', 'gluten'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -553,7 +553,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Parotta',
       description: 'Two golden layered flaky Malabar flatbreads roasted with ghee, served with rich coconut-based vegetable salna',
       basePriceCents: 7000, // ₹70.00
-      imageUrl: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=600&q=80&dish=malabar-parotta',
+      imageUrl: 'https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=600&q=80&dish=malabar-parotta',
       allergens: ['gluten', 'dairy'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -604,7 +604,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Dal Tadka',
       description: 'Creamy yellow toor lentils tempered with cumin seeds, roasted garlic cloves, dried red chilies, and pure ghee',
       basePriceCents: 15000, // ₹150.00
-      imageUrl: 'https://images.unsplash.com/photo-1546833998-877b37c2e5c6?auto=format&fit=crop&w=600&q=80&dish=dal-tadka',
+      imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80&dish=dal-tadka',
       allergens: ['dairy'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -638,7 +638,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Chicken Fried Rice',
       description: 'Savory wok-seared rice with tender boneless chicken bits, scrambled egg ribbons, scallions, and soy dressing',
       basePriceCents: 19000, // ₹190.00
-      imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=600&q=80&dish=chicken-fried-rice',
+      imageUrl: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=600&q=80&dish=chicken-fried-rice',
       allergens: ['eggs'],
       dietaryType: 'NON_VEG',
       course: 'MAIN',
@@ -689,7 +689,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Tandoori Roti',
       description: 'Traditional whole wheat flatbread charred in a clay tandoor oven, brushed with farm fresh butter',
       basePriceCents: 3500, // ₹35.00
-      imageUrl: 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=600&q=80&dish=tandoori-roti',
+      imageUrl: 'https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=600&q=80&dish=tandoori-roti',
       allergens: ['gluten', 'dairy'],
       dietaryType: 'VEG',
       course: 'MAIN',
@@ -744,7 +744,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Punugulu',
       description: 'Popular Andhra street snack: deep fried crisp golden rice-lentil dumpling balls served with spicy peanut chutney',
       basePriceCents: 5000, // ₹50.00
-      imageUrl: 'https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=600&q=80&dish=punugulu',
+      imageUrl: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=600&q=80&dish=punugulu',
       allergens: ['nuts'],
       dietaryType: 'VEG',
       course: 'STARTER',
@@ -812,7 +812,7 @@ export function createSeedMenuItems(tenantId: string, outletId: string): MenuIte
       name: 'Paneer 65',
       description: 'Crispy fried cottage cheese cubes tossed with garlic, curry leaves, crushed black pepper, and spicy red masala',
       basePriceCents: 17000, // ₹170.00
-      imageUrl: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=600&q=80&dish=paneer-65',
+      imageUrl: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=600&q=80&dish=paneer-65',
       allergens: ['dairy'],
       dietaryType: 'VEG',
       course: 'STARTER',

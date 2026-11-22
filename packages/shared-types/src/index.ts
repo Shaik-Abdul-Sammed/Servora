@@ -149,6 +149,32 @@ export interface OutletP0Settings {
   tokenCounter?: number;
   minOrderValueCents?: number;
   minSpendPerHeadCents?: number;
+  gstEnabled?: boolean;
+  gstRate?: number;
+  gstin?: string;
+  serviceChargeEnabled?: boolean;
+  serviceChargeRate?: number;
+  packagingChargeCents?: number;
+  surgePricingMultiplier?: number;
+  pricesTaxInclusive?: boolean;
+  updatedAt: string;
+}
+
+export interface ManagerPricingConfig {
+  outletId: string;
+  gstEnabled: boolean;
+  gstRate: number;
+  gstin: string;
+  cgstRate: number;
+  sgstRate: number;
+  serviceChargeEnabled: boolean;
+  serviceChargeRate: number;
+  packagingChargeCents: number;
+  packagingChargeINR: string;
+  surgePricingMultiplier: number;
+  minOrderValueCents: number;
+  minOrderValueINR: string;
+  pricesTaxInclusive: boolean;
   updatedAt: string;
 }
 
