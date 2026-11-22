@@ -411,7 +411,7 @@
       <button type="button" class="abiruchi-pill-toggle" id="filterBestsellerBtn" onclick="toggleDietFilter('BESTSELLER', this)">
         <span>⭐ Bestseller</span>
       </button>
-      <button type="button" class="abiruchi-pill-toggle" onclick="toggleDietFilter('GLUTEN_FREE', this)">
+      <button type="button" class="abiruchi-pill-toggle" id="filterGlutenFreeBtn" onclick="toggleDietFilter('GLUTEN_FREE', this)">
         <span>🌾 Gluten-Free</span>
       </button>
     </div>
@@ -425,12 +425,12 @@
       <!-- Meal Timings Dropdown -->
       <div style="flex:1; min-width:150px;">
         <select id="shiftFilterSelect" class="filter-dropdown" onchange="filterByShift(this.value, this)" aria-label="Meal timing filter">
+          <option value="ALL" id="shiftChipAll" selected>✨ Full Menu (All Day)</option>
           <option value="NOW" id="shiftChipNow">⏰ Available Now</option>
           <option value="BREAKFAST" id="shiftChipBreakfast">🌅 Breakfast (06:00 - 11:30)</option>
           <option value="LUNCH" id="shiftChipLunch">🍛 Lunch (11:00 - 16:30)</option>
           <option value="SNACKS" id="shiftChipSnacks">☕ Snacks (15:00 - 23:00)</option>
           <option value="DINNER" id="shiftChipDinner">🌙 Dinner (18:00 - 23:59)</option>
-          <option value="ALL" id="shiftChipAll">✨ All Items (Full Menu)</option>
         </select>
       </div>
 

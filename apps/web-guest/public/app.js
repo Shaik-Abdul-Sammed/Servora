@@ -1,5 +1,16 @@
 // Abiruchi Hotel Guest SPA — Intelligent Dining & Table Operating System
 const API_BASE = window.location.origin;
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+window.escapeHtml = escapeHtml;
 let currentLang = localStorage.getItem('abiruchi_guest_lang') || 'en';
 let currentTheme = localStorage.getItem('abiruchi_theme') || 'light';
 let menuData = { categories: [], items: [] };
@@ -12,7 +23,10 @@ let splitGuestCount = 1;
 let paymentMethod = 'UPI';
 let selectedRating = 5;
 let currentDietaryFilter = 'ALL';
-let currentShiftFilter = 'NOW';
+let currentShiftFilter = 'ALL';
+let currentCategoryFilter = null;
+let currentSearchQuery = '';
+let currentSortOrder = 'DEFAULT';
 let currentViewMode = localStorage.getItem('abiruchi_view_mode') || 'grid';
 let activeSpecials = [];
 let bestOffer = null;
@@ -609,58 +623,133 @@ async function prefetchLanguages(langs) {
   }
 }
 
+function getCategoryIcon(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('tiffin') || n.includes('breakfast') || n.includes('dosa') || n.includes('idli')) return '🥞';
+  if (n.includes('lunch') || n.includes('meal') || n.includes('thali') || n.includes('biryani')) return '🍛';
+  if (n.includes('dinner') || n.includes('curry') || n.includes('roti') || n.includes('parotta')) return '🌙';
+  if (n.includes('snack') || n.includes('starter') || n.includes('bajji') || n.includes('samosa')) return '🥟';
+  if (n.includes('drink') || n.includes('beverage') || n.includes('water') || n.includes('juice') || n.includes('soda')) return '🥤';
+  if (n.includes('dessert') || n.includes('sweet')) return '🍨';
+  return '🍽️';
+}
+window.getCategoryIcon = getCategoryIcon;
+
 function renderCategories() {
   const nav = document.getElementById('categoryNav');
   if (!nav || !menuData.categories) return;
   const dict = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.en;
-  let html = `<button type="button" class="cat-btn active" onclick="filterCategory(null, this)">✨ ${dict.recommended || 'Recommended'}</button>`;
+  const isAllActive = !currentCategoryFilter;
+  let html = `<button type="button" class="cat-btn ${isAllActive ? 'active' : ''}" data-cat-id="" onclick="filterCategory(null, this)">✨ ${dict.allDishes || 'All'}</button>`;
   for (const cat of menuData.categories) {
-    html += `<button type="button" class="cat-btn" onclick="filterCategory('${cat.id}', this)">${cat.name}</button>`;
+    const isCatActive = currentCategoryFilter === cat.id;
+    const catIcon = getCategoryIcon(cat.name);
+    html += `<button type="button" class="cat-btn ${isCatActive ? 'active' : ''}" data-cat-id="${cat.id}" onclick="filterCategory('${cat.id}', this)">${catIcon} ${cat.name}</button>`;
   }
   nav.innerHTML = html;
 }
 
 function filterCategory(catId, btnEl) {
-  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-  if (!catId) { filteredItems = [...menuData.items]; } else { filteredItems = menuData.items.filter(i => i.categoryId === catId); }
+  currentCategoryFilter = catId || null;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    const bCatId = b.getAttribute('data-cat-id');
+    if ((!catId && !bCatId) || (catId && bCatId === catId)) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
   renderMenu();
 }
+window.filterCategory = filterCategory;
 
-function toggleDietFilter(filter, btnEl) {
-  currentDietaryFilter = filter;
+function applyDietaryFilter(diet, btnEl) {
+  currentDietaryFilter = diet || 'ALL';
+  try {
+    localStorage.setItem('abiruchi_guest_diet', currentDietaryFilter);
+  } catch (e) {}
+
+  const select = document.getElementById('dietaryFilterSelect');
+  if (select && select.value !== currentDietaryFilter) {
+    select.value = currentDietaryFilter;
+  }
+
   document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => {
     b.classList.remove('active', 'active-veg', 'active-nonveg');
   });
-  if (btnEl) {
-    if (filter === 'VEG') btnEl.classList.add('active-veg');
-    else if (filter === 'NON_VEG') btnEl.classList.add('active-nonveg');
-    else btnEl.classList.add('active');
+
+  if (currentDietaryFilter === 'ALL') {
+    document.getElementById('filterAllBtn')?.classList.add('active');
+  } else if (currentDietaryFilter === 'VEG') {
+    document.getElementById('filterVegBtn')?.classList.add('active-veg');
+  } else if (currentDietaryFilter === 'NON_VEG') {
+    document.getElementById('filterNonVegBtn')?.classList.add('active-nonveg');
+  } else if (currentDietaryFilter === 'BESTSELLER') {
+    document.getElementById('filterBestsellerBtn')?.classList.add('active');
+  } else if (currentDietaryFilter === 'GLUTEN_FREE') {
+    document.getElementById('filterGlutenFreeBtn')?.classList.add('active');
   }
+
   renderMenu();
 }
+window.applyDietaryFilter = applyDietaryFilter;
+
+function toggleDietFilter(filter, btnEl) {
+  applyDietaryFilter(filter, btnEl);
+}
+window.toggleDietFilter = toggleDietFilter;
 
 function handleSearch(query) {
+  currentSearchQuery = (query || '').trim();
   const clearBtn = document.getElementById('searchClear');
-  if (query.trim().length > 0) {
-    if (clearBtn) clearBtn.style.display = 'block';
-    const q = query.toLowerCase();
-    filteredItems = menuData.items.filter(i => i.name.toLowerCase().includes(q) || (i.description && i.description.toLowerCase().includes(q)));
-  } else {
-    if (clearBtn) clearBtn.style.display = 'none';
-    filteredItems = [...menuData.items];
+  if (clearBtn) {
+    clearBtn.style.display = currentSearchQuery.length > 0 ? 'block' : 'none';
   }
   renderMenu();
 }
+window.handleSearch = handleSearch;
 
 function clearSearch() {
   const input = document.getElementById('searchInput');
   if (input) input.value = '';
+  currentSearchQuery = '';
   const clearBtn = document.getElementById('searchClear');
   if (clearBtn) clearBtn.style.display = 'none';
-  filteredItems = [...menuData.items];
   renderMenu();
 }
+window.clearSearch = clearSearch;
+
+function clearAllFilters() {
+  currentCategoryFilter = null;
+  currentSearchQuery = '';
+  currentDietaryFilter = 'ALL';
+  currentShiftFilter = 'ALL';
+  currentSortOrder = 'DEFAULT';
+
+  const input = document.getElementById('searchInput');
+  if (input) input.value = '';
+  const clearBtn = document.getElementById('searchClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.classList.toggle('active', !b.getAttribute('data-cat-id'));
+  });
+
+  const dietSelect = document.getElementById('dietaryFilterSelect');
+  if (dietSelect) dietSelect.value = 'ALL';
+  document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => b.classList.remove('active', 'active-veg', 'active-nonveg'));
+  document.getElementById('filterAllBtn')?.classList.add('active');
+
+  const shiftSelect = document.getElementById('shiftFilterSelect');
+  if (shiftSelect) shiftSelect.value = 'ALL';
+  document.querySelectorAll('.shift-chip').forEach(c => c.classList.remove('active'));
+
+  const sortSelect = document.getElementById('menuSortSelect');
+  if (sortSelect) sortSelect.value = 'DEFAULT';
+
+  renderMenu();
+}
+window.clearAllFilters = clearAllFilters;
 
 // ==========================================================================
 // Time-Based Shift and Food Availability Helpers (Phase 2 UX)
@@ -721,12 +810,10 @@ function updateLiveClock() {
   if (shiftEl) shiftEl.textContent = shiftName;
 }
 
-let currentSortOrder = 'DEFAULT';
-
 function filterByShift(shiftKey, btn) {
-  currentShiftFilter = shiftKey;
+  currentShiftFilter = shiftKey || 'ALL';
   const select = document.getElementById('shiftFilterSelect');
-  if (select && select.value !== shiftKey) select.value = shiftKey;
+  if (select && select.value !== currentShiftFilter) select.value = currentShiftFilter;
   document.querySelectorAll('.shift-chip').forEach(c => c.classList.remove('active'));
   if (btn && btn.classList) btn.classList.add('active');
   renderMenu();
@@ -741,22 +828,11 @@ function applyMenuSort(sortKey) {
 }
 window.applyMenuSort = applyMenuSort;
 
-function applyDietaryFilter(diet) {
-  currentDietaryFilter = diet || 'ALL';
-  const select = document.getElementById('dietaryFilterSelect');
-  if (select && select.value !== currentDietaryFilter) select.value = currentDietaryFilter;
-  document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => b.classList.remove('active', 'active-veg', 'active-nonveg'));
-  if (diet === 'ALL') document.getElementById('filterAllBtn')?.classList.add('active');
-  if (diet === 'VEG') document.getElementById('filterVegBtn')?.classList.add('active-veg');
-  if (diet === 'NON_VEG') document.getElementById('filterNonVegBtn')?.classList.add('active-nonveg');
-  if (diet === 'BESTSELLER') document.getElementById('filterBestsellerBtn')?.classList.add('active');
-  renderMenu();
-}
-window.applyDietaryFilter = applyDietaryFilter;
-
 function setViewMode(mode) {
   currentViewMode = mode;
-  localStorage.setItem('abiruchi_view_mode', mode);
+  try {
+    localStorage.setItem('abiruchi_view_mode', mode);
+  } catch (e) {}
   const btnGrid = document.getElementById('btnViewGrid');
   const btnList = document.getElementById('btnViewList');
   if (btnGrid && btnList) {
@@ -768,206 +844,334 @@ function setViewMode(mode) {
 window.setViewMode = setViewMode;
 
 // ==========================================================================
-// Abiruchi Hotel Food Presentation (Compact 2-Col Grid & Detailed List)
+// Unified Dish Filtering Engine
 // ==========================================================================
-function renderMenu() {
-  const container = document.getElementById('menuContainer');
-  if (!container) return;
-
+function getFilteredDishes() {
+  if (!menuData || !Array.isArray(menuData.items)) return [];
   const now = new Date();
-  let displayList = [...filteredItems];
+  let list = [...menuData.items];
 
-  // 1. Dietary filter
-  if (currentDietaryFilter === 'VEG') {
-    displayList = displayList.filter(i => i.dietaryType === 'VEG');
-  } else if (currentDietaryFilter === 'NON_VEG') {
-    displayList = displayList.filter(i => i.dietaryType === 'NON_VEG' || !i.dietaryType);
-  } else if (currentDietaryFilter === 'BESTSELLER') {
-    displayList = displayList.filter(i => (i.tags && i.tags.includes('bestseller')) || i.basePriceCents > 8000);
-  } else if (currentDietaryFilter === 'GLUTEN_FREE') {
-    displayList = displayList.filter(i => !(i.allergens || []).includes('GLUTEN'));
+  // 1. Category Filter
+  if (currentCategoryFilter) {
+    list = list.filter(i => i.categoryId === currentCategoryFilter);
   }
 
-  // 2. Real-time shift & availability filter
+  // 2. Search Query (dish name, description, tags, category name)
+  if (currentSearchQuery) {
+    const q = currentSearchQuery.toLowerCase();
+    list = list.filter(i => {
+      const matchName = i.name && i.name.toLowerCase().includes(q);
+      const matchDesc = i.description && i.description.toLowerCase().includes(q);
+      const matchTags = Array.isArray(i.tags) && i.tags.some(t => t.toLowerCase().includes(q));
+      const cat = (menuData.categories || []).find(c => c.id === i.categoryId);
+      const matchCat = cat && cat.name && cat.name.toLowerCase().includes(q);
+      return matchName || matchDesc || matchTags || matchCat;
+    });
+  }
+
+  // 3. Dietary Filter
+  if (currentDietaryFilter === 'VEG') {
+    list = list.filter(i => i.dietaryType === 'VEG');
+  } else if (currentDietaryFilter === 'NON_VEG') {
+    list = list.filter(i => i.dietaryType === 'NON_VEG' || !i.dietaryType);
+  } else if (currentDietaryFilter === 'BESTSELLER') {
+    list = list.filter(i => (i.tags && i.tags.includes('bestseller')) || i.basePriceCents > 8000);
+  } else if (currentDietaryFilter === 'GLUTEN_FREE') {
+    list = list.filter(i => !(i.allergens || []).includes('GLUTEN'));
+  }
+
+  // 4. Shift & Daypart Filter
   if (currentShiftFilter === 'NOW') {
-    // Prioritize available dishes; fallback to full category if none are currently serving so menu is never empty
-    const availableNow = displayList.filter(i => isItemAvailableNow(i, now));
+    const availableNow = list.filter(i => isItemAvailableNow(i, now));
     if (availableNow.length > 0) {
-      displayList = availableNow;
+      list = availableNow;
     }
   } else if (currentShiftFilter === 'BREAKFAST') {
-    displayList = displayList.filter(i => {
+    list = list.filter(i => {
       const from = timeStringToMinutes(i.servingFrom || '06:00');
       const until = timeStringToMinutes(i.servingUntil || '11:30');
-      return from <= 690 && until >= 360; // Overlaps 06:00 - 11:30
+      return from <= 690 && until >= 360;
     });
   } else if (currentShiftFilter === 'LUNCH') {
-    displayList = displayList.filter(i => {
+    list = list.filter(i => {
       const from = timeStringToMinutes(i.servingFrom || '11:00');
       const until = timeStringToMinutes(i.servingUntil || '16:30');
-      return from <= 990 && until >= 660; // Overlaps 11:00 - 16:30
+      return from <= 990 && until >= 660;
     });
   } else if (currentShiftFilter === 'SNACKS') {
-    displayList = displayList.filter(i => {
+    list = list.filter(i => {
       const from = timeStringToMinutes(i.servingFrom || '15:00');
       const until = timeStringToMinutes(i.servingUntil || '23:00');
-      return from <= 1380 && until >= 900; // Overlaps 15:00 - 23:00
+      return from <= 1380 && until >= 900;
     });
   } else if (currentShiftFilter === 'DINNER') {
-    displayList = displayList.filter(i => {
+    list = list.filter(i => {
       const from = timeStringToMinutes(i.servingFrom || '18:00');
       const until = timeStringToMinutes(i.servingUntil || '23:59');
-      return from <= 1439 && until >= 1080; // Overlaps 18:00 - 23:59
+      return from <= 1439 && until >= 1080;
     });
   }
 
-  // 3. Cost and Popularity Sorting
+  // 5. Cost and Popularity Sorting
   if (currentSortOrder === 'PRICE_ASC') {
-    displayList.sort((a, b) => a.basePriceCents - b.basePriceCents);
+    list.sort((a, b) => a.basePriceCents - b.basePriceCents);
   } else if (currentSortOrder === 'PRICE_DESC') {
-    displayList.sort((a, b) => b.basePriceCents - a.basePriceCents);
+    list.sort((a, b) => b.basePriceCents - a.basePriceCents);
   } else if (currentSortOrder === 'NAME_ASC') {
-    displayList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   } else if (currentSortOrder === 'PREP_TIME') {
-    displayList.sort((a, b) => (a.prepTimeMinutes || 15) - (b.prepTimeMinutes || 15));
+    list.sort((a, b) => (a.prepTimeMinutes || 15) - (b.prepTimeMinutes || 15));
   } else if (currentSortOrder === 'DEFAULT') {
-    // Mostly ordered / bestsellers first
-    displayList.sort((a, b) => {
+    list.sort((a, b) => {
       const aBest = (a.tags && a.tags.includes('bestseller')) ? 1 : 0;
       const bBest = (b.tags && b.tags.includes('bestseller')) ? 1 : 0;
       return bBest - aBest;
     });
   }
 
+  return list;
+}
+
+// ==========================================================================
+// Dish Card Presentation (Compact Grid & List Card)
+// ==========================================================================
+function renderDishCard(item, now, mode, catMap) {
+  const cartItem = cart.find(ci => ci.itemId === item.id);
+  const qty = cartItem ? cartItem.quantity : 0;
+  const isVeg = item.dietaryType === 'VEG';
+  const availableNow = isItemAvailableNow(item, now);
+  const cat = catMap ? catMap.get(item.categoryId) : null;
+  const catName = cat ? cat.name : '';
+  const catIcon = catName ? getCategoryIcon(catName) : '🍽️';
+
+  let photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+    ? item.imageUrl
+    : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format');
+  if (photoUrl && photoUrl.includes('images.unsplash.com')) {
+    photoUrl = photoUrl.replace(/w=\d+/, 'w=360').replace(/q=\d+/, 'q=75');
+  }
+
+  if (mode === 'grid') {
+    return `
+      <div class="grid-dish-card" onclick="openDishDetailsModal('${item.id}')">
+        <div class="grid-dish-media">
+          <img src="${photoUrl}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" class="grid-dish-img"
+               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format';" />
+          <div style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.65); padding:2px 4px; border-radius:4px; display:flex; align-items:center;">
+            <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
+              <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
+            </span>
+          </div>
+          ${item.tags && item.tags.includes('bestseller') ? `
+            <span style="position:absolute; top:6px; right:6px; background:#fc8019; color:#fff; font-size:0.6rem; font-weight:900; padding:2px 5px; border-radius:4px;">★ Best</span>
+          ` : ''}
+        </div>
+
+        <div class="grid-dish-body">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
+              ${catName ? `<span class="dish-cat-pill">${catIcon} ${catName}</span>` : ''}
+              <span class="time-badge ${availableNow ? 'now' : 'future'}">
+                ${availableNow ? '✓ Available' : `⏰ ${formatShiftTime(item.servingFrom)}`}
+              </span>
+            </div>
+            <div class="grid-dish-title" title="${item.name}">${item.name}</div>
+          </div>
+
+          <div class="grid-dish-bottom">
+            <span class="grid-dish-price">${formatINR(item.basePriceCents)}</span>
+            <div onclick="event.stopPropagation()">
+              ${qty === 0 ? `
+                <button type="button" class="grid-dish-btn-add" aria-label="Add ${escapeHtml(item.name)} to cart" onclick="addToCart('${item.id}')">ADD +</button>
+              ` : `
+                <div class="grid-dish-stepper">
+                  <span style="cursor:pointer; padding:0 4px;" onclick="removeFromCart('${item.id}')">−</span>
+                  <span>${qty}</span>
+                  <span style="cursor:pointer; padding:0 4px;" onclick="addToCart('${item.id}')">+</span>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    return `
+      <div class="abiruchi-dish-card" onclick="openDishDetailsModal('${item.id}')">
+        <div class="abiruchi-dish-info">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
+              <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
+            </span>
+            ${catName ? `<span class="dish-cat-pill">${catIcon} ${catName}</span>` : ''}
+            <span class="time-badge ${availableNow ? 'now' : 'future'}">
+              ${availableNow ? '✓ Available Now' : `⏰ Serving at ${formatShiftTime(item.servingFrom)}`}
+            </span>
+            ${item.tags && item.tags.includes('bestseller') ? '<span class="abiruchi-dish-tag">★ Bestseller</span>' : ''}
+          </div>
+          <div class="abiruchi-dish-name">${item.name}</div>
+          <div class="abiruchi-dish-price">${formatINR(item.basePriceCents)}</div>
+          <div class="abiruchi-dish-desc">${item.description || ''}</div>
+        </div>
+
+        <div class="abiruchi-dish-media" onclick="event.stopPropagation()">
+          <img src="${photoUrl}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" class="abiruchi-dish-img"
+               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format';" />
+
+          <div class="abiruchi-btn-wrapper">
+            ${qty === 0 ? `
+              <button type="button" class="abiruchi-btn-add" aria-label="Add ${escapeHtml(item.name)} to cart" onclick="addToCart('${item.id}'); event.stopPropagation();">
+                ADD <span style="font-size:0.8rem; font-weight:900; margin-left:2px;">+</span>
+              </button>
+            ` : `
+              <div class="abiruchi-qty-stepper">
+                <button type="button" class="abiruchi-step-btn" aria-label="Decrease quantity" onclick="removeFromCart('${item.id}'); event.stopPropagation();">−</button>
+                <span class="abiruchi-qty-num">${qty}</span>
+                <button type="button" class="abiruchi-step-btn" aria-label="Increase quantity" onclick="addToCart('${item.id}'); event.stopPropagation();">+</button>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+// ==========================================================================
+// Abiruchi Hotel Food Presentation (Categorized Sections with Quick Directory)
+// ==========================================================================
+function renderMenu() {
+  const container = document.getElementById('menuContainer');
+  if (!container) return;
+
+  const now = new Date();
+  const displayList = getFilteredDishes();
+  filteredItems = displayList;
+
   // Update item count indicator
   const countEl = document.getElementById('menuItemCount');
   if (countEl) countEl.textContent = displayList.length;
 
+  const catMap = new Map();
+  for (const c of (menuData.categories || [])) {
+    catMap.set(c.id, c);
+  }
+
+  // Build Active Filters Summary HTML
+  const hasActiveFilter = Boolean(currentCategoryFilter || currentSearchQuery || (currentDietaryFilter && currentDietaryFilter !== 'ALL') || (currentShiftFilter && currentShiftFilter !== 'ALL'));
+  let activeFiltersHtml = '';
+  if (hasActiveFilter) {
+    const filterChips = [];
+    if (currentCategoryFilter && catMap.has(currentCategoryFilter)) {
+      const c = catMap.get(currentCategoryFilter);
+      filterChips.push(`<span class="active-filter-chip">📂 ${c.name} <span class="active-filter-chip-remove" onclick="filterCategory(null)" title="Remove category filter">✕</span></span>`);
+    }
+    if (currentSearchQuery) {
+      filterChips.push(`<span class="active-filter-chip">🔍 "${escapeHtml(currentSearchQuery)}" <span class="active-filter-chip-remove" onclick="clearSearch()" title="Clear search">✕</span></span>`);
+    }
+    if (currentDietaryFilter && currentDietaryFilter !== 'ALL') {
+      const dietLabels = { VEG: '🟢 Pure Veg', NON_VEG: '🔴 Non-Veg', BESTSELLER: '⭐ Bestsellers', GLUTEN_FREE: '🌾 Gluten-Free' };
+      filterChips.push(`<span class="active-filter-chip">${dietLabels[currentDietaryFilter] || currentDietaryFilter} <span class="active-filter-chip-remove" onclick="applyDietaryFilter('ALL')" title="Clear dietary filter">✕</span></span>`);
+    }
+    if (currentShiftFilter && currentShiftFilter !== 'ALL') {
+      const shiftLabels = { NOW: '⏰ Available Now', BREAKFAST: '🌅 Breakfast', LUNCH: '🍛 Lunch', SNACKS: '☕ Snacks', DINNER: '🌙 Dinner' };
+      filterChips.push(`<span class="active-filter-chip">${shiftLabels[currentShiftFilter] || currentShiftFilter} <span class="active-filter-chip-remove" onclick="filterByShift('ALL')" title="Show all shifts">✕</span></span>`);
+    }
+
+    activeFiltersHtml = `
+      <div class="active-filters-summary">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <span style="font-weight:800; color:var(--text-title); font-size:0.78rem;">Active Filters:</span>
+          ${filterChips.join('')}
+        </div>
+        <button type="button" class="btn-reset-filters" onclick="clearAllFilters()">
+          ✕ Reset All Filters
+        </button>
+      </div>`;
+  }
+
+  // Handle empty state
   if (displayList.length === 0) {
     container.className = 'menu-container';
     container.innerHTML = `
+      ${activeFiltersHtml}
       <div style="text-align:center; padding:48px 16px; color:var(--text-muted); grid-column:1/-1;">
-        <div style="font-size:2.5rem; margin-bottom:12px;">⏰</div>
-        <div style="font-size:1.1rem; font-weight:800; color:var(--text-title); margin-bottom:6px;">No dishes available in this shift</div>
-        <p style="font-size:0.85rem; margin-bottom:14px;">Try selecting <strong>✨ All Items</strong> or switching dietary preferences.</p>
-        <button type="button" onclick="filterByShift('ALL', document.getElementById('shiftChipAll'))" class="btn-primary" style="padding:8px 16px; border-radius:12px; font-weight:800; border:none; cursor:pointer;" aria-label="Show full menu">
-          Show Full Menu
+        <div style="font-size:2.5rem; margin-bottom:12px;">🔍</div>
+        <div style="font-size:1.15rem; font-weight:800; color:var(--text-title); margin-bottom:6px;">No dishes match your filters</div>
+        <p style="font-size:0.85rem; margin-bottom:16px;">We couldn't find any dishes matching your current selection.</p>
+        <button type="button" onclick="clearAllFilters()" class="btn-primary" style="padding:10px 20px; border-radius:12px; font-weight:800; border:none; cursor:pointer;" aria-label="View Full Menu">
+          ✨ View Full Menu (Reset All Filters)
         </button>
       </div>`;
     return;
   }
 
-  // Apply layout class
-  if (currentViewMode === 'grid') {
-    container.className = 'menu-container grid-view';
-    container.innerHTML = displayList.map(item => {
-      const cartItem = cart.find(ci => ci.itemId === item.id);
-      const qty = cartItem ? cartItem.quantity : 0;
-      const isVeg = item.dietaryType === 'VEG';
-      const availableNow = isItemAvailableNow(item, now);
-      let photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
-        ? item.imageUrl
-        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format');
-      if (photoUrl && photoUrl.includes('images.unsplash.com')) {
-        photoUrl = photoUrl.replace(/w=\d+/, 'w=360').replace(/q=\d+/, 'q=75');
-      }
+  // Set container layout mode
+  container.className = currentViewMode === 'grid' ? 'menu-container grid-view' : 'menu-container';
 
-      return `
-        <div class="grid-dish-card" onclick="openDishDetailsModal('${item.id}')">
-          <div class="grid-dish-media">
-            <img src="${photoUrl}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" class="grid-dish-img"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format';" />
-            <div style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.65); padding:2px 4px; border-radius:4px; display:flex; align-items:center;">
-              <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
-                <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
-              </span>
-            </div>
-            ${item.tags && item.tags.includes('bestseller') ? `
-              <span style="position:absolute; top:6px; right:6px; background:#fc8019; color:#fff; font-size:0.6rem; font-weight:900; padding:2px 5px; border-radius:4px;">★ Best</span>
-            ` : ''}
+  let contentHtml = activeFiltersHtml;
+
+  // If a specific category is filtered
+  if (currentCategoryFilter && catMap.has(currentCategoryFilter)) {
+    const cat = catMap.get(currentCategoryFilter);
+    const catIcon = getCategoryIcon(cat.name);
+    contentHtml += `
+      <div class="category-section-banner">
+        <div class="category-title-row">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.3rem;">${catIcon}</span>
+            <h3 style="font-size:1.1rem; font-weight:900; color:var(--text-title); margin:0;">${cat.name}</h3>
+            <span class="category-count-badge">${displayList.length} items</span>
           </div>
-
-          <div class="grid-dish-body">
-            <div>
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="time-badge ${availableNow ? 'now' : 'future'}">
-                  ${availableNow ? '✓ Available' : `⏰ ${formatShiftTime(item.servingFrom)}`}
-                </span>
-              </div>
-              <div class="grid-dish-title" title="${item.name}">${item.name}</div>
-            </div>
-
-            <div class="grid-dish-bottom">
-              <span class="grid-dish-price">${formatINR(item.basePriceCents)}</span>
-              <div onclick="event.stopPropagation()">
-                ${qty === 0 ? `
-                  <button type="button" class="grid-dish-btn-add" aria-label="Add ${escapeHtml(item.name)} to cart" onclick="addToCart('${item.id}')">ADD +</button>
-                ` : `
-                  <div class="grid-dish-stepper">
-                    <span style="cursor:pointer; padding:0 4px;" onclick="removeFromCart('${item.id}')">−</span>
-                    <span>${qty}</span>
-                    <span style="cursor:pointer; padding:0 4px;" onclick="addToCart('${item.id}')">+</span>
-                  </div>
-                `}
-              </div>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
+          <button type="button" class="btn-reset-filters" onclick="filterCategory(null)">Show All Categories</button>
+        </div>
+        ${cat.description ? `<div class="category-desc-text">${cat.description}</div>` : ''}
+      </div>`;
+    contentHtml += displayList.map(item => renderDishCard(item, now, currentViewMode, catMap)).join('');
   } else {
-    // List view
-    container.className = 'menu-container';
-    container.innerHTML = displayList.map(item => {
-      const cartItem = cart.find(ci => ci.itemId === item.id);
-      const qty = cartItem ? cartItem.quantity : 0;
-      const isVeg = item.dietaryType === 'VEG';
-      const availableNow = isItemAvailableNow(item, now);
-      let photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
-        ? item.imageUrl
-        : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format');
-      if (photoUrl && photoUrl.includes('images.unsplash.com')) {
-        photoUrl = photoUrl.replace(/w=\d+/, 'w=360').replace(/q=\d+/, 'q=75');
-      }
+    // Grouping by category (when viewing all categories or search results across categories)
+    const categories = menuData.categories || [];
+    let itemsRendered = 0;
 
-      return `
-        <div class="abiruchi-dish-card" onclick="openDishDetailsModal('${item.id}')">
-          <div class="abiruchi-dish-info">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="fssai-symbol ${isVeg ? 'fssai-veg' : 'fssai-nonveg'}">
-                <span class="${isVeg ? 'fssai-veg-dot' : 'fssai-nonveg-dot'}"></span>
-              </span>
-              <span class="time-badge ${availableNow ? 'now' : 'future'}">
-                ${availableNow ? '✓ Available Now' : `⏰ Serving at ${formatShiftTime(item.servingFrom)}`}
-              </span>
-              ${item.tags && item.tags.includes('bestseller') ? '<span class="abiruchi-dish-tag">★ Bestseller</span>' : ''}
+    for (const cat of categories) {
+      const catItems = displayList.filter(i => i.categoryId === cat.id);
+      if (catItems.length === 0) continue;
+
+      const catIcon = getCategoryIcon(cat.name);
+      contentHtml += `
+        <div class="category-section-banner" id="cat-section-${cat.id}">
+          <div class="category-title-row">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.3rem;">${catIcon}</span>
+              <h3 style="font-size:1.1rem; font-weight:900; color:var(--text-title); margin:0;">${cat.name}</h3>
+              <span class="category-count-badge">${catItems.length} items</span>
             </div>
-            <div class="abiruchi-dish-name">${item.name}</div>
-            <div class="abiruchi-dish-price">${formatINR(item.basePriceCents)}</div>
-            <div class="abiruchi-dish-desc">${item.description || ''}</div>
+            <span class="category-timings-badge">${cat.daypartFrom ? `⏰ ${formatShiftTime(cat.daypartFrom)} - ${formatShiftTime(cat.daypartUntil)}` : ''}</span>
           </div>
+          ${cat.description ? `<div class="category-desc-text">${cat.description}</div>` : ''}
+        </div>`;
+      contentHtml += catItems.map(item => renderDishCard(item, now, currentViewMode, catMap)).join('');
+      itemsRendered += catItems.length;
+    }
 
-          <div class="abiruchi-dish-media" onclick="event.stopPropagation()">
-            <img src="${photoUrl}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" class="abiruchi-dish-img"
-                 onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format';" />
-
-            <div class="abiruchi-btn-wrapper">
-              ${qty === 0 ? `
-                <button type="button" class="abiruchi-btn-add" aria-label="Add ${escapeHtml(item.name)} to cart" onclick="addToCart('${item.id}'); event.stopPropagation();">
-                  ADD <span style="font-size:0.8rem; font-weight:900; margin-left:2px;">+</span>
-                </button>
-              ` : `
-                <div class="abiruchi-qty-stepper">
-                  <button type="button" class="abiruchi-step-btn" aria-label="Decrease quantity" onclick="removeFromCart('${item.id}'); event.stopPropagation();">−</button>
-                  <span class="abiruchi-qty-num">${qty}</span>
-                  <button type="button" class="abiruchi-step-btn" aria-label="Increase quantity" onclick="addToCart('${item.id}'); event.stopPropagation();">+</button>
-                </div>
-              `}
+    // Any remaining items without a matched category
+    const remainingItems = displayList.filter(i => !categories.some(c => c.id === i.categoryId));
+    if (remainingItems.length > 0) {
+      contentHtml += `
+        <div class="category-section-banner">
+          <div class="category-title-row">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.3rem;">🍽️</span>
+              <h3 style="font-size:1.1rem; font-weight:900; color:var(--text-title); margin:0;">Specialties</h3>
+              <span class="category-count-badge">${remainingItems.length} items</span>
             </div>
           </div>
         </div>`;
-    }).join('');
+      contentHtml += remainingItems.map(item => renderDishCard(item, now, currentViewMode, catMap)).join('');
+    }
   }
+
+  container.innerHTML = contentHtml;
 }
+window.renderMenu = renderMenu;
 
 // ==========================================================================
 // Cart Operations
@@ -2917,10 +3121,11 @@ function initUserSessionState() {
       'ALL': document.getElementById('filterAllBtn'),
       'VEG': document.getElementById('filterVegBtn'),
       'NON_VEG': document.getElementById('filterNonVegBtn'),
-      'BESTSELLER': document.getElementById('filterBestsellerBtn')
+      'BESTSELLER': document.getElementById('filterBestsellerBtn'),
+      'GLUTEN_FREE': document.getElementById('filterGlutenFreeBtn')
     };
     if (dietBtnMap[savedDiet]) {
-      toggleDietFilter(savedDiet, dietBtnMap[savedDiet]);
+      applyDietaryFilter(savedDiet, dietBtnMap[savedDiet]);
     }
   }
   updateLoginStateUI();
