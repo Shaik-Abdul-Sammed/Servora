@@ -367,7 +367,8 @@
       }
 
       listEl.innerHTML = items.map(item => {
-        const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+        const isBroken = window.isBrokenDishPhoto ? window.isBrokenDishPhoto(item.imageUrl) : (!item.imageUrl || item.imageUrl.includes('photo-1546069901-ba9599a7e63c') || item.imageUrl.includes('photo-1589301764619-3c35f793b827') || item.imageUrl.includes('photo-1576107232684-1279f3908594') || item.imageUrl.includes('photo-1548839140-29a749e1bc4e'));
+        const photo = !isBroken
           ? item.imageUrl
           : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=200&q=80');
 
@@ -454,7 +455,8 @@
       document.getElementById('dishDesc').value = item.description || '';
       document.getElementById('dishServingFrom').value = item.servingFrom || '06:00';
       document.getElementById('dishServingUntil').value = item.servingUntil || '23:30';
-      const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+      const isBroken = window.isBrokenDishPhoto ? window.isBrokenDishPhoto(item.imageUrl) : (!item.imageUrl || item.imageUrl.includes('photo-1546069901-ba9599a7e63c') || item.imageUrl.includes('photo-1589301764619-3c35f793b827') || item.imageUrl.includes('photo-1576107232684-1279f3908594') || item.imageUrl.includes('photo-1548839140-29a749e1bc4e'));
+      const photo = !isBroken
         ? item.imageUrl
         : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80');
       document.getElementById('dishImageUrl').value = photo;
@@ -508,7 +510,8 @@
       if (!name) return alert('Please enter a dish name.');
       if (isNaN(priceINR) || priceINR <= 0) return alert('Please enter a valid price in INR.');
 
-      if (!imageUrl || imageUrl.includes('photo-1546069901-ba9599a7e63c')) {
+      const isBroken = window.isBrokenDishPhoto ? window.isBrokenDishPhoto(imageUrl) : (!imageUrl || imageUrl.includes('photo-1546069901-ba9599a7e63c') || imageUrl.includes('photo-1589301764619-3c35f793b827') || imageUrl.includes('photo-1576107232684-1279f3908594') || imageUrl.includes('photo-1548839140-29a749e1bc4e'));
+      if (isBroken) {
         imageUrl = window.getAutoDishPhoto ? window.getAutoDishPhoto(name, '') : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80';
       }
 

@@ -950,7 +950,8 @@ function renderDishCard(item, now, mode, catMap) {
   const catName = cat ? cat.name : '';
   const catIcon = catName ? getCategoryIcon(catName) : '🍽️';
 
-  let photoUrl = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+  const isBroken = window.isBrokenDishPhoto ? window.isBrokenDishPhoto(item.imageUrl) : (!item.imageUrl || item.imageUrl.includes('photo-1546069901-ba9599a7e63c') || item.imageUrl.includes('photo-1589301764619-3c35f793b827') || item.imageUrl.includes('photo-1576107232684-1279f3908594') || item.imageUrl.includes('photo-1548839140-29a749e1bc4e'));
+  let photoUrl = !isBroken
     ? item.imageUrl
     : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=360&q=75&auto=format');
   if (photoUrl && photoUrl.includes('images.unsplash.com')) {
@@ -2566,7 +2567,8 @@ function openDishDetailsModal(itemId) {
   const descEl = document.getElementById('dishModalDesc');
   if (titleEl) titleEl.textContent = item.name;
   if (imgEl) {
-    const photo = (item.imageUrl && !item.imageUrl.includes('photo-1546069901-ba9599a7e63c'))
+    const isBroken = window.isBrokenDishPhoto ? window.isBrokenDishPhoto(item.imageUrl) : (!item.imageUrl || item.imageUrl.includes('photo-1546069901-ba9599a7e63c') || item.imageUrl.includes('photo-1589301764619-3c35f793b827') || item.imageUrl.includes('photo-1576107232684-1279f3908594') || item.imageUrl.includes('photo-1548839140-29a749e1bc4e'));
+    const photo = !isBroken
       ? item.imageUrl
       : (window.getAutoDishPhoto ? window.getAutoDishPhoto(item.name, item.categoryId) : 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&q=80');
     imgEl.src = photo;

@@ -4,7 +4,8 @@ import type { AddressInfo } from 'node:net';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createOrderApp } from '../../services/order-service/src/server.ts';
-import { getAutoDishPhoto, AUTHENTIC_DISH_PHOTOS, MULTILINGUAL_DISH_ALIASES } from '../../packages/utils/src/dish-photo-matcher.ts';
+import { createSeedMenuItems } from '../../services/order-service/src/seed-menu.ts';
+import { getAutoDishPhoto, AUTHENTIC_DISH_PHOTOS, MULTILINGUAL_DISH_ALIASES, isBrokenDishPhoto } from '../../packages/utils/src/dish-photo-matcher.ts';
 
 test('Manager GST & Pricing Controls & Fast Menu Loading Test Suite', async (t) => {
   const server = createOrderApp();
@@ -276,6 +277,52 @@ test('Manager GST & Pricing Controls & Fast Menu Loading Test Suite', async (t) 
     const chickenBiryaniPhoto = getAutoDishPhoto('Chicken Biryani');
     assert.notEqual(chickenNoodlesPhoto, chickenBiryaniPhoto, 'Chicken Noodles must match noodles, not biryani');
     assert.ok(chickenNoodlesPhoto.includes('chicken-noodles') || chickenNoodlesPhoto.includes('photo-1569718212165'), 'Must match stir-fry noodles');
+  });
+
+  await t.test('12b. Masala Chai and Filter Coffee have distinct authentic photography (Tea shows chai, not coffee)', () => {
+    const chaiPhoto = getAutoDishPhoto('Masala Chai');
+    const coffeePhoto = getAutoDishPhoto('South Indian Filter Coffee');
+    assert.notEqual(chaiPhoto, coffeePhoto, 'Masala Chai and Filter Coffee must not share the same photo URL');
+    assert.ok(chaiPhoto.includes('masala-chai') || chaiPhoto.includes('photo-1576092768241'), 'Masala Chai must match authentic hot tea');
+    assert.ok(coffeePhoto.includes('filter-coffee') || coffeePhoto.includes('photo-1514432324607'), 'Filter Coffee must match filter coffee');
+
+    // Multilingual aliases
+    const teluguTea = getAutoDishPhoto('టీ');
+    const teluguChai = getAutoDishPhoto('చాయ్');
+    const hindiChai = getAutoDishPhoto('चाय');
+    assert.equal(teluguTea, chaiPhoto, 'Telugu Tea (టీ) must map to authentic chai photo');
+    assert.equal(teluguChai, chaiPhoto, 'Telugu Chai (చాయ్) must map to authentic chai photo');
+    assert.equal(hindiChai, chaiPhoto, 'Hindi Chai (चाय) must map to authentic chai photo');
+  });
+
+  await t.test('12c. All 56 seed menu items have unique, non-colliding image URLs and zero broken photo IDs', () => {
+    const seedItems = createSeedMenuItems(tenantId, outletId);
+    assert.equal(seedItems.length, 56, 'Must seed exactly 56 authentic dishes');
+
+    const seenUrls = new Map<string, string>();
+    for (const item of seedItems) {
+      assert.ok(item.imageUrl, `Item "${item.name}" must have an imageUrl`);
+      assert.equal(isBrokenDishPhoto(item.imageUrl), false, `Item "${item.name}" must not have a broken photo URL: ${item.imageUrl}`);
+
+      // Strip query parameters to get the base photo asset identifier
+      const baseAsset = item.imageUrl.split('?')[0];
+      if (seenUrls.has(baseAsset)) {
+        assert.fail(`Duplicate photo collision detected between "${item.name}" and "${seenUrls.get(baseAsset)}": ${baseAsset}`);
+      }
+      seenUrls.set(baseAsset, item.name);
+    }
+    assert.equal(seenUrls.size, 56, 'All 56 dishes must have 56 distinct image assets');
+  });
+
+  await t.test('12d. isBrokenDishPhoto correctly flags known broken/placeholder IDs and approves authentic URLs', () => {
+    assert.equal(isBrokenDishPhoto('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'), true);
+    assert.equal(isBrokenDishPhoto('https://images.unsplash.com/photo-1589301764619-3c35f793b827?w=600'), true);
+    assert.equal(isBrokenDishPhoto('https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600'), true);
+    assert.equal(isBrokenDishPhoto('https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600'), true);
+    assert.equal(isBrokenDishPhoto(null), true);
+    assert.equal(isBrokenDishPhoto(''), true);
+    assert.equal(isBrokenDishPhoto('https://upload.wikimedia.org/wikipedia/commons/6/6c/Pesarattu.jpg'), false);
+    assert.equal(isBrokenDishPhoto('https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600'), false);
   });
 
   // --------------------------------------------------------------------------
