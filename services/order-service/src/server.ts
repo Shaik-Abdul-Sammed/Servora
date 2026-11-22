@@ -354,12 +354,13 @@ export function createOrderApp() {
     }
 
     const reqUrl = new URL(req.url ?? '/', `http://${req.headers.host || 'localhost'}`);
-    const pathname = reqUrl.pathname;
+    const rawPath = reqUrl.pathname;
+    const pathname = (rawPath.length > 1 && rawPath.endsWith('/')) ? rawPath.slice(0, -1) : rawPath;
     const method = req.method === 'HEAD' ? 'GET' : (req.method ?? 'GET');
 
     try {
       // 0. Static Web Frontends (Guest QR PWA, KDS, Owner & Admin Portals)
-      if ((pathname === '/' || pathname === '/guest' || pathname === '/menu') && method === 'GET') {
+      if ((pathname === '/' || pathname === '/guest' || pathname === '/menu' || pathname === '/cart' || pathname.startsWith('/table/')) && method === 'GET') {
         const guestHtmlPath = join(repoRoot, 'apps/web-guest/public/index.html');
         if (existsSync(guestHtmlPath)) {
           const html = readFileSync(guestHtmlPath, 'utf-8');
@@ -379,7 +380,7 @@ export function createOrderApp() {
         }
       }
 
-      if ((pathname === '/owner' || pathname === '/operator' || pathname === '/operator.html') && method === 'GET') {
+      if ((pathname === '/owner' || pathname === '/operator' || pathname === '/operator.html' || pathname === '/pos') && method === 'GET') {
         const ownerHtmlPath = join(repoRoot, 'apps/web-owner/public/index.html');
         if (existsSync(ownerHtmlPath)) {
           const html = readFileSync(ownerHtmlPath, 'utf-8');
@@ -518,24 +519,33 @@ export function createOrderApp() {
       // Owner Sub-Pages Routing (Fixes broken navigation across owner console)
       const ownerSubPages: Record<string, string> = {
         '/owner/orders': 'orders.html',
+        '/orders': 'orders.html',
         '/orders.html': 'orders.html',
         '/owner/menu': 'menu.html',
         '/menu.html': 'menu.html',
         '/owner/inventory': 'inventory.html',
+        '/inventory': 'inventory.html',
         '/inventory.html': 'inventory.html',
         '/owner/availability': 'availability.html',
+        '/availability': 'availability.html',
         '/availability.html': 'availability.html',
         '/owner/payments': 'payments.html',
+        '/payments': 'payments.html',
         '/payments.html': 'payments.html',
         '/owner/bookings': 'bookings.html',
+        '/bookings': 'bookings.html',
         '/bookings.html': 'bookings.html',
         '/owner/settings': 'settings.html',
+        '/settings': 'settings.html',
         '/settings.html': 'settings.html',
         '/owner/specials': 'specials.html',
+        '/specials': 'specials.html',
         '/specials.html': 'specials.html',
         '/owner/offers': 'offers.html',
+        '/offers': 'offers.html',
         '/offers.html': 'offers.html',
         '/owner/beverages': 'beverages.html',
+        '/beverages': 'beverages.html',
         '/beverages.html': 'beverages.html',
         '/owner/staff': 'staff.html',
       };
@@ -5917,6 +5927,45 @@ View Web Receipt: http://${req.headers.host || 'localhost:3001'}/receipt.html?or
         const customer = store.lookupCustomerByPhone(phone);
         if (!customer) return sendJson(res, 404, { error: 'Customer not found or not opted-in' });
         return sendJson(res, 200, { success: true, customer });
+      }
+
+      if (method === 'GET' && !pathname.startsWith('/api/') && (req.headers.accept?.includes('text/html') || req.headers.accept?.includes('*/*'))) {
+        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>404 — Page Not Found | Abiruchi Hotel</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; text-align: center; }
+    .card { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 36px 24px; max-width: 480px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    h1 { font-size: 3.5rem; margin: 0 0 8px; color: #fc8019; font-weight: 900; }
+    h2 { font-size: 1.35rem; margin: 0 0 12px; color: #fff; }
+    p { color: #94a3b8; font-size: 0.95rem; margin-bottom: 28px; line-height: 1.5; }
+    .links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 0.85rem; transition: background 0.2s; }
+    .btn:hover { background: #fc8019; border-color: #fc8019; }
+    .btn.full { grid-column: 1 / -1; background: #fc8019; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="font-size: 2.8rem; margin-bottom: 8px;">🍲</div>
+    <h1>404</h1>
+    <h2>Page Not Found</h2>
+    <p>The page or portal route you requested does not exist or has been moved.</p>
+    <div class="links">
+      <a href="/" class="btn full">🍽️ Guest Digital Menu</a>
+      <a href="/waiter" class="btn">📱 Waiter Terminal</a>
+      <a href="/kitchen" class="btn">🍳 Kitchen Display</a>
+      <a href="/owner" class="btn">💼 Owner Console</a>
+      <a href="/marketing" class="btn">🌐 Marketing & Pricing</a>
+    </div>
+  </div>
+</body>
+</html>`);
+        return;
       }
 
       sendJson(res, 404, { error: `Route not found: ${method} ${pathname}` });

@@ -58,6 +58,17 @@ test('Surface Routes & Static Assets Verification', async (t) => {
     '/for-restaurants',
     '/for-cafes',
     '/for-bars',
+    '/owner/',
+    '/kitchen/',
+    '/waiter/',
+    '/admin/',
+    '/marketing/',
+    '/menu',
+    '/cart',
+    '/orders',
+    '/inventory',
+    '/bookings',
+    '/table/14',
     '/api/v1/menu',
     '/api/v1/payments/config',
     '/api/v1/outlets',
@@ -73,4 +84,16 @@ test('Surface Routes & Static Assets Verification', async (t) => {
       assert.ok(text.length > 0, `Expected non-empty body for ${r}`);
     });
   }
+
+  await t.test('GET /unknown-route returns 404 HTML Page for browser navigation', async () => {
+    const res = await fetch(`${baseUrl}/some-missing-page`, {
+      headers: { 'Accept': 'text/html,application/xhtml+xml' }
+    });
+    assert.equal(res.status, 404);
+    assert.ok(res.headers.get('content-type')?.includes('text/html'));
+    const html = await res.text();
+    assert.ok(html.includes('404'));
+    assert.ok(html.includes('Page Not Found'));
+    assert.ok(html.includes('Guest Digital Menu'));
+  });
 });

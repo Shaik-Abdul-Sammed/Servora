@@ -338,21 +338,23 @@
         <div class="section-header">
           <div class="section-title">Recent Dining Room Orders</div>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Table</th>
-              <th>Items Summary</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="dashboardOrdersTable">
-            <tr><td colspan="6" style="text-align: center; color: var(--text-muted)">Loading order telemetry...</td></tr>
-          </tbody>
-        </table>
+        <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 12px; margin-bottom: 24px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Table</th>
+                <th>Items Summary</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardOrdersTable">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted)">Loading order telemetry...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- 2. FLOOR PLAN VIEW -->
@@ -370,21 +372,23 @@
         <div class="section-header">
           <div class="section-title">Menu Management & Availability (86'd Items)</div>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Dish Name</th>
-              <th>Category</th>
-              <th>Base Price</th>
-              <th>Allergens</th>
-              <th>Kitchen Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="menuAdminTable">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
+        <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 12px; margin-bottom: 24px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Dish Name</th>
+                <th>Category</th>
+                <th>Base Price</th>
+                <th>Allergens</th>
+                <th>Kitchen Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="menuAdminTable">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- 4. ORDERS FEED VIEW -->
@@ -392,22 +396,24 @@
         <div class="section-header">
           <div class="section-title">Full Dining Orders Ledger</div>
         </div>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Table</th>
-              <th>Subtotal</th>
-              <th>Tax</th>
-              <th>Gratuity</th>
-              <th>Total</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="fullOrdersTable">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
+        <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 12px; margin-bottom: 24px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Table</th>
+                <th>Subtotal</th>
+                <th>Tax</th>
+                <th>Gratuity</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="fullOrdersTable">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

@@ -280,18 +280,20 @@
       <span>Category Breakdown</span>
       <span style="font-size:0.85rem; color:var(--text-muted);" id="dateIndicator">Live Performance</span>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Category Name</th>
-          <th>Sales Amount (INR)</th>
-          <th>Share (%)</th>
-        </tr>
-      </thead>
-      <tbody id="categoryTableBody">
-        <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading revenue details...</td></tr>
-      </tbody>
-    </table>
+    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 12px; margin-bottom: 24px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Category Name</th>
+            <th>Sales Amount (INR)</th>
+            <th>Share (%)</th>
+          </tr>
+        </thead>
+        <tbody id="categoryTableBody">
+          <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading revenue details...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </main>
 
   <script>

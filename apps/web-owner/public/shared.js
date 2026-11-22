@@ -77,7 +77,7 @@ function renderNav(activePage) {
   const currentSeg = getVenueSegment();
   const config = getSegmentConfig(currentSeg);
 
-  return `<nav class="sidebar">
+  return `<nav class="sidebar" style="overflow-y:auto; max-height:100vh; overscroll-behavior-y:contain;">
     <div class="sidebar-brand">${config.brand}</div>
     <div style="padding:0 12px 14px;">
       <select onchange="setVenueSegment(this.value)" style="width:100%;padding:6px 10px;background:#1e2433;color:#f8fafc;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;">

@@ -428,16 +428,35 @@ async function initSession() {
 }
 
 // ==========================================================================
+// Scroll Lock Helper for Modals & Sheets
+// ==========================================================================
+function lockBodyScroll() {
+  document.body.style.overflow = 'hidden';
+  document.body.style.touchAction = 'none';
+}
+function unlockBodyScroll() {
+  const anyActive = document.querySelector('.sheet-overlay.active, .voice-modal-overlay[style*="flex"], .history-modal-overlay[style*="flex"]');
+  if (!anyActive) {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+  }
+}
+window.lockBodyScroll = lockBodyScroll;
+window.unlockBodyScroll = unlockBodyScroll;
+
+// ==========================================================================
 // Table Selection and Availability Management (URL Entry & Real-Time)
 // ==========================================================================
 function openTableSelectorModal() {
   renderTableGrid();
   document.getElementById('tableSelectorModal')?.classList.add('active');
+  lockBodyScroll();
 }
 window.openTableSelectorModal = openTableSelectorModal;
 
 function closeTableSelectorModal() {
   document.getElementById('tableSelectorModal')?.classList.remove('active');
+  unlockBodyScroll();
 }
 window.closeTableSelectorModal = closeTableSelectorModal;
 
@@ -1004,12 +1023,12 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function openCartModal() { document.getElementById('cartModal')?.classList.add('active'); }
-function closeCartModal() { document.getElementById('cartModal')?.classList.remove('active'); }
-function openWaiterModal() { document.getElementById('waiterModal')?.classList.add('active'); }
+function openCartModal() { document.getElementById('cartModal')?.classList.add('active'); lockBodyScroll(); }
+function closeCartModal() { document.getElementById('cartModal')?.classList.remove('active'); unlockBodyScroll(); }
+function openWaiterModal() { document.getElementById('waiterModal')?.classList.add('active'); lockBodyScroll(); }
 function openWaiterCallModal() { openWaiterModal(); }
-function closeWaiterModal() { document.getElementById('waiterModal')?.classList.remove('active'); }
-function closeOnBackdrop(e, modalId) { if (e.target.id === modalId) document.getElementById(modalId)?.classList.remove('active'); }
+function closeWaiterModal() { document.getElementById('waiterModal')?.classList.remove('active'); unlockBodyScroll(); }
+function closeOnBackdrop(e, modalId) { if (e.target.id === modalId) { document.getElementById(modalId)?.classList.remove('active'); unlockBodyScroll(); } }
 
 function setPaymentMethod(btn, method) {
   document.querySelectorAll('#cartModal .pill-group .opt-pill').forEach(b => {
@@ -1276,6 +1295,7 @@ async function openPreBillModal() {
   const modal = document.getElementById('billPreviewModal');
   if (!modal) return;
   modal.classList.add('active');
+  lockBodyScroll();
   const container = document.getElementById('billContentContainer');
   if (!container) return;
 
@@ -1376,6 +1396,7 @@ function renderBillPreview(bill) {
 
 function closeBillPreviewModal() {
   document.getElementById('billPreviewModal')?.classList.remove('active');
+  unlockBodyScroll();
 }
 
 function printBillPreview() {
@@ -1686,6 +1707,7 @@ async function openUpiPrepaymentModal(orderId) {
     if (alertEl) alertEl.style.display = 'none';
 
     document.getElementById('upiPrepaymentModal')?.classList.add('active');
+    lockBodyScroll();
   } catch (err) {
     console.error('Error initiating UPI prepayment:', err);
     openOrderStatusModal(orderId);
@@ -1738,6 +1760,7 @@ window.copyConfiguredVpa = copyConfiguredVpa;
 
 function closeUpiPrepaymentModal() {
   document.getElementById('upiPrepaymentModal')?.classList.remove('active');
+  unlockBodyScroll();
   if (upiPollInterval) { clearInterval(upiPollInterval); upiPollInterval = null; }
 }
 
@@ -1874,6 +1897,7 @@ function openOrderStatusModal(orderId) {
   if (idEl) idEl.textContent = orderId.slice(-6);
   if (tblEl) tblEl.textContent = activeTable.number;
   document.getElementById('orderStatusModal')?.classList.add('active');
+  lockBodyScroll();
   pollOrderStatus(orderId);
   if (liveTrackingInterval) clearInterval(liveTrackingInterval);
   liveTrackingInterval = setInterval(() => pollOrderStatus(orderId), 3000);
@@ -1881,6 +1905,7 @@ function openOrderStatusModal(orderId) {
 
 function closeOrderStatusModal() {
   document.getElementById('orderStatusModal')?.classList.remove('active');
+  unlockBodyScroll();
   if (liveTrackingInterval) { clearInterval(liveTrackingInterval); liveTrackingInterval = null; }
 }
 
@@ -1930,6 +1955,7 @@ async function submitReviewAction() {
     });
   } catch (e) {}
   document.getElementById('reviewModal')?.classList.remove('active');
+  unlockBodyScroll();
   showToast('Thank you for your valuable feedback!');
 }
 
@@ -2086,8 +2112,12 @@ window.switchCustomerJourney = switchCustomerJourney;
 function openLoginModal() {
   updateLoginStateUI();
   document.getElementById('loginModal')?.classList.add('active');
+  lockBodyScroll();
 }
-function closeLoginModal() { document.getElementById('loginModal')?.classList.remove('active'); }
+function closeLoginModal() {
+  document.getElementById('loginModal')?.classList.remove('active');
+  unlockBodyScroll();
+}
 
 async function requestGuestOTP() {
   const phone = document.getElementById('guestPhoneInput')?.value.trim();
@@ -2248,10 +2278,12 @@ function openDishDetailsModal(itemId) {
 
   updateModalDishQtyDisplay();
   document.getElementById('dishDetailModal')?.classList.add('active');
+  lockBodyScroll();
 }
 
 function closeDishDetailModal() {
   document.getElementById('dishDetailModal')?.classList.remove('active');
+  unlockBodyScroll();
   currentModalDishId = null;
 }
 
@@ -2430,6 +2462,7 @@ function startVoiceOrder() {
   const transcriptEl = document.getElementById('voiceLiveTranscript');
   const micBtn = document.getElementById('btnVoiceOrder');
   if (voiceModal) voiceModal.style.display = 'flex';
+  lockBodyScroll();
   if (transcriptEl) transcriptEl.textContent = 'Listening... Speak dish name or quantity.';
   if (micBtn) micBtn.classList.add('listening');
 
@@ -2475,6 +2508,7 @@ function stopVoiceOrder() {
   const micBtn = document.getElementById('btnVoiceOrder');
   if (voiceModal) voiceModal.style.display = 'none';
   if (micBtn) micBtn.classList.remove('listening');
+  unlockBodyScroll();
 }
 
 function closeVoiceModal(event) {
@@ -2693,12 +2727,14 @@ function openHistoryModal() {
   }
 
   modal.style.display = 'flex';
+  lockBodyScroll();
 }
 
 function closeHistoryModal(event) {
   if (event && event.target && event.target.id !== 'historyModal') return;
   const modal = document.getElementById('historyModal');
   if (modal) modal.style.display = 'none';
+  unlockBodyScroll();
 }
 
 function reorderPastOrder(index) {

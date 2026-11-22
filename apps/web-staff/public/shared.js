@@ -14,7 +14,7 @@ function renderNav(activePage) {
     { href: '/staff/requests', label: '🔔 Guest Requests', id: 'requests' },
     { href: '/staff/tokens', label: '🎟️ Token Board', id: 'tokens' },
   ];
-  return `<nav class="sidebar">
+  return `<nav class="sidebar" style="overflow-y:auto; max-height:100vh; overscroll-behavior-y:contain;">
     <div class="sidebar-brand">🍽️ Staff Panel</div>
     ${pages.map(p => `<a href="${p.href}" class="nav-link ${p.id === activePage ? 'active' : ''}">${p.label}</a>`).join('')}
     <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">

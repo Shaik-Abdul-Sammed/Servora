@@ -219,6 +219,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      max-height: 82vh;
       box-shadow: 0 4px 16px rgba(0,0,0,0.4);
       animation: ticketFadeIn 0.3s var(--spring) backwards;
       transition: all 0.2s ease;
@@ -272,6 +273,9 @@
       flex-direction: column;
       gap: 12px;
       flex: 1;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
     .ticket-item {
       display: flex;
@@ -302,9 +306,9 @@
       flex-shrink: 0;
     }
     .item-details { display: flex; flex-direction: column; gap: 2px; }
-    .item-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
-    .item-mods { font-size: 0.78rem; color: #38bdf8; font-weight: 600; }
-    .item-notes { font-size: 0.75rem; color: #fcd34d; font-style: italic; }
+    .item-name { font-size: 0.95rem; font-weight: 700; color: #fff; word-break: break-word; overflow-wrap: break-word; }
+    .item-mods { font-size: 0.78rem; color: #38bdf8; font-weight: 600; word-break: break-word; }
+    .item-notes { font-size: 0.75rem; color: #fcd34d; font-style: italic; word-break: break-word; }
 
     .guest-note-box {
       background: rgba(245, 158, 11, 0.1);
@@ -313,6 +317,8 @@
       padding: 8px 12px;
       font-size: 0.8rem;
       color: #fed7aa;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .ticket-footer {

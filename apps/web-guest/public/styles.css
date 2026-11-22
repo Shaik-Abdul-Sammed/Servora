@@ -81,6 +81,10 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+img, svg, video, canvas, audio, iframe, embed, object {
+  display: block;
+  max-width: 100%;
+}
 button, input, select, textarea {
   font-family: inherit;
 }
@@ -99,12 +103,20 @@ button:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  margin-bottom: 16px;
+  border-radius: 12px;
+}
 html, body {
   font-family: var(--font);
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.5;
-  padding-bottom: 120px;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   max-width: 100vw;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -597,6 +609,9 @@ header, .app-header {
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding: 4px 0;
 }
 .abiruchi-toggles-row::-webkit-scrollbar { display: none; }
 .abiruchi-pill-toggle {
@@ -614,6 +629,7 @@ header, .app-header {
   gap: 6px;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 .abiruchi-pill-toggle.active {
   background: rgba(252, 128, 25, 0.1);
@@ -647,6 +663,9 @@ header, .app-header {
   gap: 12px;
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -978,6 +997,7 @@ header, .app-header {
   justify-content: center;
   opacity: 0;
   transition: opacity 0.2s ease;
+  overscroll-behavior: contain;
 }
 .sheet-overlay.active {
   display: flex;
@@ -988,8 +1008,10 @@ header, .app-header {
   border-radius: 24px 24px 0 0;
   width: 100%;
   max-width: 580px;
-  max-height: 88vh;
+  max-height: min(88vh, 760px);
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -1664,6 +1686,7 @@ header, .app-header {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  overscroll-behavior: contain;
 }
 .voice-modal-card {
   background: var(--card-bg);
@@ -1671,6 +1694,10 @@ header, .app-header {
   border-radius: 24px;
   width: 100%;
   max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 28px 20px;
   text-align: center;
   box-shadow: 0 20px 40px rgba(0,0,0,0.4);
@@ -1705,6 +1732,7 @@ header, .app-header {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  overscroll-behavior: contain;
 }
 .history-modal-card {
   background: var(--card-bg);
@@ -1714,6 +1742,8 @@ header, .app-header {
   max-width: 520px;
   max-height: 85vh;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 24px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }

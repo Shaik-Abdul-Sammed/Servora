@@ -187,8 +187,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 8px;
       animation: callPulse 2s infinite ease-in-out;
+      word-break: break-word;
     }
     .call-info { display: flex; flex-direction: column; gap: 2px; }
     .call-table { font-size: 1.05rem; font-weight: 900; color: #fff; }
@@ -235,6 +238,8 @@
       gap: 10px;
       animation: cardEnter 0.25s var(--spring);
       transition: all 0.2s;
+      word-break: break-word;
+      overflow: hidden;
     }
     .order-card:hover {
       border-color: var(--border-accent);
@@ -363,6 +368,9 @@
       border-radius: 18px;
       padding: 24px;
       max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
       width: 100%;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
       animation: cardEnter 0.3s var(--spring);
@@ -406,6 +414,9 @@
       border-radius: 16px;
       padding: 20px;
       max-width: 400px;
+      max-height: 85vh;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
       width: 100%;
     }
     .voice-wave { display: flex; justify-content: center; gap: 5px; height: 32px; margin: 12px 0; }

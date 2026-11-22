@@ -177,18 +177,20 @@
       <span style="color:#10b981; font-weight:700;" id="paymentStatusVal">PAID</span>
     </div>
 
-    <table class="items-table">
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th style="text-align:center;">Qty</th>
-          <th style="text-align:right;">Amt</th>
-        </tr>
-      </thead>
-      <tbody id="receiptItemsBody">
-        <tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b;">Loading order items...</td></tr>
-      </tbody>
-    </table>
+    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th style="text-align:center;">Qty</th>
+            <th style="text-align:right;">Amt</th>
+          </tr>
+        </thead>
+        <tbody id="receiptItemsBody">
+          <tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b;">Loading order items...</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="totals-box">
       <div class="total-row"><span>Subtotal:</span><span id="subtotalVal">₹0.00</span></div>
@@ -215,11 +217,11 @@
     </div>
 
     <!-- Quick Navigation Back to Menu & Booking -->
-    <div style="margin-top:12px; display:flex; gap:8px;">
-      <a href="/" class="btn" style="background:#475569; color:#fff; text-decoration:none;">
+    <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
+      <a href="/" class="btn" style="background:#475569; color:#fff; text-decoration:none; min-width:140px;">
         🍽️ Back to Menu
       </a>
-      <a href="/booking" class="btn" style="background:#ea580c; color:#fff; text-decoration:none;">
+      <a href="/booking" class="btn" style="background:#ea580c; color:#fff; text-decoration:none; min-width:140px;">
         📅 Book Next Visit
       </a>
     </div>
@@ -227,7 +229,7 @@
     <!-- Free Customer Email Receipt Section -->
     <div style="margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
       <div style="font-size:0.8rem; font-weight:700; color:#475569; margin-bottom:6px;">✉️ Email Receipt to Customer:</div>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
         <input type="email" id="customerEmailInput" placeholder="Enter customer email address" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.85rem;" aria-label="Customer Email for Receipt">
         <button type="button" class="btn" style="background:#2563eb; color:#fff; flex:none; padding:8px 14px;" onclick="sendEmailReceipt()">Send Email</button>
       </div>
