@@ -306,6 +306,19 @@
                     ✓ Verify Pay
                   </button>
                 ` : ''}
+                ${o.status === 'CONFIRMED' ? `
+                  <button type="button" class="btn btn-secondary" onclick="advanceOrderStatus('${o.id}', 'PREPARING')" title="Start Preparing" style="padding:6px 10px; font-size:0.75rem; background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3);">
+                    🍳 Prep
+                  </button>
+                ` : o.status === 'PREPARING' ? `
+                  <button type="button" class="btn btn-secondary" onclick="advanceOrderStatus('${o.id}', 'READY_FOR_PICKUP')" title="Mark Ready" style="padding:6px 10px; font-size:0.75rem; background:rgba(59,130,246,0.15); color:#3b82f6; border:1px solid rgba(59,130,246,0.3);">
+                    ✓ Ready
+                  </button>
+                ` : (o.status === 'READY_FOR_PICKUP' || o.status === 'READY') ? `
+                  <button type="button" class="btn btn-secondary" onclick="advanceOrderStatus('${o.id}', 'SERVED')" title="Mark Served" style="padding:6px 10px; font-size:0.75rem; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);">
+                    🚀 Serve
+                  </button>
+                ` : ''}
                 <button type="button" class="btn btn-secondary" onclick="viewStationTickets('${o.id}')" title="Split Station Tickets" style="padding:6px 10px; font-size:0.75rem;">
                   🍳 Stations
                 </button>
@@ -317,6 +330,30 @@
           </div>
         `;
       }).join('');
+    }
+
+    async function advanceOrderStatus(orderId, nextStatus) {
+      const prev = allOrders.find(o => o.id === orderId);
+      const prevStatus = prev?.status;
+      if (prev) {
+        prev.status = nextStatus;
+        applyFilters();
+      }
+      try {
+        const res = await fetch(`/api/v1/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+        if (!res.ok) throw new Error('Status update failed');
+        showToast(`✓ Order #${orderId.slice(-4).toUpperCase()} status: ${nextStatus}`);
+      } catch (err) {
+        if (prev && prevStatus) {
+          prev.status = prevStatus;
+          applyFilters();
+        }
+        showToast('❌ Failed to update status on server');
+      }
     }
 
     async function fetchOrders() {

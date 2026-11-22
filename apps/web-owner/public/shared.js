@@ -76,6 +76,8 @@ function getSegmentConfig(seg) {
 function renderNav(activePage) {
   const currentSeg = getVenueSegment();
   const config = getSegmentConfig(currentSeg);
+  const currentOutlet = new URLSearchParams(window.location.search).get('outletId');
+  const querySuffix = currentOutlet ? `?outletId=${encodeURIComponent(currentOutlet)}` : '';
 
   return `<nav class="sidebar" style="overflow-y:auto; max-height:100vh; overscroll-behavior-y:contain;">
     <div class="sidebar-brand">${config.brand}</div>
@@ -86,9 +88,9 @@ function renderNav(activePage) {
         <option value="BAR" ${currentSeg === 'BAR' ? 'selected' : ''}>🍸 Cocktail Bar Preset</option>
       </select>
     </div>
-    ${config.pages.map((p) => `<a href="${p.href}" class="nav-link ${p.id === activePage ? 'active' : ''}">${p.label}</a>`).join('')}
+    ${config.pages.map((p) => `<a href="${p.href}${querySuffix}" class="nav-link ${p.id === activePage ? 'active' : ''}">${p.label}</a>`).join('')}
     <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-      <a href="/" class="nav-link" target="_blank" rel="noopener noreferrer">👁️ Guest View</a>
+      <a href="/${querySuffix}" class="nav-link" target="_blank" rel="noopener noreferrer">👁️ Guest View</a>
     </div>
   </nav>`;
 }

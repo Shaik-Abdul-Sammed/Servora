@@ -541,8 +541,16 @@
 
     function switchStation(station, btn) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const found = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(`'${station}'`));
+        if (found) found.classList.add('active');
+      }
       currentStation = station;
+      try {
+        localStorage.setItem('servora_kds_station', station);
+      } catch (e) {}
       loadTickets();
     }
 
@@ -676,13 +684,23 @@
     }
 
     // Undo / Recall Last Bumped
-    function recallLastBumped() {
+    async function recallLastBumped() {
       if (bumpedHistory.length > 0) {
         const recalled = bumpedHistory.pop();
         recalled.status = 'READY_FOR_PICKUP';
         orders.unshift(recalled);
         renderTickets();
         updateBadges();
+
+        try {
+          await fetch(`${API_BASE}/api/v1/kds/orders/${recalled.id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'READY_FOR_PICKUP' })
+          });
+        } catch (e) {
+          console.warn('Failed to sync recalled ticket status to server', e);
+        }
       }
     }
 
@@ -706,37 +724,68 @@
       }
     });
 
-    // SSE Realtime Subscription
+    // SSE Realtime Subscription with Reconnection & Polling Fallback
+    let evtSource = null;
+    let sseReconnectTimer = null;
     function initEventStream() {
-      const evtSource = new EventSource(`${API_BASE}/api/v1/events`);
+      if (evtSource) {
+        try { evtSource.close(); } catch (e) {}
+      }
 
-      evtSource.onmessage = (event) => {
+      function connect() {
         try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'ORDER_CREATED' || data.type === 'NEW_ORDER') {
-            orders.push(data.payload);
-            playKdsChime();
-            speakKitchenTicket(`New order Table ${data.payload.tableNumber || data.payload.table || ''}`);
-            updateBadges();
-            renderTickets();
-          } else if (data.type === 'ORDER_STATUS_CHANGED' || data.type === 'ORDER_ACCEPTED' || data.type === 'ORDER_PREPARING') {
-            const idx = orders.findIndex(o => o.id === data.payload.id);
-            if (idx !== -1) {
-              if (data.payload.status === 'SERVED' || data.payload.status === 'CANCELLED') {
-                orders.splice(idx, 1);
-              } else {
-                orders[idx] = data.payload;
+          evtSource = new EventSource(`${API_BASE}/api/v1/events`);
+
+          evtSource.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === 'ORDER_CREATED' || data.type === 'NEW_ORDER') {
+                orders.push(data.payload);
+                playKdsChime();
+                speakKitchenTicket(`New order Table ${data.payload.tableNumber || data.payload.table || ''}`);
+                updateBadges();
+                renderTickets();
+              } else if (data.type === 'ORDER_STATUS_CHANGED' || data.type === 'ORDER_ACCEPTED' || data.type === 'ORDER_PREPARING') {
+                const idx = orders.findIndex(o => o.id === data.payload.id);
+                if (idx !== -1) {
+                  if (data.payload.status === 'SERVED' || data.payload.status === 'CANCELLED') {
+                    orders.splice(idx, 1);
+                  } else {
+                    orders[idx] = data.payload;
+                  }
+                  updateBadges();
+                  renderTickets();
+                }
               }
-              updateBadges();
-              renderTickets();
-            }
-          }
-        } catch (e) {}
-      };
+            } catch (e) {}
+          };
+
+          evtSource.onerror = () => {
+            try { evtSource.close(); } catch (e) {}
+            clearTimeout(sseReconnectTimer);
+            sseReconnectTimer = setTimeout(connect, 4000);
+          };
+        } catch (e) {
+          clearTimeout(sseReconnectTimer);
+          sseReconnectTimer = setTimeout(connect, 5000);
+        }
+      }
+
+      connect();
+      // Resilient fallback polling every 12 seconds in case network drops or SSE closes
+      setInterval(loadTickets, 12000);
     }
 
+    // Read route query ?station= or stored preference
+    const urlParams = new URLSearchParams(window.location.search);
+    const stationParam = urlParams.get('station');
+    const savedStation = stationParam || localStorage.getItem('servora_kds_station');
+    if (savedStation) {
+      switchStation(savedStation.toUpperCase());
+    } else {
+      loadTickets();
+    }
     syncKdsAudioUI();
-    loadTickets();
     initEventStream();
   </script>
 </body>

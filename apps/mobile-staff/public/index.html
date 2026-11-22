@@ -980,13 +980,23 @@
       }
     }
 
+    function isTablePermitted(tableVal) {
+      if (!permittedTables || permittedTables.length === 0) return true;
+      return permittedTables.some(t => {
+        if (t == tableVal) return true;
+        const tClean = String(t).replace(/^T-?|^Table\s*/i, '').trim();
+        const valClean = String(tableVal).replace(/^T-?|^Table\s*/i, '').trim();
+        return tClean && valClean && tClean === valClean;
+      });
+    }
+
     function renderOrders() {
       const container = document.getElementById('ordersContainer');
       const badge = document.getElementById('activeOrderCount');
 
       let list = activeOrdersList;
       if (filterMyTablesOnly && permittedTables.length > 0) {
-        list = list.filter(o => permittedTables.includes(o.tableNumber));
+        list = list.filter(o => isTablePermitted(o.tableNumber));
       }
 
       if (currentStationFilter !== 'ALL') {
@@ -1130,7 +1140,7 @@
 
       let list = pendingCalls;
       if (filterMyTablesOnly && permittedTables.length > 0) {
-        list = list.filter(c => permittedTables.includes(c.tableNumber));
+        list = list.filter(c => isTablePermitted(c.tableNumber));
       }
 
       badge.textContent = `${list.length} Active`;
@@ -1223,7 +1233,7 @@
       if (type === 'NEW_ORDER' || type === 'ORDER_CREATED') {
         playChime('notification');
         loadStaffTerminalData();
-      } else if (type === 'CALL_WAITER' || type === 'TABLE_CALL_WAITER' || type === 'BILL_REQUESTED') {
+      } else if (type === 'CALL_WAITER' || type === 'TABLE_CALL_WAITER' || type === 'BILL_REQUESTED' || type === 'WAITER_CALL' || type === 'CALL_ASSISTANCE') {
         playChime('urgent');
         if (navigator.vibrate) {
           navigator.vibrate([300, 100, 300, 100, 500]);
@@ -1236,9 +1246,21 @@
             });
           } catch (e) {}
         }
-        if (p && !pendingCalls.some(c => c.id === p.id)) {
-          pendingCalls.unshift(p);
-          renderCalls();
+        if (p) {
+          const callId = p.id || `call_${Date.now()}`;
+          const tableNum = p.tableNumber || p.table || '14';
+          const reasonText = p.reason || p.category || 'Service requested';
+          if (!pendingCalls.some(c => c.id === callId || (c.tableNumber === tableNum && c.reason === reasonText))) {
+            pendingCalls.unshift({
+              id: callId,
+              tableNumber: tableNum,
+              category: p.category || reasonText,
+              reason: reasonText,
+              priority: p.priority || 'NORMAL',
+              createdAt: p.createdAt || new Date().toISOString()
+            });
+            renderCalls();
+          }
         }
       } else if (type === 'PAYMENT_VERIFIED' || type === 'ORDER_PAYMENT_VERIFIED') {
         playChime('notification');

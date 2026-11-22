@@ -368,7 +368,9 @@ async function initSession() {
   const urlParams = new URLSearchParams(window.location.search);
   const mode = (urlParams.get('mode') || 'TABLE').toUpperCase();
   const token = urlParams.get('token');
-  const urlTable = urlParams.get('table') || urlParams.get('tableId') || urlParams.get('tableNumber');
+  const pathMatch = window.location.pathname.match(/\/(?:table|t|dine)\/([a-zA-Z0-9_-]+)/i);
+  const pathTable = pathMatch ? pathMatch[1] : null;
+  const urlTable = urlParams.get('table') || urlParams.get('t') || urlParams.get('tableId') || urlParams.get('tableNumber') || pathTable;
 
   if (urlTable) {
     if (urlTable.toLowerCase() === 'takeaway' || urlTable.toLowerCase() === 'token') {
@@ -444,6 +446,21 @@ function unlockBodyScroll() {
 window.lockBodyScroll = lockBodyScroll;
 window.unlockBodyScroll = unlockBodyScroll;
 
+function pushModalState(modalId) {
+  if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+    if (!window.history.state || window.history.state.modalId !== modalId) {
+      window.history.pushState({ modalId: modalId, timestamp: Date.now() }, '');
+    }
+  }
+}
+function popModalState(modalId) {
+  if (typeof window !== 'undefined' && window.history && window.history.state && window.history.state.modalId === modalId) {
+    window.history.back();
+  }
+}
+window.pushModalState = pushModalState;
+window.popModalState = popModalState;
+
 // ==========================================================================
 // Table Selection and Availability Management (URL Entry & Real-Time)
 // ==========================================================================
@@ -451,12 +468,14 @@ function openTableSelectorModal() {
   renderTableGrid();
   document.getElementById('tableSelectorModal')?.classList.add('active');
   lockBodyScroll();
+  pushModalState('tableSelectorModal');
 }
 window.openTableSelectorModal = openTableSelectorModal;
 
 function closeTableSelectorModal() {
   document.getElementById('tableSelectorModal')?.classList.remove('active');
   unlockBodyScroll();
+  popModalState('tableSelectorModal');
 }
 window.closeTableSelectorModal = closeTableSelectorModal;
 
@@ -1023,12 +1042,12 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function openCartModal() { document.getElementById('cartModal')?.classList.add('active'); lockBodyScroll(); }
-function closeCartModal() { document.getElementById('cartModal')?.classList.remove('active'); unlockBodyScroll(); }
-function openWaiterModal() { document.getElementById('waiterModal')?.classList.add('active'); lockBodyScroll(); }
+function openCartModal() { document.getElementById('cartModal')?.classList.add('active'); lockBodyScroll(); pushModalState('cartModal'); }
+function closeCartModal() { document.getElementById('cartModal')?.classList.remove('active'); unlockBodyScroll(); popModalState('cartModal'); }
+function openWaiterModal() { document.getElementById('waiterModal')?.classList.add('active'); lockBodyScroll(); pushModalState('waiterModal'); }
 function openWaiterCallModal() { openWaiterModal(); }
-function closeWaiterModal() { document.getElementById('waiterModal')?.classList.remove('active'); unlockBodyScroll(); }
-function closeOnBackdrop(e, modalId) { if (e.target.id === modalId) { document.getElementById(modalId)?.classList.remove('active'); unlockBodyScroll(); } }
+function closeWaiterModal() { document.getElementById('waiterModal')?.classList.remove('active'); unlockBodyScroll(); popModalState('waiterModal'); }
+function closeOnBackdrop(e, modalId) { if (e.target.id === modalId) { document.getElementById(modalId)?.classList.remove('active'); unlockBodyScroll(); popModalState(modalId); } }
 
 function setPaymentMethod(btn, method) {
   document.querySelectorAll('#cartModal .pill-group .opt-pill').forEach(b => {
@@ -1296,6 +1315,7 @@ async function openPreBillModal() {
   if (!modal) return;
   modal.classList.add('active');
   lockBodyScroll();
+  pushModalState('billPreviewModal');
   const container = document.getElementById('billContentContainer');
   if (!container) return;
 
@@ -1397,6 +1417,7 @@ function renderBillPreview(bill) {
 function closeBillPreviewModal() {
   document.getElementById('billPreviewModal')?.classList.remove('active');
   unlockBodyScroll();
+  popModalState('billPreviewModal');
 }
 
 function printBillPreview() {
@@ -1898,6 +1919,7 @@ function openOrderStatusModal(orderId) {
   if (tblEl) tblEl.textContent = activeTable.number;
   document.getElementById('orderStatusModal')?.classList.add('active');
   lockBodyScroll();
+  pushModalState('orderStatusModal');
   pollOrderStatus(orderId);
   if (liveTrackingInterval) clearInterval(liveTrackingInterval);
   liveTrackingInterval = setInterval(() => pollOrderStatus(orderId), 3000);
@@ -1906,6 +1928,7 @@ function openOrderStatusModal(orderId) {
 function closeOrderStatusModal() {
   document.getElementById('orderStatusModal')?.classList.remove('active');
   unlockBodyScroll();
+  popModalState('orderStatusModal');
   if (liveTrackingInterval) { clearInterval(liveTrackingInterval); liveTrackingInterval = null; }
 }
 
@@ -2113,10 +2136,12 @@ function openLoginModal() {
   updateLoginStateUI();
   document.getElementById('loginModal')?.classList.add('active');
   lockBodyScroll();
+  pushModalState('loginModal');
 }
 function closeLoginModal() {
   document.getElementById('loginModal')?.classList.remove('active');
   unlockBodyScroll();
+  popModalState('loginModal');
 }
 
 async function requestGuestOTP() {
@@ -2279,11 +2304,13 @@ function openDishDetailsModal(itemId) {
   updateModalDishQtyDisplay();
   document.getElementById('dishDetailModal')?.classList.add('active');
   lockBodyScroll();
+  pushModalState('dishDetailModal');
 }
 
 function closeDishDetailModal() {
   document.getElementById('dishDetailModal')?.classList.remove('active');
   unlockBodyScroll();
+  popModalState('dishDetailModal');
   currentModalDishId = null;
 }
 
@@ -2728,6 +2755,7 @@ function openHistoryModal() {
 
   modal.style.display = 'flex';
   lockBodyScroll();
+  pushModalState('historyModal');
 }
 
 function closeHistoryModal(event) {
@@ -2735,6 +2763,7 @@ function closeHistoryModal(event) {
   const modal = document.getElementById('historyModal');
   if (modal) modal.style.display = 'none';
   unlockBodyScroll();
+  popModalState('historyModal');
 }
 
 function reorderPastOrder(index) {

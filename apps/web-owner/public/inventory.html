@@ -383,12 +383,32 @@
       }
     }
 
+    function showToast(msg) {
+      let toast = document.getElementById('inventoryToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'inventoryToast';
+        toast.style.cssText = 'position:fixed; bottom:24px; right:24px; background:#10b981; color:#fff; padding:12px 20px; border-radius:8px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.3); z-index:99999; font-size:0.9rem; transition:opacity 0.3s ease;';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { toast.style.display = 'none'; }, 300);
+      }, 3500);
+    }
+
     function viewBOMDetails(dishName) {
-      alert(`BOM Recipe Breakdown for ${dishName}:\n• Flour: 220g (₹26.40)\n• Mozzarella: 110g (₹71.50)\n• San Marzano Tomatoes: 90g (₹25.20)\n• Fresh Basil: 10g (₹4.50)\n• Extra Virgin Olive Oil: 15ml (₹12.00)\n\nTotal Raw Material Cost: ₹139.60`);
+      showToast(`BOM Recipe Breakdown for ${dishName}: Flour 220g, Mozzarella 110g, Tomatoes 90g. Raw Cost: ₹139.60`);
     }
 
     async function simulateStockDeduction() {
-      alert('Simulating automatic BOM stock deduction for order #ORD-001...\nDeducted:\n• Mozzarella: -110g\n• Tomatoes: -90g\n• Flour: -220g\n• Olive Oil: -15ml\n\nStock levels updated and recorded in audit log!');
+      showToast('Simulating automatic BOM stock deduction for order #ORD-001: Mozzarella (-110g), Tomatoes (-90g), Flour (-220g)...');
+      setTimeout(() => {
+        showToast('✓ Stock levels successfully updated and recorded in audit log!');
+      }, 1500);
     }
 
     function askQuickPrompt(q) {

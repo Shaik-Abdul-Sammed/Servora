@@ -257,9 +257,12 @@
               <div class="token-text">Token: ${t.qr_token || 'N/A'}</div>
             </div>
             <div class="card-actions">
-              <a href="/api/v1/qr/tables/${t.id}/pdf" class="btn btn-pdf" aria-label="Download printable PDF for ${t.name}">
+              <a href="/api/v1/qr/tables/${t.id}/pdf" download="${(t.name || 'Table').replace(/[^a-zA-Z0-9_-]/g, '_')}-QR.pdf" class="btn btn-pdf" aria-label="Download printable PDF for ${t.name}">
                 🖨️ PDF
               </a>
+              <button type="button" class="btn btn-edit" onclick="copyTableLink('${t.qr_token || ''}', '${t.name}')" aria-label="Copy guest direct link for ${t.name}" style="background:var(--surface-border); color:var(--text-title); border:1px solid var(--border);">
+                📋 Link
+              </button>
               <button type="button" class="btn btn-edit" onclick="openEditModal('${t.id}', '${t.name}', '${t.zone}')" aria-label="Rename or change zone for ${t.name}">
                 ✏️ Edit
               </button>
@@ -342,6 +345,19 @@
         if (res.ok) loadTables();
       } catch (e) {
         alert('Error deleting table');
+      }
+    }
+
+    function copyTableLink(token, name) {
+      const url = `${window.location.origin}/?token=${encodeURIComponent(token || '')}&table=${encodeURIComponent(name || '')}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert(`Copied direct guest link for ${name}:\n${url}`);
+        }).catch(() => {
+          prompt('Table link:', url);
+        });
+      } else {
+        prompt('Table link:', url);
       }
     }
 

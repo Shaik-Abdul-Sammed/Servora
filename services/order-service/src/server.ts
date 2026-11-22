@@ -360,7 +360,7 @@ export function createOrderApp() {
 
     try {
       // 0. Static Web Frontends (Guest QR PWA, KDS, Owner & Admin Portals)
-      if ((pathname === '/' || pathname === '/guest' || pathname === '/menu' || pathname === '/cart' || pathname.startsWith('/table/')) && method === 'GET') {
+      if ((pathname === '/' || pathname === '/guest' || pathname === '/menu' || pathname === '/cart' || pathname === '/order' || pathname === '/dine' || pathname === '/dine-in' || pathname.startsWith('/table/') || pathname.startsWith('/t/') || pathname.startsWith('/dine/')) && method === 'GET') {
         const guestHtmlPath = join(repoRoot, 'apps/web-guest/public/index.html');
         if (existsSync(guestHtmlPath)) {
           const html = readFileSync(guestHtmlPath, 'utf-8');
