@@ -506,7 +506,7 @@ function renderTableGrid() {
         style="padding:10px 4px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px; cursor:pointer;">
         <span style="font-size:1.1rem;">🪑</span>
         <span style="font-weight:900; font-size:0.85rem;">Table ${i}</span>
-        <span style="font-size:0.65rem; color:${isSelected ? 'var(--primary)' : '#16a34a'}; font-weight:700;">
+        <span style="font-size:0.65rem; color:${isSelected ? 'var(--primary)' : 'var(--success-text, #16a34a)'}; font-weight:700;">
           ${isSelected ? '✓ Selected' : '🟢 Free'}
         </span>
       </button>
@@ -1681,7 +1681,7 @@ function renderBillPreview(bill) {
       <span style="font-weight:600; color:var(--text);">${formatINR(bill.sgstCents)}</span>
     </div>
     ${bill.discountCents > 0 ? `
-    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem; color:#10b981;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.85rem; color:var(--success-text, #15803d);">
       <span>Special Offer Savings:</span>
       <span style="font-weight:700;">-${formatINR(bill.discountCents)}</span>
     </div>` : ''}
@@ -2227,7 +2227,7 @@ async function pollOrderStatus(orderId) {
     if (!container) return;
     container.innerHTML = (data.stages || []).map((stage) => {
       const isDone = stage.completed; const isCurr = stage.current;
-      const color = isDone ? '#267e3e' : isCurr ? '#fc8019' : '#94a3b8';
+      const color = isDone ? 'var(--success-text, #15803d)' : isCurr ? 'var(--primary)' : 'var(--text-muted)';
       const icon = isDone ? '✓' : isCurr ? '●' : '○';
       return `
         <div style="display:flex; align-items:center; gap:12px;">
@@ -2577,8 +2577,8 @@ function openDishDetailsModal(itemId) {
   const dietBadge = document.getElementById('dishModalDietBadge');
   if (dietBadge) {
     dietBadge.innerHTML = item.dietaryType === 'VEG'
-      ? '<span class="fssai-symbol fssai-veg"><span class="fssai-veg-dot"></span></span> <span style="font-size:0.8rem; font-weight:800; color:#267e3e;">VEGETARIAN</span>'
-      : '<span class="fssai-symbol fssai-nonveg"><span class="fssai-nonveg-dot"></span></span> <span style="font-size:0.8rem; font-weight:800; color:#e43b4f;">NON-VEGETARIAN</span>';
+      ? '<span class="fssai-symbol fssai-veg"><span class="fssai-veg-dot"></span></span> <span style="font-size:0.8rem; font-weight:800; color:var(--success-text, #15803d);">VEGETARIAN</span>'
+      : '<span class="fssai-symbol fssai-nonveg"><span class="fssai-nonveg-dot"></span></span> <span style="font-size:0.8rem; font-weight:800; color:var(--abiruchi-ruby, #e43b4f);">NON-VEGETARIAN</span>';
   }
 
   const allergenEl = document.getElementById('dishModalAllergenNotice');

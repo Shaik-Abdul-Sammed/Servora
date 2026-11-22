@@ -98,4 +98,34 @@ describe('100 Bugs, Layout, and Typo Fixes Verification Suite', () => {
     assert.ok(js.includes("href: '/manager'"), 'shared.js missing /manager nav item');
     assert.ok(js.includes("href: '/owner/inventory'"), 'shared.js missing /owner/inventory nav item');
   });
+
+  it('Color Fix #1: web-guest styles.css defines semantic contrast variables and dark mode overrides', () => {
+    const css = fs.readFileSync(path.join(rootDir, 'apps/web-guest/public/styles.css'), 'utf8');
+    assert.match(css, /--success-text:\s*#15803d/);
+    assert.match(css, /--warning-text:\s*#b45309/);
+    assert.match(css, /--abiruchi-emerald:\s*#4ade80/);
+    assert.match(css, /--abiruchi-ruby:\s*#f87171/);
+  });
+
+  it('Color Fix #2: Status badges have WCAG AA compliant colors in light and dark mode', () => {
+    const css = fs.readFileSync(path.join(rootDir, 'apps/web-guest/public/styles.css'), 'utf8');
+    assert.match(css, /\.status-pending\s*\{[^}]*color:\s*#b45309/);
+    assert.match(css, /\.status-accepted\s*\{[^}]*color:\s*#0369a1/);
+    assert.match(css, /\.status-completed\s*\{[^}]*color:\s*#15803d/);
+    assert.match(css, /\[data-theme="dark"\]\s+\.status-pending\s*\{[^}]*color:\s*#fbbf24/);
+    assert.match(css, /\[data-theme="dark"\]\s+\.status-completed\s*\{[^}]*color:\s*#4ade80/);
+  });
+
+  it('Color Fix #3: Brand primary is standardized to #fc8019 across receipt, manager, owner, and staff', () => {
+    const receipt = fs.readFileSync(path.join(rootDir, 'apps/web-guest/public/receipt.html'), 'utf8');
+    const manager = fs.readFileSync(path.join(rootDir, 'apps/web-owner/public/manager.html'), 'utf8');
+    const owner = fs.readFileSync(path.join(rootDir, 'apps/web-owner/public/owner.html'), 'utf8');
+    const staff = fs.readFileSync(path.join(rootDir, 'apps/web-staff/public/staff.html'), 'utf8');
+
+    assert.ok(!receipt.includes('#ff6600'), 'receipt.html still contains non-standard #ff6600');
+    assert.match(receipt, /#fc8019/);
+    assert.match(manager, /--primary:\s*#fc8019/);
+    assert.match(owner, /--primary:\s*#fc8019/);
+    assert.match(staff, /--primary:\s*#fc8019/);
+  });
 });

@@ -252,7 +252,7 @@
           <span>₹350 for two</span>
         </div>
         <span>•</span>
-        <div style="display:flex; align-items:center; gap:5px; color:#267e3e;">
+        <div style="display:flex; align-items:center; gap:5px; color:var(--success-text, #15803d);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           <span>Table Service</span>
         </div>
@@ -362,12 +362,12 @@
   </div>
 
   <!-- Offers & Smart Combos Live Applied Alert -->
-  <div id="offerBanner" style="display:none; padding:10px 16px; background:linear-gradient(90deg, rgba(96,178,70,0.15), rgba(96,178,70,0.05)); border-bottom:1px solid rgba(96,178,70,0.25); color:#267e3e; font-weight:800; font-size:0.86rem; justify-content:space-between; align-items:center; max-width:900px; margin:0 auto 10px; border-radius:12px;">
+  <div id="offerBanner" style="display:none; padding:10px 16px; background:linear-gradient(90deg, rgba(96,178,70,0.15), rgba(96,178,70,0.05)); border-bottom:1px solid rgba(96,178,70,0.25); color:var(--success-text, #15803d); font-weight:800; font-size:0.86rem; justify-content:space-between; align-items:center; max-width:900px; margin:0 auto 10px; border-radius:12px;">
     <div style="display:flex; align-items:center; gap:8px;">
       <span>🏷️</span>
       <span id="offerBannerText">Offer Unlocked!</span>
     </div>
-    <span style="background:#60b246; color:#fff; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:900;">AUTO-APPLIED</span>
+    <span style="background:var(--success-text, #15803d); color:#fff; padding:2px 8px; border-radius:10px; font-size:0.72rem; font-weight:900;">AUTO-APPLIED</span>
   </div>
 
   <!-- Search & Dietary Preference Filters -->
@@ -710,7 +710,7 @@
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
         <button type="button" class="opt-pill active" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('COMPLIMENTARY')">
           <span style="font-weight:800; font-size:0.9rem;">💧 Fresh Water</span>
-          <span style="font-size:0.75rem; color:#267e3e; font-weight:700;">Complimentary (Free)</span>
+          <span style="font-size:0.75rem; color:var(--success-text, #15803d); font-weight:700;">Complimentary (Free)</span>
         </button>
         <button type="button" class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_500ML')">
           <span style="font-weight:800; font-size:0.9rem;">🍶 Packaged 500ml</span>
@@ -818,7 +818,7 @@
       <!-- Summary Box in INR -->
       <div class="summary-box">
         <div class="summary-line"><span id="lblSubtotal">Item Total:</span><span id="sumSubtotal">₹0</span></div>
-        <div class="summary-line"><span id="lblDiscount">Offer Savings:</span><span id="sumDiscount" style="color:#267e3e; font-weight:800;">-₹0</span></div>
+        <div class="summary-line"><span id="lblDiscount">Offer Savings:</span><span id="sumDiscount" style="color:var(--success-text, #15803d); font-weight:800;">-₹0</span></div>
         <div class="summary-line"><span id="lblTax">GST (5%):</span><span id="sumTax">₹0</span></div>
         <div class="summary-line"><span id="lblTip">Tip:</span><span id="sumTip">₹0</span></div>
         <div class="summary-line total"><span id="lblTotal">To Pay:</span><span id="sumTotal">₹0</span></div>
@@ -1258,7 +1258,7 @@
         <div style="font-size:0.88rem; font-weight:700; color:var(--text-title);" id="scheduledPickupSummary">Today at 07:30 PM</div>
       </div>
 
-      <div style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.8rem; color:#267e3e; font-weight:700; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.8rem; color:var(--success-text, #15803d); font-weight:700; margin-bottom:16px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         <span>WhatsApp updates enabled for this order</span>
       </div>
@@ -1289,7 +1289,7 @@
       
       <!-- Verified Allergen Notice -->
       <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:12px; margin-bottom:14px;">
-        <div style="font-size:0.75rem; font-weight:800; color:#f59e0b; text-transform:uppercase; margin-bottom:4px;">⚠️ Allergen Advisory</div>
+        <div style="font-size:0.75rem; font-weight:800; color:var(--warning-text, #b45309); text-transform:uppercase; margin-bottom:4px;">⚠️ Allergen Advisory</div>
         <p style="font-size:0.8rem; color:var(--text); line-height:1.4;" id="dishModalAllergenNotice">
           Verified restaurant data: Contains dairy, gluten. Prepared in a kitchen handling tree nuts.
         </p>

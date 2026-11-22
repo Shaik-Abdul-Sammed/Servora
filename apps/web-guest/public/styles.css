@@ -13,6 +13,10 @@
   --abiruchi-ruby: #e43b4f;
   --amber: #f59e0b;
   --sky: #0284c7;
+  --success-text: #15803d;
+  --danger-text: #dc2626;
+  --warning-text: #b45309;
+  --info-text: #0369a1;
 
   /* Light Theme (Default Abiruchi Hotel Warm Appetite Look) */
   --bg: #f2f4f7;
@@ -52,6 +56,15 @@
   --chip-bg: #21262d;
   --chip-border: rgba(255, 255, 255, 0.12);
   --divider: rgba(255, 255, 255, 0.06);
+  --abiruchi-emerald: #4ade80;
+  --abiruchi-emerald-hover: #22c55e;
+  --abiruchi-ruby: #f87171;
+  --amber: #fbbf24;
+  --sky: #38bdf8;
+  --success-text: #4ade80;
+  --danger-text: #fca5a5;
+  --warning-text: #fcd34d;
+  --info-text: #38bdf8;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.7);
@@ -74,6 +87,15 @@
     --chip-bg: #21262d;
     --chip-border: rgba(255, 255, 255, 0.12);
     --divider: rgba(255, 255, 255, 0.06);
+    --abiruchi-emerald: #4ade80;
+    --abiruchi-emerald-hover: #22c55e;
+    --abiruchi-ruby: #f87171;
+    --amber: #fbbf24;
+    --sky: #38bdf8;
+    --success-text: #4ade80;
+    --danger-text: #fca5a5;
+    --warning-text: #fcd34d;
+    --info-text: #38bdf8;
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.7);
@@ -648,8 +670,13 @@ header, .app-header {
 }
 .abiruchi-pill-toggle.active-glutenfree {
   background: rgba(245, 158, 11, 0.12);
-  border-color: #f59e0b;
-  color: #f59e0b;
+  border-color: #b45309;
+  color: #b45309;
+}
+[data-theme="dark"] .abiruchi-pill-toggle.active-glutenfree {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #fbbf24;
+  color: #fbbf24;
 }
 
 /* ==========================================================================
@@ -821,8 +848,11 @@ header, .app-header {
   align-items: center;
   gap: 6px;
   font-size: 0.78rem;
-  color: #267e3e;
+  color: var(--success-text, #15803d);
   font-weight: 800;
+}
+[data-theme="dark"] .dish-rating-row {
+  color: #4ade80 !important;
 }
 .dish-desc-text {
   font-size: 0.82rem;
@@ -1219,8 +1249,11 @@ header, .app-header {
   transition: all 0.2s ease;
 }
 .star-btn.active {
-  color: #f59e0b;
+  color: #d97706;
   transform: scale(1.15);
+}
+[data-theme="dark"] .star-btn.active {
+  color: #fbbf24;
 }
 
 /* ==========================================================================
@@ -1273,10 +1306,15 @@ header, .app-header {
   text-transform: uppercase;
   font-size: 0.72rem;
 }
-.status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-.status-accepted { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
-.status-in_progress { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-.status-completed { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.status-pending { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+.status-accepted { background: rgba(2, 132, 199, 0.12); color: #0369a1; }
+.status-in_progress { background: rgba(16, 185, 129, 0.15); color: #047857; }
+.status-completed { background: rgba(34, 197, 94, 0.15); color: #15803d; }
+
+[data-theme="dark"] .status-pending { background: rgba(245, 158, 11, 0.22); color: #fbbf24 !important; }
+[data-theme="dark"] .status-accepted { background: rgba(56, 189, 248, 0.2); color: #38bdf8 !important; }
+[data-theme="dark"] .status-in_progress { background: rgba(16, 185, 129, 0.2); color: #34d399 !important; }
+[data-theme="dark"] .status-completed { background: rgba(34, 197, 94, 0.2); color: #4ade80 !important; }
 
 /* Pre-Bill & Thermal Receipt Preview */
 .bill-breakdown-card {
@@ -1646,13 +1684,21 @@ header, .app-header {
 }
 .time-badge.now {
   background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 .time-badge.future {
   background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
+  color: #b45309;
   border: 1px solid rgba(245, 158, 11, 0.25);
+}
+[data-theme="dark"] .time-badge.now {
+  color: #34d399 !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+}
+[data-theme="dark"] .time-badge.future {
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
 }
 
 /* Voice Mic Button in Search Box */
@@ -1951,6 +1997,14 @@ header, .app-header {
   --text: #f0f6fc !important;
   --text-title: #ffffff !important;
   --text-muted: #94a3b8 !important;
+  --abiruchi-emerald: #4ade80 !important;
+  --abiruchi-ruby: #f87171 !important;
+  --amber: #fbbf24 !important;
+  --sky: #38bdf8 !important;
+  --success-text: #4ade80 !important;
+  --danger-text: #fca5a5 !important;
+  --warning-text: #fcd34d !important;
+  --info-text: #38bdf8 !important;
 }
 
 [data-theme="dark"] body {
@@ -2231,9 +2285,15 @@ header, .app-header {
 }
 .portal-tag.staff { background: rgba(56, 189, 248, 0.15); color: #0284c7; }
 .portal-tag.kds { background: rgba(16, 185, 129, 0.15); color: #059669; }
-.portal-tag.manager { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+.portal-tag.manager { background: rgba(245, 158, 11, 0.15); color: #b45309; }
 .portal-tag.owner { background: rgba(252, 128, 25, 0.15); color: var(--primary); }
 .portal-tag.admin { background: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+
+[data-theme="dark"] .portal-tag.staff { color: #38bdf8 !important; }
+[data-theme="dark"] .portal-tag.kds { color: #34d399 !important; }
+[data-theme="dark"] .portal-tag.manager { color: #fbbf24 !important; }
+[data-theme="dark"] .portal-tag.owner { color: #fc8019 !important; }
+[data-theme="dark"] .portal-tag.admin { color: #c084fc !important; }
 
 /* Amenities & About Info Cards */
 .amenity-pill {

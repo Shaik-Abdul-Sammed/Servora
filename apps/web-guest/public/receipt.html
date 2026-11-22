@@ -45,7 +45,7 @@
     .brand-name {
       font-size: 1.5rem;
       font-weight: 900;
-      color: #ff6600;
+      color: #fc8019;
       margin: 0;
     }
     .tagline {
@@ -130,7 +130,7 @@
       justify-content: center;
       gap: 6px;
     }
-    .btn-print { background: #ff6600; color: #fff; }
+    .btn-print { background: #fc8019; color: #fff; }
     .btn-wa { background: #22c55e; color: #fff; text-decoration: none; }
     @media (prefers-color-scheme: dark) {
       body { background: #090d16; color: #f8fafc; }
@@ -199,7 +199,7 @@
       <div class="total-row"><span id="taxLabel">GST 5% (CGST 2.5% + SGST 2.5%):</span><span id="taxVal">₹0.00</span></div>
       <div class="total-row" id="tipRow" style="display:none;"><span>Staff Tip:</span><span id="tipVal">₹0.00</span></div>
       <div class="total-row grand-total"><span>Total Paid:</span><span id="totalVal">₹0.00</span></div>
-      <div class="total-row" id="loyaltyRow" style="display:none; color:#ff6600; font-weight:700; margin-top:8px; border-top:1px dotted #cbd5e1; padding-top:6px;">
+      <div class="total-row" id="loyaltyRow" style="display:none; color:#fc8019; font-weight:700; margin-top:8px; border-top:1px dotted #cbd5e1; padding-top:6px;">
         <span>Loyalty Rewards:</span><span id="loyaltyStampsVal">🌟 1 Stamp Earned</span>
       </div>
     </div>
@@ -264,22 +264,23 @@
 
         const statusEl = document.getElementById('paymentStatusVal');
         const pStatus = data.paymentStatus || 'PAID';
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         if (pStatus === 'PAID') {
           statusEl.textContent = 'PAID ✓';
-          statusEl.style.color = '#10b981';
+          statusEl.style.color = isDark ? '#34d399' : '#15803d';
           if (receiptPollTimer) {
             clearInterval(receiptPollTimer);
             receiptPollTimer = null;
           }
         } else if (pStatus === 'AWAITING_VERIFICATION' || pStatus === 'PENDING') {
           statusEl.textContent = '⏳ AWAITING VERIFICATION';
-          statusEl.style.color = '#f59e0b';
+          statusEl.style.color = isDark ? '#fbbf24' : '#b45309';
           if (!receiptPollTimer) {
             receiptPollTimer = setInterval(loadReceipt, 3000);
           }
         } else {
           statusEl.textContent = pStatus;
-          statusEl.style.color = '#ef4444';
+          statusEl.style.color = isDark ? '#f87171' : '#dc2626';
         }
 
         document.getElementById('subtotalVal').textContent = '₹' + data.subtotalINR;
