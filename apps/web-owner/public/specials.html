@@ -46,7 +46,7 @@
         <h1 class="page-title">⭐ Today's Specials & Daily Creations</h1>
         <p style="font-size:0.85rem; color:var(--muted);">Control chef recommendations, limited-portion dishes, and happy hour specials in real-time.</p>
       </div>
-      <button class="btn btn-primary" onclick="toggleCreateModal()">+ Add New Special</button>
+      <button type="button" class="btn btn-primary" onclick="toggleCreateModal()">+ Add New Special</button>
     </div>
 
     <!-- Active Specials List -->
@@ -95,8 +95,8 @@
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn btn-danger" onclick="toggleCreateModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitSpecial()">Publish Special →</button>
+        <button type="button" class="btn btn-danger" onclick="toggleCreateModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitSpecial()">Publish Special →</button>
       </div>
     </div>
   </main>
@@ -131,8 +131,8 @@
                 ${(s.tags || []).map(t => `<span class="badge badge-tag">${t}</span>`).join('')}
               </div>
               <div style="display:flex; justify-content:space-between; margin-top:auto; padding-top:8px; border-top:1px solid var(--border);">
-                <button class="btn" style="background:rgba(255,255,255,0.08);color:#fff;" onclick="toggleSoldOut('${s.id}', ${s.remainingQty === 0})">${s.remainingQty === 0 ? 'Restock' : 'Mark 86 (Sold Out)'}</button>
-                <button class="btn btn-danger" onclick="deleteSpecial('${s.id}')">Delete</button>
+                <button type="button" class="btn" style="background:rgba(255,255,255,0.08);color:#fff;" onclick="toggleSoldOut('${s.id}', ${s.remainingQty === 0})">${s.remainingQty === 0 ? 'Restock' : 'Mark 86 (Sold Out)'}</button>
+                <button type="button" class="btn btn-danger" onclick="deleteSpecial('${s.id}')">Delete</button>
               </div>
             </div>
           </div>

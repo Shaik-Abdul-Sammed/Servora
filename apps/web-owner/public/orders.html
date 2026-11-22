@@ -96,7 +96,7 @@
     <a href="/owner/bookings" class="nav-link">📅 Bookings</a>
     <a href="/owner/settings" class="nav-link">⚙️ Settings</a>
     <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+      <a href="/" class="nav-link" target="_blank" rel="noopener noreferrer">👁️ Guest View</a>
     </div>
   </nav>
 
@@ -108,10 +108,10 @@
         <p style="font-size:0.85rem; color:var(--muted); margin-top:4px;" id="refreshInfo">Auto-refreshes every 5s</p>
       </div>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary" onclick="exportOrdersCsv()">
+        <button type="button" class="btn btn-secondary" onclick="exportOrdersCsv()">
           <span>📥 Export CSV</span>
         </button>
-        <button class="btn btn-primary" onclick="fetchOrders()">
+        <button type="button" class="btn btn-primary" onclick="fetchOrders()">
           <span>🔄 Refresh</span>
         </button>
       </div>
@@ -140,12 +140,12 @@
 
       <!-- Status Pills -->
       <div class="filter-pills">
-        <button class="filter-pill active" onclick="setStatusFilter('ALL', this)">All Orders</button>
-        <button class="filter-pill" onclick="setStatusFilter('CONFIRMED', this)">Confirmed</button>
-        <button class="filter-pill" onclick="setStatusFilter('PREPARING', this)">Preparing</button>
-        <button class="filter-pill" onclick="setStatusFilter('READY', this)">Ready for Service</button>
-        <button class="filter-pill" onclick="setStatusFilter('SERVED', this)">Served / Completed</button>
-        <button class="filter-pill" onclick="setStatusFilter('PENDING_STAFF_APPROVAL', this)">Pending Approval</button>
+        <button type="button" class="filter-pill active" onclick="setStatusFilter('ALL', this)">All Orders</button>
+        <button type="button" class="filter-pill" onclick="setStatusFilter('CONFIRMED', this)">Confirmed</button>
+        <button type="button" class="filter-pill" onclick="setStatusFilter('PREPARING', this)">Preparing</button>
+        <button type="button" class="filter-pill" onclick="setStatusFilter('READY', this)">Ready for Service</button>
+        <button type="button" class="filter-pill" onclick="setStatusFilter('SERVED', this)">Served / Completed</button>
+        <button type="button" class="filter-pill" onclick="setStatusFilter('PENDING_STAFF_APPROVAL', this)">Pending Approval</button>
       </div>
     </div>
 
@@ -160,21 +160,21 @@
     <div class="modal-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-weight:800; font-size:1.15rem; color:#fff;" id="receiptModalTitle">Order Receipt</h3>
-        <button class="btn btn-secondary" onclick="closeReceiptModal()" style="padding:4px 8px;">✕</button>
+        <button type="button" class="btn btn-secondary" onclick="closeReceiptModal()" style="padding:4px 8px;" aria-label="Close modal">✕</button>
       </div>
 
       <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <button class="btn btn-secondary active" id="btnFmtStandard" onclick="loadReceiptPreview('standard')">Standard A4</button>
-        <button class="btn btn-secondary" id="btnFmtThermal80" onclick="loadReceiptPreview('thermal80')">Thermal 80mm</button>
-        <button class="btn btn-secondary" id="btnFmtThermal58" onclick="loadReceiptPreview('thermal58')">Thermal 58mm</button>
-        <button class="btn btn-secondary" id="btnFmtTakeaway" onclick="loadReceiptPreview('takeaway')">Takeaway Token</button>
+        <button type="button" class="btn btn-secondary active" id="btnFmtStandard" onclick="loadReceiptPreview('standard')">Standard A4</button>
+        <button type="button" class="btn btn-secondary" id="btnFmtThermal80" onclick="loadReceiptPreview('thermal80')">Thermal 80mm</button>
+        <button type="button" class="btn btn-secondary" id="btnFmtThermal58" onclick="loadReceiptPreview('thermal58')">Thermal 58mm</button>
+        <button type="button" class="btn btn-secondary" id="btnFmtTakeaway" onclick="loadReceiptPreview('takeaway')">Takeaway Token</button>
       </div>
 
       <div class="receipt-preview" id="receiptContent">Generating formatted receipt...</div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
-        <button class="btn btn-secondary" onclick="closeReceiptModal()">Close</button>
-        <button class="btn btn-primary" onclick="printReceiptDirect()">🖨️ Print Receipt</button>
+        <button type="button" class="btn btn-secondary" onclick="closeReceiptModal()">Close</button>
+        <button type="button" class="btn btn-primary" onclick="printReceiptDirect()">🖨️ Print Receipt</button>
       </div>
     </div>
   </div>
@@ -184,11 +184,11 @@
     <div class="modal-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-weight:800; font-size:1.15rem; color:#fff;" id="stationTicketsModalTitle">Kitchen Station Tickets</h3>
-        <button class="btn btn-secondary" onclick="closeStationTicketsModal()" style="padding:4px 8px;">✕</button>
+        <button type="button" class="btn btn-secondary" onclick="closeStationTicketsModal()" style="padding:4px 8px;" aria-label="Close modal">✕</button>
       </div>
       <div id="stationTicketsContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
       <div style="display:flex; justify-content:flex-end; margin-top:16px;">
-        <button class="btn btn-secondary" onclick="closeStationTicketsModal()">Close</button>
+        <button type="button" class="btn btn-secondary" onclick="closeStationTicketsModal()">Close</button>
       </div>
     </div>
   </div>
@@ -302,14 +302,14 @@
               </div>
               <div class="ticket-actions">
                 ${!isPaid ? `
-                  <button class="btn btn-primary" onclick="verifyOrderPayment('${o.id}', '${tableNum}', '${formatINR(o.totalCents || o.total_cents || 0)}')" title="Manager 1-Click Payment Verification" style="padding:6px 12px; font-size:0.75rem; background:rgba(16,185,129,0.2); color:#10b981; border:1px solid rgba(16,185,129,0.4);">
+                  <button type="button" class="btn btn-primary" onclick="verifyOrderPayment('${o.id}', '${tableNum}', '${formatINR(o.totalCents || o.total_cents || 0)}')" title="Manager 1-Click Payment Verification" style="padding:6px 12px; font-size:0.75rem; background:rgba(16,185,129,0.2); color:#10b981; border:1px solid rgba(16,185,129,0.4);">
                     ✓ Verify Pay
                   </button>
                 ` : ''}
-                <button class="btn btn-secondary" onclick="viewStationTickets('${o.id}')" title="Split Station Tickets" style="padding:6px 10px; font-size:0.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="viewStationTickets('${o.id}')" title="Split Station Tickets" style="padding:6px 10px; font-size:0.75rem;">
                   🍳 Stations
                 </button>
-                <button class="btn btn-secondary" onclick="openReceiptModal('${o.id}')" title="Print Receipt" style="padding:6px 10px; font-size:0.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="openReceiptModal('${o.id}')" title="Print Receipt" style="padding:6px 10px; font-size:0.75rem;">
                   🖨️ Receipt
                 </button>
               </div>

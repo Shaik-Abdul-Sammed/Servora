@@ -32,7 +32,7 @@
 </head>
 <body>
   <!-- Floating Call Waiter Button -->
-  <button id="floatingCallWaiterBtn" class="floating-waiter-btn" onclick="openWaiterModal()" title="Call Waiter for Table Assistance">
+  <button type="button" id="floatingCallWaiterBtn" class="floating-waiter-btn" onclick="openWaiterModal()" title="Call Waiter for Table Assistance">
     <span style="font-size:1.15rem;">🔔</span>
     <span id="floatCallWaiterLabel">Call Waiter</span>
   </button>
@@ -267,7 +267,7 @@
         <span style="font-size:1rem;">👋</span>
         <span>Prefer human service? Tap <strong>Call Staff</strong> anytime to order directly through a server.</span>
       </div>
-      <button onclick="openWaiterModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--primary); font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:14px; cursor:pointer; flex-shrink:0;">
+      <button type="button" onclick="openWaiterModal()" style="background:var(--chip-bg); border:1px solid var(--chip-border); color:var(--primary); font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:14px; cursor:pointer; flex-shrink:0;">
         Call Staff
       </button>
     </div>
@@ -306,7 +306,7 @@
       <strong style="color:var(--primary); display:block; font-size:14px;">🔁 Welcome back!</strong>
       <span id="repeatOrderSummary" style="font-size:12px; color:var(--text-muted);">Reorder your recent favorites</span>
     </div>
-    <button onclick="repeatLastOrder()" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" aria-label="Reorder now">Reorder</button>
+    <button type="button" onclick="repeatLastOrder()" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;" aria-label="Reorder now">Reorder</button>
   </div>
 
   <!-- Scheduled Food Ordering Panel (Live when journey === 'ORDER_LATER') -->
@@ -377,8 +377,8 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
       <input type="text" id="searchInput" class="search-input" placeholder="Search dishes, ingredients, or tap 🎙️..." oninput="handleSearch(this.value)">
-      <button id="btnVoiceOrder" class="voice-search-btn" onclick="startVoiceOrder()" title="Voice search & order dishes">🎙️</button>
-      <button id="searchClear" class="search-clear" onclick="clearSearch()">✕</button>
+      <button type="button" id="btnVoiceOrder" class="voice-search-btn" onclick="startVoiceOrder()" title="Voice search & order dishes" aria-label="Voice search & order dishes">🎙️</button>
+      <button type="button" id="searchClear" class="search-clear" onclick="clearSearch()" aria-label="Clear search query">✕</button>
     </div>
 
     <!-- Table Confirmation & Availability Bar (URL Entry Table Selector) -->
@@ -397,21 +397,21 @@
 
     <!-- Abiruchi Hotel Dietary Filters (Veg / Non-Veg / Bestseller) -->
     <div class="abiruchi-toggles-row">
-      <button class="abiruchi-pill-toggle active" id="filterAllBtn" onclick="toggleDietFilter('ALL', this)">
+      <button type="button" class="abiruchi-pill-toggle active" id="filterAllBtn" onclick="toggleDietFilter('ALL', this)">
         <span>All</span>
       </button>
-      <button class="abiruchi-pill-toggle" id="filterVegBtn" onclick="toggleDietFilter('VEG', this)">
+      <button type="button" class="abiruchi-pill-toggle" id="filterVegBtn" onclick="toggleDietFilter('VEG', this)">
         <span class="fssai-symbol fssai-veg"><span class="fssai-veg-dot"></span></span>
         <span>Veg</span>
       </button>
-      <button class="abiruchi-pill-toggle" id="filterNonVegBtn" onclick="toggleDietFilter('NON_VEG', this)">
+      <button type="button" class="abiruchi-pill-toggle" id="filterNonVegBtn" onclick="toggleDietFilter('NON_VEG', this)">
         <span class="fssai-symbol fssai-nonveg"><span class="fssai-nonveg-dot"></span></span>
         <span>Non-Veg</span>
       </button>
-      <button class="abiruchi-pill-toggle" id="filterBestsellerBtn" onclick="toggleDietFilter('BESTSELLER', this)">
+      <button type="button" class="abiruchi-pill-toggle" id="filterBestsellerBtn" onclick="toggleDietFilter('BESTSELLER', this)">
         <span>⭐ Bestseller</span>
       </button>
-      <button class="abiruchi-pill-toggle" onclick="toggleDietFilter('GLUTEN_FREE', this)">
+      <button type="button" class="abiruchi-pill-toggle" onclick="toggleDietFilter('GLUTEN_FREE', this)">
         <span>🌾 Gluten-Free</span>
       </button>
     </div>
@@ -546,7 +546,7 @@
           <span>GSTIN: <strong id="aboutGstin" style="color:var(--text-title);">37AAAAA0000A1Z5</strong></span> | 
           <span>FSSAI Lic: <strong id="aboutFssai" style="color:var(--text-title);">10123999000123</strong></span>
         </div>
-        <button onclick="forgetGuestSession()" class="forget-session-btn" style="background:var(--surface); border:1px solid var(--chip-border); color:var(--text-muted); font-size:11px; padding:5px 10px; border-radius:6px; cursor:pointer;" aria-label="Forget my device data">
+        <button type="button" onclick="forgetGuestSession()" class="forget-session-btn" style="background:var(--surface); border:1px solid var(--chip-border); color:var(--text-muted); font-size:11px; padding:5px 10px; border-radius:6px; cursor:pointer;" aria-label="Forget my device data">
           🔒 Forget My Device Data
         </button>
       </div>
@@ -651,11 +651,11 @@
 
   <!-- Bottom Bar for Waiter Call / Quick Actions (Compatibility) -->
   <div class="bottom-bar" style="display:none;" id="legacyBottomBar">
-    <button class="waiter-call-btn" onclick="openWaiterCallModal()">
+    <button type="button" class="waiter-call-btn" onclick="openWaiterCallModal()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="callStaffLabel">Call Staff</span>
     </button>
-    <button class="cart-pill-btn" onclick="openCartModal()">
+    <button type="button" class="cart-pill-btn" onclick="openCartModal()">
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="cart-badge-count" id="cartCount">0</span>
         <span id="viewCartLabel">View Order</span>
@@ -674,24 +674,24 @@
         Complimentary fresh table water is provided with our compliments. Sealed packaged water is also available.
       </p>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-        <button class="opt-pill active" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('COMPLIMENTARY')">
+        <button type="button" class="opt-pill active" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('COMPLIMENTARY')">
           <span style="font-weight:800; font-size:0.9rem;">💧 Fresh Water</span>
           <span style="font-size:0.75rem; color:#267e3e; font-weight:700;">Complimentary (Free)</span>
         </button>
-        <button class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_500ML')">
+        <button type="button" class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_500ML')">
           <span style="font-weight:800; font-size:0.9rem;">🍶 Packaged 500ml</span>
           <span style="font-size:0.75rem; color:var(--text-muted);">₹25 added to bill</span>
         </button>
-        <button class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_1L')">
+        <button type="button" class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('BOTTLED_1L')">
           <span style="font-weight:800; font-size:0.9rem;">🍾 Packaged 1 Liter</span>
           <span style="font-size:0.75rem; color:var(--text-muted);">₹40 added to bill</span>
         </button>
-        <button class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('NO_WATER')">
+        <button type="button" class="opt-pill" style="padding:14px 10px; text-align:center; height:auto; display:flex; flex-direction:column; gap:4px; align-items:center;" onclick="selectWaterPreference('NO_WATER')">
           <span style="font-weight:800; font-size:0.9rem;">🚫 No Water</span>
           <span style="font-size:0.75rem; color:var(--text-muted);">Skip selection</span>
         </button>
       </div>
-      <button class="submit-order-btn" style="background:var(--chip-bg); color:var(--text); border:1px solid var(--chip-border);" onclick="closeWaterModal()">Confirm Selection</button>
+      <button type="button" class="submit-order-btn" style="background:var(--chip-bg); color:var(--text); border:1px solid var(--chip-border);" onclick="closeWaterModal()">Confirm Selection</button>
     </div>
   </div>
 
@@ -701,7 +701,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="orderSummaryTitle">Your Table Order</h3>
-        <button class="sheet-close" onclick="closeCartModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeCartModal()" aria-label="Close modal">✕</button>
       </div>
       <div class="cart-items" id="cartItemsList"></div>
 
@@ -709,10 +709,10 @@
       <div class="option-accordion">
         <div class="accordion-title"><span id="courseStageLabel">Serve This Batch As</span></div>
         <div class="pill-group">
-          <button class="opt-pill active" onclick="setCourse(this, 'ALL_TOGETHER')">All Together</button>
-          <button class="opt-pill" onclick="setCourse(this, 'STARTER')">Starters First</button>
-          <button class="opt-pill" onclick="setCourse(this, 'MAIN')">Mains Course</button>
-          <button class="opt-pill" onclick="setCourse(this, 'DESSERT')">Desserts &amp; Beverages</button>
+          <button type="button" class="opt-pill active" onclick="setCourse(this, 'ALL_TOGETHER')">All Together</button>
+          <button type="button" class="opt-pill" onclick="setCourse(this, 'STARTER')">Starters First</button>
+          <button type="button" class="opt-pill" onclick="setCourse(this, 'MAIN')">Mains Course</button>
+          <button type="button" class="opt-pill" onclick="setCourse(this, 'DESSERT')">Desserts &amp; Beverages</button>
         </div>
       </div>
 
@@ -720,11 +720,11 @@
       <div class="option-accordion">
         <div class="accordion-title"><span id="tipLabel">Add Server Gratuity (Tip)</span></div>
         <div class="pill-group" id="tipPillGroup">
-          <button class="opt-pill" onclick="setTipPreset(this, 0)">0%</button>
-          <button class="opt-pill" onclick="setTipPreset(this, 5)">5%</button>
-          <button class="opt-pill active" onclick="setTipPreset(this, 10)">10%</button>
-          <button class="opt-pill" onclick="setTipPreset(this, 15)">15%</button>
-          <button class="opt-pill" onclick="setTipCustom(this)">Custom ₹</button>
+          <button type="button" class="opt-pill" onclick="setTipPreset(this, 0)">0%</button>
+          <button type="button" class="opt-pill" onclick="setTipPreset(this, 5)">5%</button>
+          <button type="button" class="opt-pill active" onclick="setTipPreset(this, 10)">10%</button>
+          <button type="button" class="opt-pill" onclick="setTipPreset(this, 15)">15%</button>
+          <button type="button" class="opt-pill" onclick="setTipCustom(this)">Custom ₹</button>
         </div>
       </div>
 
@@ -737,9 +737,9 @@
         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
           <span style="font-size:0.82rem; color:var(--text-muted);" id="splitGuestsLabel">Number of Guests:</span>
           <div style="display:flex; align-items:center; gap:8px;">
-            <button class="step-btn" onclick="adjustSplitGuests(-1)">-</button>
+            <button type="button" class="step-btn" onclick="adjustSplitGuests(-1)">-</button>
             <span id="guestCountDisplay" style="font-weight:800; font-size:0.95rem;">1</span>
-            <button class="step-btn" onclick="adjustSplitGuests(1)">+</button>
+            <button type="button" class="step-btn" onclick="adjustSplitGuests(1)">+</button>
           </div>
         </div>
       </div>
@@ -748,9 +748,9 @@
       <div class="option-accordion">
         <div class="accordion-title"><span id="paymentMethodTitle">Payment Method</span></div>
         <div class="pill-group">
-          <button class="opt-pill active" onclick="setPaymentMethod(this, 'UPI')">UPI / GPay / PhonePe</button>
-          <button class="opt-pill" onclick="setPaymentMethod(this, 'CARD')">Credit / Debit Card</button>
-          <button class="opt-pill" onclick="setPaymentMethod(this, 'CASH')">Cash to Server</button>
+          <button type="button" class="opt-pill active" onclick="setPaymentMethod(this, 'UPI')">UPI / GPay / PhonePe</button>
+          <button type="button" class="opt-pill" onclick="setPaymentMethod(this, 'CARD')">Credit / Debit Card</button>
+          <button type="button" class="opt-pill" onclick="setPaymentMethod(this, 'CASH')">Cash to Server</button>
         </div>
 
         <!-- Dynamic UPI QR & App Intent (Configurable via server /api/v1/payments/config) -->
@@ -797,10 +797,10 @@
 
       <!-- Payment & Kitchen Submit Buttons -->
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <button id="payNowBtn" class="submit-order-btn" style="background:#16a34a; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="handleInstantPayment()">
+        <button type="button" id="payNowBtn" class="submit-order-btn" style="background:#16a34a; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="handleInstantPayment()">
           <span>💳 Pay Bill / Prepay via UPI (<span id="payNowAmountText">₹0</span>)</span>
         </button>
-        <button id="submitOrderBtn" class="submit-order-btn" onclick="handlePreOrderCheckout()">Send Order to Kitchen →</button>
+        <button type="button" id="submitOrderBtn" class="submit-order-btn" onclick="handlePreOrderCheckout()">Send Order to Kitchen →</button>
       </div>
     </div>
   </div>
@@ -811,7 +811,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="callStaffTitle">How can we assist you?</h3>
-        <button class="sheet-close" onclick="closeWaiterModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeWaiterModal()" aria-label="Close modal">✕</button>
       </div>
 
       <!-- In-flight active call tracker banner -->
@@ -828,12 +828,12 @@
       </p>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:6px 0;">
-        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Need assistance', 'ASSISTANCE')">👋 <span id="optAssistanceLabel">Need Assistance</span></button>
-        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Request water', 'WATER')">💧 <span id="optWaterLabel">Request Water</span></button>
-        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Request bill', 'BILL')">🧾 <span id="optBillLabel">Request Bill</span></button>
-        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Need extra plates or cutlery', 'CUTLERY')">🍴 <span id="optCutleryLabel">Extra Cutlery</span></button>
-        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Food-related issue', 'FOOD_ISSUE')">🍲 <span id="optFoodIssueLabel">Food Issue</span></button>
-        <button class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Other assistance', 'OTHER')">💬 <span id="optOtherLabel">Other Help</span></button>
+        <button type="button" class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Need assistance', 'ASSISTANCE')">👋 <span id="optAssistanceLabel">Need Assistance</span></button>
+        <button type="button" class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Request water', 'WATER')">💧 <span id="optWaterLabel">Request Water</span></button>
+        <button type="button" class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Request bill', 'BILL')">🧾 <span id="optBillLabel">Request Bill</span></button>
+        <button type="button" class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Need extra plates or cutlery', 'CUTLERY')">🍴 <span id="optCutleryLabel">Extra Cutlery</span></button>
+        <button type="button" class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Food-related issue', 'FOOD_ISSUE')">🍲 <span id="optFoodIssueLabel">Food Issue</span></button>
+        <button type="button" class="opt-pill" style="padding:12px; text-align:center;" onclick="dispatchWaiterCall('Other assistance', 'OTHER')">💬 <span id="optOtherLabel">Other Help</span></button>
       </div>
 
       <div style="margin-top:12px;">
@@ -857,10 +857,10 @@
         <div style="font-size:1.3rem; font-weight:900; color:var(--primary); margin-top:4px;" id="wbItemPrice">₹20.00</div>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
-        <button class="submit-order-btn" id="wbAcceptBtn" onclick="respondWaterBottle(true)" style="background:#10b981;">
+        <button type="button" class="submit-order-btn" id="wbAcceptBtn" onclick="respondWaterBottle(true)" style="background:#10b981;">
           ✓ Yes, add 1 bottle (₹20)
         </button>
-        <button class="opt-pill" id="wbDeclineBtn" onclick="respondWaterBottle(false)" style="padding:12px; font-weight:700; width:100%; text-align:center;">
+        <button type="button" class="opt-pill" id="wbDeclineBtn" onclick="respondWaterBottle(false)" style="padding:12px; font-weight:700; width:100%; text-align:center;">
           ✕ No, thank you
         </button>
       </div>
@@ -873,7 +873,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="billModalTitle">Table Bill Preview</h3>
-        <button class="sheet-close" onclick="closeBillPreviewModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeBillPreviewModal()" aria-label="Close modal">✕</button>
       </div>
       <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;" id="billHeaderMeta">
         Abiruchi Hotel • Table 14 • Estimate
@@ -882,13 +882,13 @@
         <div style="text-align:center; padding:20px; color:var(--text-muted);">Loading bill details...</div>
       </div>
       <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
-        <button class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="printBillPreview()">
+        <button type="button" class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="printBillPreview()">
           🖨️ Print Bill
         </button>
-        <button class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="openSplitBillFlow()">
+        <button type="button" class="opt-pill" style="flex:1; padding:12px; text-align:center; font-weight:700;" onclick="openSplitBillFlow()">
           👥 Split Bill
         </button>
-        <button class="submit-order-btn" style="flex:1.5; padding:12px; text-align:center;" onclick="initiateUpiFromBill()">
+        <button type="button" class="submit-order-btn" style="flex:1.5; padding:12px; text-align:center;" onclick="initiateUpiFromBill()">
           💳 Pay via UPI
         </button>
       </div>
@@ -901,7 +901,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title">📱 UPI Prepayment</h3>
-        <button class="sheet-close" onclick="closeUpiPrepaymentModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeUpiPrepaymentModal()" aria-label="Close modal">✕</button>
       </div>
 
       <!-- Allocated Token Banner -->
@@ -962,7 +962,7 @@
             <input type="checkbox" id="rememberMeGuest" checked style="accent-color:var(--primary); cursor:pointer;">
             <span>Remember my name & phone on this device</span>
           </label>
-          <button id="upiSubmitRefBtn" class="submit-order-btn" onclick="submitUpiPaymentReferenceAction()" style="margin-top:6px;">
+          <button type="button" id="upiSubmitRefBtn" class="submit-order-btn" onclick="submitUpiPaymentReferenceAction()" style="margin-top:6px;">
             ✓ Submit Payment Details
           </button>
         </div>
@@ -974,7 +974,7 @@
         <div id="upiStatusBadge" style="font-weight:800; color:var(--accent); font-size:0.95rem; margin-bottom:6px;">Payment details submitted. Your order is waiting for manager verification.</div>
         <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">The manager will verify your transaction reference against the bank account.</div>
 
-        <a id="upiWhatsAppBtn" href="#" target="_blank" style="display:none; background:#25D366; color:#fff; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:800; font-size:0.9rem; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;">
+        <a id="upiWhatsAppBtn" href="#" target="_blank" style="display:none; background:#25D366; color:#fff; text-decoration:none; padding:12px 18px; border-radius:10px; font-weight:800; font-size:0.9rem; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;" rel="noopener noreferrer">
           💬 Send Payment Details on WhatsApp
         </a>
 
@@ -989,7 +989,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="trackerModalTitle">Live Order Tracker</h3>
-        <button class="sheet-close" onclick="closeOrderStatusModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeOrderStatusModal()" aria-label="Close modal">✕</button>
       </div>
       <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
         Order #<span id="liveOrderId">---</span> • Table <span id="liveOrderTable">--</span>
@@ -1006,7 +1006,7 @@
         <div id="guestTokenCode" style="font-size:1.8rem; font-weight:900; color:var(--primary); font-family:monospace; margin-top:2px;">A-01</div>
       </div>
       <div id="stepperContainer" style="display:flex; flex-direction:column; gap:12px; margin-bottom:18px;"></div>
-      <button class="submit-order-btn" onclick="closeOrderStatusModal()">Done Tracking</button>
+      <button type="button" class="submit-order-btn" onclick="closeOrderStatusModal()">Done Tracking</button>
     </div>
   </div>
 
@@ -1017,13 +1017,13 @@
       <h3 class="sheet-title" id="reviewTitle" style="margin-top:6px;">How was your dining experience?</h3>
       <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;" id="reviewSubtitle">Your feedback directly supports our culinary team.</p>
       <div class="star-row">
-        <button class="star-btn" onclick="rateExperience(1)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-        <button class="star-btn" onclick="rateExperience(2)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-        <button class="star-btn" onclick="rateExperience(3)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-        <button class="star-btn" onclick="rateExperience(4)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-        <button class="star-btn active" onclick="rateExperience(5)"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button type="button" class="star-btn" onclick="rateExperience(1)" aria-label="Rate 1 star"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button type="button" class="star-btn" onclick="rateExperience(2)" aria-label="Rate 2 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button type="button" class="star-btn" onclick="rateExperience(3)" aria-label="Rate 3 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button type="button" class="star-btn" onclick="rateExperience(4)" aria-label="Rate 4 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button type="button" class="star-btn active" onclick="rateExperience(5)" aria-label="Rate 5 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
       </div>
-      <button class="submit-order-btn" onclick="submitReviewAction()">Submit Feedback</button>
+      <button type="button" class="submit-order-btn" onclick="submitReviewAction()">Submit Feedback</button>
     </div>
   </div>
 
@@ -1033,7 +1033,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="loginModalTitle">Guest Account & Sign In</h3>
-        <button class="sheet-close" onclick="closeLoginModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeLoginModal()" aria-label="Close modal">✕</button>
       </div>
 
       <!-- Logged In Profile View -->
@@ -1114,8 +1114,8 @@
         <div id="otpInputContainer" style="display:none;">
           <input type="text" id="guestOtpCode" placeholder="1234" maxlength="6" />
         </div>
-        <button id="sendOtpBtn" style="display:none;" onclick="requestGuestOTP()"></button>
-        <button id="verifyOtpBtn" style="display:none;" onclick="verifyGuestOTP()"></button>
+        <button type="button" id="sendOtpBtn" style="display:none;" onclick="requestGuestOTP()"></button>
+        <button type="button" id="verifyOtpBtn" style="display:none;" onclick="verifyGuestOTP()"></button>
 
         <button type="button" id="saveLoginPreferencesBtn" class="submit-order-btn" onclick="saveGuestOnboarding()" style="background:#16a34a; font-weight:900; font-size:0.95rem; padding:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
           <span>🚀 Save Preferences &amp; Start Ordering</span>
@@ -1132,7 +1132,7 @@
             <label style="font-size:0.84rem; display:flex; align-items:center; gap:6px; font-weight:700;"><input type="checkbox" id="prefNutFree" /> Nut-Free</label>
           </div>
         </div>
-        <button class="submit-order-btn" onclick="saveGuestPreferences()">Save Preferences</button>
+        <button type="button" class="submit-order-btn" onclick="saveGuestPreferences()">Save Preferences</button>
       </div>
 
       <!-- Staff & Operator Direct Portal Access by URL -->
@@ -1180,7 +1180,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="tableSelectorTitle">📍 Confirm Your Dining Table</h3>
-        <button class="sheet-close" onclick="closeTableSelectorModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeTableSelectorModal()" aria-label="Close modal">✕</button>
       </div>
       <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 14px;" id="tableSelectorSubtitle">
         Select your table number below or choose Takeaway / Parcel. Orders will be delivered directly to your chosen table.
@@ -1231,7 +1231,7 @@
         <span>WhatsApp updates enabled for this order</span>
       </div>
 
-      <button class="submit-order-btn" onclick="document.getElementById('scheduledOrderModal').classList.remove('active')">Got It, Return to Menu</button>
+      <button type="button" class="submit-order-btn" onclick="document.getElementById('scheduledOrderModal').classList.remove('active')">Got It, Return to Menu</button>
     </div>
   </div>
 
@@ -1241,7 +1241,7 @@
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <h3 class="sheet-title" id="dishModalTitle">Dish Details</h3>
-        <button class="sheet-close" onclick="closeDishDetailModal()">✕</button>
+        <button type="button" class="sheet-close" onclick="closeDishDetailModal()" aria-label="Close modal">✕</button>
       </div>
       <div id="dishModalPhotoBox" style="border-radius:14px; overflow:hidden; margin-bottom:14px; max-height:220px; position:relative;">
         <img id="dishModalImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Dish detail" style="width:100%; height:100%; object-fit:cover;" />
@@ -1270,7 +1270,7 @@
           <span id="dishModalQtyDisplay" style="font-size:1.1rem; font-weight:900; min-width:28px; text-align:center; color:var(--text-title);">1</span>
           <button type="button" class="step-btn" onclick="adjustModalDishQty(1)" style="width:36px; height:36px; font-size:1.2rem; font-weight:900; border-radius:8px; background:var(--primary); color:#fff; border:none; cursor:pointer;">+</button>
         </div>
-        <button class="submit-order-btn" id="dishModalAddBtn" onclick="addCurrentModalDishToCart()" style="flex:1; margin:0;">
+        <button type="button" class="submit-order-btn" id="dishModalAddBtn" onclick="addCurrentModalDishToCart()" style="flex:1; margin:0;">
           Add to Order • <span id="dishModalTotalPrice">₹0</span>
         </button>
       </div>
@@ -1323,7 +1323,7 @@
       <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">
         Powered by Web Speech. Speak in English, Hindi, or Telugu.
       </div>
-      <button onclick="stopVoiceOrder()" class="btn-primary" style="background:#ef4444; color:#fff; border:none; padding:10px 24px; border-radius:12px; font-weight:800; cursor:pointer;">
+      <button type="button" onclick="stopVoiceOrder()" class="btn-primary" style="background:#ef4444; color:#fff; border:none; padding:10px 24px; border-radius:12px; font-weight:800; cursor:pointer;">
         Stop Listening
       </button>
     </div>
@@ -1337,7 +1337,7 @@
           <span style="font-size:1.3rem;">📋</span>
           <h3 style="font-size:1.15rem; font-weight:900; color:var(--text-title); margin:0;">My Order History</h3>
         </div>
-        <button onclick="closeHistoryModal()" style="background:transparent; border:none; font-size:1.2rem; color:var(--text-muted); cursor:pointer;">✕</button>
+        <button type="button" onclick="closeHistoryModal()" style="background:transparent; border:none; font-size:1.2rem; color:var(--text-muted); cursor:pointer;">✕</button>
       </div>
 
       <div id="historyOrdersList">

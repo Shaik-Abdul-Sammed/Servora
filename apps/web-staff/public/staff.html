@@ -400,10 +400,10 @@
       <a href="/qr-manager.html" class="nav-link" aria-label="QR Studio">QR Studio</a>
       <a href="/staff.html" class="nav-link active" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
-      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank" rel="noopener noreferrer">Guest Menu ↗</a>
 
       <!-- Waiter Multi-Lingual Voice Controls -->
-      <button id="btnWaiterVoice" class="voice-btn" onclick="toggleWaiterVoice()" title="Waiter Voice Assistant (English, Telugu, Hindi)">
+      <button type="button" id="btnWaiterVoice" class="voice-btn" onclick="toggleWaiterVoice()" title="Waiter Voice Assistant (English, Telugu, Hindi)" aria-label="Waiter Voice Assistant (English, Telugu, Hindi)">
         🎙️ Waiter Voice
       </button>
       <select id="waiterLangSelect" class="lang-select" onchange="setWaiterVoiceLang(this.value)" title="Voice Language">
@@ -411,7 +411,7 @@
         <option value="te-IN">🇮🇳 తెలుగు (Telugu)</option>
         <option value="hi-IN">🇮🇳 हिंदी (Hindi)</option>
       </select>
-      <button class="voice-log-btn" onclick="openWaiterVoiceLogModal()" title="View Waiter Voice Command History">
+      <button type="button" class="voice-log-btn" onclick="openWaiterVoiceLogModal()" title="View Waiter Voice Command History">
         📜 Voice Log
       </button>
     </div>
@@ -420,11 +420,11 @@
   <main class="container">
     <!-- Station Selector -->
     <div class="station-bar" role="tablist" aria-label="Kitchen Stations">
-      <button class="station-chip active" onclick="setStation('ALL', this)" role="tab" aria-selected="true" aria-label="All stations">All Stations</button>
-      <button class="station-chip" onclick="setStation('HOT_LINE', this)" role="tab" aria-selected="false" aria-label="Hot Line Dosa & Meals (A)">Hot Line (A)</button>
-      <button class="station-chip" onclick="setStation('COLD_PREP', this)" role="tab" aria-selected="false" aria-label="Cold Prep Chutneys & Salads (B)">Cold Prep (B)</button>
-      <button class="station-chip" onclick="setStation('BAR', this)" role="tab" aria-selected="false" aria-label="Bar & Cool Drinks (D)">Bar & Coolers (D)</button>
-      <button class="station-chip" onclick="setStation('COFFEE', this)" role="tab" aria-selected="false" aria-label="Filter Coffee (F)">Coffee & Chai (F)</button>
+      <button type="button" class="station-chip active" onclick="setStation('ALL', this)" role="tab" aria-selected="true" aria-label="All stations">All Stations</button>
+      <button type="button" class="station-chip" onclick="setStation('HOT_LINE', this)" role="tab" aria-selected="false" aria-label="Hot Line Dosa & Meals (A)">Hot Line (A)</button>
+      <button type="button" class="station-chip" onclick="setStation('COLD_PREP', this)" role="tab" aria-selected="false" aria-label="Cold Prep Chutneys & Salads (B)">Cold Prep (B)</button>
+      <button type="button" class="station-chip" onclick="setStation('BAR', this)" role="tab" aria-selected="false" aria-label="Bar & Cool Drinks (D)">Bar & Coolers (D)</button>
+      <button type="button" class="station-chip" onclick="setStation('COFFEE', this)" role="tab" aria-selected="false" aria-label="Filter Coffee (F)">Coffee & Chai (F)</button>
     </div>
 
     <!-- Multi-Dimensional Token & Item Filter Bar -->
@@ -457,7 +457,7 @@
           <option value="LIFO">LIFO (Newest First)</option>
         </select>
       </div>
-      <button class="filter-reset-btn" onclick="resetTokenFilters()">↺ Reset</button>
+      <button type="button" class="filter-reset-btn" onclick="resetTokenFilters()">↺ Reset</button>
     </div>
 
     <!-- Token Kanban Columns -->
@@ -496,7 +496,7 @@
     <div class="voice-modal-content">
       <div class="voice-modal-header">
         <span style="font-weight:800; font-size:1.1rem; color:#fff;">🎙️ Waiter Voice Assistant</span>
-        <button class="modal-close-btn" onclick="stopWaiterVoice()">✕</button>
+        <button type="button" class="modal-close-btn" onclick="stopWaiterVoice()" aria-label="Close modal">✕</button>
       </div>
       <div class="voice-wave">
         <span></span><span></span><span></span><span></span><span></span>
@@ -511,7 +511,7 @@
           <li><strong>Filter by Time:</strong> "Show delayed tokens" • "లేట్ ఆర్డర్లు" • "ताजा आर्डर"</li>
         </ul>
       </div>
-      <button class="btn btn-prep" style="margin-top:14px; width:auto; padding:8px 24px; margin-inline:auto;" onclick="stopWaiterVoice()">Done / Close</button>
+      <button type="button" class="btn btn-prep" style="margin-top:14px; width:auto; padding:8px 24px; margin-inline:auto;" onclick="stopWaiterVoice()">Done / Close</button>
     </div>
   </div>
 
@@ -520,7 +520,7 @@
     <div class="voice-modal-content" style="max-width:540px;">
       <div class="voice-modal-header">
         <span style="font-weight:800; font-size:1.1rem; color:#fff;">📜 Waiter Voice Command History</span>
-        <button class="modal-close-btn" onclick="document.getElementById('waiterVoiceLogModal').style.display='none'">✕</button>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('waiterVoiceLogModal').style.display='none'" aria-label="Close modal">✕</button>
       </div>
       <div id="waiterVoiceLogList" style="max-height:360px; overflow-y:auto; margin-top:12px;"></div>
     </div>
@@ -644,17 +644,17 @@
 
       // Render Queued
       document.getElementById('colQueued').innerHTML = queued.map(t =>
-        renderCard(t, `<button class="btn btn-prep" onclick="updateState('${t.id}', 'PREPARING')" aria-label="Start cooking token ${t.token_code || t.code}">🔥 Start Prep</button>`)
+        renderCard(t, `<button type="button" class="btn btn-prep" onclick="updateState('${t.id}', 'PREPARING')" aria-label="Start cooking token ${t.token_code || t.code}">🔥 Start Prep</button>`)
       ).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No queued tokens</div>';
 
       // Render Preparing
       document.getElementById('colPreparing').innerHTML = preparing.map(t =>
-        renderCard(t, `<button class="btn btn-ready" onclick="updateState('${t.id}', 'READY')" aria-label="Mark token ${t.token_code || t.code} ready">✅ Mark Ready</button>`)
+        renderCard(t, `<button type="button" class="btn btn-ready" onclick="updateState('${t.id}', 'READY')" aria-label="Mark token ${t.token_code || t.code} ready">✅ Mark Ready</button>`)
       ).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No cooking in progress</div>';
 
       // Render Ready
       document.getElementById('colReady').innerHTML = ready.map(t =>
-        renderCard(t, `<button class="btn btn-serve" onclick="updateState('${t.id}', 'SERVED')" aria-label="Mark token ${t.token_code || t.code} given to guest">🍽️ Token Given / Handed Over</button>`)
+        renderCard(t, `<button type="button" class="btn btn-serve" onclick="updateState('${t.id}', 'SERVED')" aria-label="Mark token ${t.token_code || t.code} given to guest">🍽️ Token Given / Handed Over</button>`)
       ).join('') || '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:20px;">No ready orders</div>';
     }
 

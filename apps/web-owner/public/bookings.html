@@ -70,7 +70,7 @@
     <a href="/owner/staff" class="nav-link">👥 Staff</a>
     <a href="/owner/settings" class="nav-link">⚙️ Settings</a>
     <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+      <a href="/" class="nav-link" target="_blank" rel="noopener noreferrer">👁️ Guest View</a>
     </div>
   </nav>
 
@@ -78,10 +78,10 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
       <h1 class="page-title" style="margin-bottom:0;">Table Reservations & Host Stand</h1>
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-primary" onclick="setBookingView('grid', this)">📅 Today's Grid</button>
-        <button class="btn" style="background:#1e293b; color:#fff;" onclick="setBookingView('noshows', this)">🚩 No-Shows</button>
-        <button class="btn" style="background:#1e293b; color:#fff;" onclick="setBookingView('recurring', this)">🔁 Recurring</button>
-        <button class="btn btn-primary" onclick="fetchBookings()">↻ Refresh</button>
+        <button type="button" class="btn btn-primary" onclick="setBookingView('grid', this)">📅 Today's Grid</button>
+        <button type="button" class="btn" style="background:#1e293b; color:#fff;" onclick="setBookingView('noshows', this)">🚩 No-Shows</button>
+        <button type="button" class="btn" style="background:#1e293b; color:#fff;" onclick="setBookingView('recurring', this)">🔁 Recurring</button>
+        <button type="button" class="btn btn-primary" onclick="fetchBookings()">↻ Refresh</button>
       </div>
     </div>
 
@@ -216,23 +216,23 @@
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
                   ${status === 'PENDING' ? `
                     <span class="badge badge-amber">PENDING</span>
-                    <button class="btn btn-primary" onclick="confirmBooking('${b.id}')">Confirm</button>
-                    <button class="btn btn-danger" onclick="rejectBooking('${b.id}')">Reject</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmBooking('${b.id}')">Confirm</button>
+                    <button type="button" class="btn btn-danger" onclick="rejectBooking('${b.id}')">Reject</button>
                   ` : status === 'CONFIRMED' ? `
                     <span class="badge badge-blue">CONFIRMED</span>
-                    <button class="btn btn-success" onclick="checkIn('${b.id}')">Check In</button>
-                    <button class="btn btn-primary" style="background:#0284c7;" onclick="rescheduleBookingPrompt('${b.id}')">Reschedule</button>
-                    <button class="btn btn-primary" style="background:#22c55e;" onclick="sendWhatsAppPrompt('${b.id}')">💬 WhatsApp</button>
-                    <button class="btn btn-danger" style="background:#f59e0b;" onclick="overrideBookingPrompt('${b.id}')">⚡ Override</button>
-                    <button class="btn btn-danger" onclick="rejectBooking('${b.id}')">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="checkIn('${b.id}')">Check In</button>
+                    <button type="button" class="btn btn-primary" style="background:#0284c7;" onclick="rescheduleBookingPrompt('${b.id}')">Reschedule</button>
+                    <button type="button" class="btn btn-primary" style="background:#22c55e;" onclick="sendWhatsAppPrompt('${b.id}')">💬 WhatsApp</button>
+                    <button type="button" class="btn btn-danger" style="background:#f59e0b;" onclick="overrideBookingPrompt('${b.id}')">⚡ Override</button>
+                    <button type="button" class="btn btn-danger" onclick="rejectBooking('${b.id}')">Cancel</button>
                   ` : status === 'CHECKED_IN' ? `
                     <span class="badge badge-green">✓ SEATED</span>
-                    <button class="btn btn-success" onclick="completeBooking('${b.id}')">Complete</button>
+                    <button type="button" class="btn btn-success" onclick="completeBooking('${b.id}')">Complete</button>
                   ` : status === 'COMPLETED' ? `
                     <span class="badge badge-purple">✓ COMPLETED</span>
                   ` : `
                     <span class="badge badge-red">CANCELLED</span>
-                    <button class="btn btn-primary" style="background:#64748b; font-size:0.75rem;" onclick="refundDepositPrompt('${b.id}')">↩ Refund</button>
+                    <button type="button" class="btn btn-primary" style="background:#64748b; font-size:0.75rem;" onclick="refundDepositPrompt('${b.id}')">↩ Refund</button>
                   `}
                 </div>
               </div>`;

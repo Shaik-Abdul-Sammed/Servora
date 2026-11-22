@@ -88,7 +88,7 @@ function renderNav(activePage) {
     </div>
     ${config.pages.map((p) => `<a href="${p.href}" class="nav-link ${p.id === activePage ? 'active' : ''}">${p.label}</a>`).join('')}
     <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
-      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+      <a href="/" class="nav-link" target="_blank" rel="noopener noreferrer">👁️ Guest View</a>
     </div>
   </nav>`;
 }

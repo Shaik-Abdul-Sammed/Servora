@@ -68,7 +68,7 @@
                 Total: $${(o.totalCents / 100).toFixed(2)}
               </div>
             </div>
-            <button class="btn btn-approve" onclick="approveOrder('${o.id}')">✓ Approve & Fire to Kitchen</button>
+            <button type="button" class="btn btn-approve" onclick="approveOrder('${o.id}')">✓ Approve & Fire to Kitchen</button>
           </div>
         `).join('');
       } catch (e) {}

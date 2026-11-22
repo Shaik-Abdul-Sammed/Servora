@@ -170,6 +170,13 @@
       gap: 8px;
       transition: all 0.2s var(--spring);
       white-space: nowrap;
+    
+      touch-action: manipulation;
+      min-height: 40px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn:active {
+      transform: scale(0.96);
     }
     .tab-btn:hover { background: #202434; color: #fff; }
     .tab-btn.active {
@@ -328,6 +335,13 @@
       justify-content: center;
       gap: 6px;
       transition: all 0.15s ease;
+    
+      touch-action: manipulation;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-btn:active {
+      transform: scale(0.96);
     }
     .action-btn:active { transform: scale(0.96); }
     .btn-prepare { background: var(--primary-gradient); color: #fff; }
@@ -354,12 +368,12 @@
       <a href="/manager" class="recall-btn" title="Open Manager Operations" style="text-decoration:none; color:inherit;">
         📊 Manager
       </a>
-      <button id="audioToggle" class="audio-toggle-btn active" onclick="toggleAudioChime()">
+      <button type="button" id="audioToggle" class="audio-toggle-btn active" onclick="toggleAudioChime()" aria-label="Toggle kitchen audio chime">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         <span id="audioStateText">Bell Sound ON</span>
       </button>
 
-      <button class="recall-btn" onclick="recallLastBumped()">
+      <button type="button" class="recall-btn" onclick="recallLastBumped()" aria-label="Recall last bumped order ticket">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         <span>Recall (R)</span>
       </button>
@@ -376,37 +390,37 @@
   <!-- Station Filter Tabs -->
   <div class="filter-bar">
     <div class="filter-tabs">
-      <button class="tab-btn active" onclick="switchStation('ALL', this)">
+      <button type="button" class="tab-btn active" onclick="switchStation('ALL', this)">
         <span>✨ All Stations</span>
         <span class="tab-badge" id="badgeAll">0</span>
         <span class="hotkey-hint">1</span>
       </button>
-      <button class="tab-btn" onclick="switchStation('BAR', this)">
+      <button type="button" class="tab-btn" onclick="switchStation('BAR', this)">
         <span>🍸 Bar / Drinks</span>
         <span class="tab-badge" id="badgeBar">0</span>
         <span class="hotkey-hint">2</span>
       </button>
-      <button class="tab-btn" onclick="switchStation('PIZZA_OVEN', this)">
+      <button type="button" class="tab-btn" onclick="switchStation('PIZZA_OVEN', this)">
         <span>🍕 Pizza Oven</span>
         <span class="tab-badge" id="badgePizza">0</span>
         <span class="hotkey-hint">3</span>
       </button>
-      <button class="tab-btn" onclick="switchStation('HOT_LINE', this)">
+      <button type="button" class="tab-btn" onclick="switchStation('HOT_LINE', this)">
         <span>🔥 Grill & Hot Line</span>
         <span class="tab-badge" id="badgeHot">0</span>
         <span class="hotkey-hint">4</span>
       </button>
-      <button class="tab-btn" onclick="switchStation('COLD_PREP', this)">
+      <button type="button" class="tab-btn" onclick="switchStation('COLD_PREP', this)">
         <span>🥗 Cold Prep</span>
         <span class="tab-badge" id="badgeCold">0</span>
         <span class="hotkey-hint">5</span>
       </button>
-      <button class="tab-btn" onclick="switchStation('COFFEE', this)">
+      <button type="button" class="tab-btn" onclick="switchStation('COFFEE', this)">
         <span>☕ Coffee & Bakery</span>
         <span class="tab-badge" id="badgeCoffee">0</span>
         <span class="hotkey-hint">6</span>
       </button>
-      <button class="tab-btn" onclick="switchStation('DESSERT', this)">
+      <button type="button" class="tab-btn" onclick="switchStation('DESSERT', this)">
         <span>🍰 Dessert Station</span>
         <span class="tab-badge" id="badgeDessert">0</span>
         <span class="hotkey-hint">7</span>
@@ -599,15 +613,15 @@
 
             <div class="ticket-footer">
               ${order.status === 'CONFIRMED' ? `
-                <button class="action-btn btn-prepare" onclick="advanceOrderStatus('${order.id}', 'PREPARING')">
+                <button type="button" class="action-btn btn-prepare" onclick="advanceOrderStatus('${order.id}', 'PREPARING')">
                   Start Cooking →
                 </button>
               ` : order.status === 'PREPARING' ? `
-                <button class="action-btn btn-ready" onclick="advanceOrderStatus('${order.id}', 'READY_FOR_PICKUP')">
+                <button type="button" class="action-btn btn-ready" onclick="advanceOrderStatus('${order.id}', 'READY_FOR_PICKUP')">
                   Ready for Pass ✓
                 </button>
               ` : `
-                <button class="action-btn btn-bump" onclick="bumpTicket('${order.id}')">
+                <button type="button" class="action-btn btn-bump" onclick="bumpTicket('${order.id}')">
                   Bump Ticket ✓✓
                 </button>
               `}

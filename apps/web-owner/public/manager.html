@@ -410,27 +410,27 @@
       <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
       <a href="/admin" class="nav-link" aria-label="Super-Admin Console">Admin</a>
-      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
-      <button id="mgrSpeakerToggle" class="nav-link" onclick="toggleManagerSpeaker()" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.4); color:#34d399; font-weight:700;" aria-label="Toggle speaker notifications">🔊 Speaker: ON</button>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank" rel="noopener noreferrer">Guest Menu ↗</a>
+      <button type="button" id="mgrSpeakerToggle" class="nav-link" onclick="toggleManagerSpeaker()" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.4); color:#34d399; font-weight:700;" aria-label="Toggle speaker notifications">🔊 Speaker: ON</button>
     </div>
   </nav>
 
   <main class="container">
     <!-- Tabs Header -->
     <div class="tab-bar" role="tablist" aria-label="Manager Operations Sections">
-      <button class="chip active" role="tab" aria-selected="true" id="tabBtnFloor" onclick="selectTab('floor', this)">
+      <button type="button" class="chip active" role="tab" aria-selected="true" id="tabBtnFloor" onclick="selectTab('floor', this)">
         🔔 Floor Ops
       </button>
-      <button class="chip" role="tab" aria-selected="false" id="tabBtnPayments" onclick="selectTab('payments', this)">
+      <button type="button" class="chip" role="tab" aria-selected="false" id="tabBtnPayments" onclick="selectTab('payments', this)">
         💳 Payments Hub (Group O)
       </button>
-      <button class="chip" role="tab" aria-selected="false" id="tabBtnBookings" onclick="selectTab('bookings', this)">
+      <button type="button" class="chip" role="tab" aria-selected="false" id="tabBtnBookings" onclick="selectTab('bookings', this)">
         📅 Bookings Polish (Group P)
       </button>
-      <button class="chip" role="tab" aria-selected="false" id="tabBtnCustomers" onclick="selectTab('customers', this)">
+      <button type="button" class="chip" role="tab" aria-selected="false" id="tabBtnCustomers" onclick="selectTab('customers', this)">
         👥 Customers & Loyalty (Group Q)
       </button>
-      <button class="chip" role="tab" aria-selected="false" id="tabBtnStaff" onclick="selectTab('staff', this)">
+      <button type="button" class="chip" role="tab" aria-selected="false" id="tabBtnStaff" onclick="selectTab('staff', this)">
         👨‍🍳 Staff &amp; Waiters (Phases 1 &amp; 2)
       </button>
     </div>
@@ -444,7 +444,7 @@
               🔔 Active Waiter Calls
               <span class="badge-count" id="activeCallsCount">0</span>
             </div>
-            <button class="btn btn-assign" onclick="loadCalls()" aria-label="Refresh assistance calls">🔄 Refresh</button>
+            <button type="button" class="btn btn-assign" onclick="loadCalls()" aria-label="Refresh assistance calls">🔄 Refresh</button>
           </div>
           <div id="callsList">
             <div style="text-align:center; color:var(--text-muted); padding:30px;">Checking active floor calls...</div>
@@ -457,7 +457,7 @@
               🎫 Kitchen Tokens & Escalations
               <span class="badge-count" id="activeTokensCount">0</span>
             </div>
-            <button class="btn btn-assign" onclick="loadTokens()" aria-label="Refresh service tokens">🔄 Refresh</button>
+            <button type="button" class="btn btn-assign" onclick="loadTokens()" aria-label="Refresh service tokens">🔄 Refresh</button>
           </div>
           <div id="tokensList">
             <div style="text-align:center; color:var(--text-muted); padding:30px;">Loading service tokens...</div>
@@ -485,7 +485,7 @@
             <label for="reconRef">Bank UTR / Transaction Ref</label>
             <input type="text" id="reconRef" class="form-input" placeholder="e.g. UPI-901015-XYZ" aria-label="UPI Reference number">
           </div>
-          <button class="btn btn-verify" onclick="reconcilePayment()" aria-label="Verify and mark payment as paid" style="width:100%; justify-content:center;">
+          <button type="button" class="btn btn-verify" onclick="reconcilePayment()" aria-label="Verify and mark payment as paid" style="width:100%; justify-content:center;">
             ✓ Verify Payment & Mark PAID
           </button>
           <div id="reconResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
@@ -531,7 +531,7 @@
               <option value="VERIFIED">✓ Verified / Paid</option>
               <option value="REJECTED">✕ Rejected</option>
             </select>
-            <button class="btn btn-secondary" onclick="loadUpiVerifications()" style="font-size:0.75rem; padding:4px 10px;">🔄 Refresh Queue</button>
+            <button type="button" class="btn btn-secondary" onclick="loadUpiVerifications()" style="font-size:0.75rem; padding:4px 10px;">🔄 Refresh Queue</button>
           </div>
         </div>
         <div id="upiVerifQueueContainer" style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
@@ -553,7 +553,7 @@
             <label for="payCashTendered">Cash Received (₹)</label>
             <input type="number" id="payCashTendered" class="form-input" placeholder="e.g. 500" aria-label="Cash tendered">
           </div>
-          <button class="btn btn-assign" onclick="recordCash()" aria-label="Record Cash Tendered" style="width:100%; justify-content:center; margin-bottom:12px;">
+          <button type="button" class="btn btn-assign" onclick="recordCash()" aria-label="Record Cash Tendered" style="width:100%; justify-content:center; margin-bottom:12px;">
             💵 Record Cash & Compute Change
           </button>
           <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:8px;">
@@ -564,7 +564,7 @@
                 <input type="text" id="payCardTxnRef" class="form-input" placeholder="POS-TXN-1234" style="flex:1;" aria-label="Card POS transaction reference">
               </div>
             </div>
-            <button class="btn btn-secondary" onclick="recordCard()" aria-label="Record Card Transaction" style="width:100%; justify-content:center;">
+            <button type="button" class="btn btn-secondary" onclick="recordCard()" aria-label="Record Card Transaction" style="width:100%; justify-content:center;">
               💳 Record POS Card Payment
             </button>
           </div>
@@ -585,10 +585,10 @@
             <input type="text" id="refundReason" class="form-input" placeholder="e.g. Fake screenshot / Customer billing correction" aria-label="Reason for refund or rejection">
           </div>
           <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="btn btn-escalate" onclick="rejectPayment()" aria-label="Reject Fraud Screenshot" style="flex:1; justify-content:center;">
+            <button type="button" class="btn btn-escalate" onclick="rejectPayment()" aria-label="Reject Fraud Screenshot" style="flex:1; justify-content:center;">
               🚫 Reject Screenshot
             </button>
-            <button class="btn btn-secondary" onclick="processRefund()" aria-label="Process Refund" style="flex:1; justify-content:center;">
+            <button type="button" class="btn btn-secondary" onclick="processRefund()" aria-label="Process Refund" style="flex:1; justify-content:center;">
               ↩️ Process Refund
             </button>
           </div>
@@ -596,7 +596,7 @@
 
           <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:12px;">
             <div style="font-size:0.85rem; font-weight:700; color:var(--warning); margin-bottom:8px;">⚠️ Walkout Risk & Duplicates</div>
-            <button class="btn btn-secondary" onclick="loadRiskAlerts()" aria-label="Check Walkout Risk" style="margin-bottom:8px; width:100%; justify-content:center;">
+            <button type="button" class="btn btn-secondary" onclick="loadRiskAlerts()" aria-label="Check Walkout Risk" style="margin-bottom:8px; width:100%; justify-content:center;">
               🔍 Check Unpaid Orders (>45 min)
             </button>
             <div id="riskAlertsBox" style="font-size:0.8rem; color:var(--text-muted);">Click to audit active unpaid tables.</div>
@@ -616,7 +616,7 @@
           <div style="display:flex; gap:10px; margin-bottom:12px;">
             <input type="date" id="slotCheckDate" class="form-input" style="flex:1;" aria-label="Date for slot check">
             <input type="number" id="slotPartySize" class="form-input" placeholder="Guests" value="4" min="1" max="50" style="width:90px;" aria-label="Party size for slot check">
-            <button class="btn btn-assign" onclick="checkSlots()" aria-label="Check Slots">Check</button>
+            <button type="button" class="btn btn-assign" onclick="checkSlots()" aria-label="Check Slots">Check</button>
           </div>
           <div id="slotsResult" style="font-size:0.85rem; color:var(--text-muted);">Enter date and party size to inspect table capacity.</div>
         </section>
@@ -631,16 +631,16 @@
             <input type="text" id="bookOpsId" class="form-input" placeholder="e.g. b073b9bc-351b..." aria-label="Booking ID for operations">
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <button class="btn btn-secondary" onclick="rescheduleBookingPrompt()" aria-label="Reschedule Booking">
+            <button type="button" class="btn btn-secondary" onclick="rescheduleBookingPrompt()" aria-label="Reschedule Booking">
               🔄 Reschedule Slot
             </button>
-            <button class="btn btn-assign" onclick="whatsappReminderPrompt()" aria-label="Trigger WhatsApp Confirmation">
+            <button type="button" class="btn btn-assign" onclick="whatsappReminderPrompt()" aria-label="Trigger WhatsApp Confirmation">
               💬 WhatsApp Reminder
             </button>
-            <button class="btn btn-escalate" onclick="overrideBookingPrompt()" aria-label="Walk-in Table Override">
+            <button type="button" class="btn btn-escalate" onclick="overrideBookingPrompt()" aria-label="Walk-in Table Override">
               ⚡ Walk-in Override
             </button>
-            <button class="btn btn-secondary" onclick="refundDepositPrompt()" aria-label="Refund Deposit on Cancellation">
+            <button type="button" class="btn btn-secondary" onclick="refundDepositPrompt()" aria-label="Refund Deposit on Cancellation">
               ↩️ Refund Deposit
             </button>
           </div>
@@ -649,7 +649,7 @@
           <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <span style="font-size:0.85rem; font-weight:700;">🚩 Past No-Shows & Recurring</span>
-              <button class="btn btn-secondary" onclick="loadNoShows()" style="padding:4px 8px; font-size:0.75rem;" aria-label="Refresh no-shows">Refresh</button>
+              <button type="button" class="btn btn-secondary" onclick="loadNoShows()" style="padding:4px 8px; font-size:0.75rem;" aria-label="Refresh no-shows">Refresh</button>
             </div>
             <div id="noShowsList" style="font-size:0.8rem; color:var(--text-muted);">Auditing reservation status...</div>
           </div>
@@ -670,7 +670,7 @@
           </div>
           <div style="display:flex; gap:10px; margin-bottom:14px;">
             <input type="tel" id="custPhoneInput" class="form-input" placeholder="Phone number (e.g. 9010150809)" style="flex:1;" aria-label="Customer phone number">
-            <button class="btn btn-assign" onclick="lookupCustomer()" aria-label="Search customer">Search</button>
+            <button type="button" class="btn btn-assign" onclick="lookupCustomer()" aria-label="Search customer">Search</button>
           </div>
           <div id="custLookupResult" style="font-size:0.85rem; color:var(--text-muted);">
             Enter customer phone number to inspect loyalty stamps and visit history.
@@ -689,7 +689,7 @@
             <label for="optOutPhoneInput">Phone to Purge</label>
             <input type="tel" id="optOutPhoneInput" class="form-input" placeholder="Phone to permanently purge" aria-label="Phone to purge">
           </div>
-          <button class="btn btn-escalate" onclick="executeOptOut()" aria-label="Purge customer PII" style="width:100%; justify-content:center;">
+          <button type="button" class="btn btn-escalate" onclick="executeOptOut()" aria-label="Purge customer PII" style="width:100%; justify-content:center;">
             🗑️ Execute Data Purge (Opt-Out)
           </button>
           <div id="optOutResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
@@ -711,7 +711,7 @@
             <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Waiters / Plan</div>
             <div id="staffPlanCapacityBadge" style="font-size:1rem; font-weight:800; color:#38bdf8;">0 / 3 Used</div>
           </div>
-          <button class="btn btn-secondary" onclick="loadStaffList()">🔄 Refresh Staff</button>
+          <button type="button" class="btn btn-secondary" onclick="loadStaffList()">🔄 Refresh Staff</button>
         </div>
       </div>
 
@@ -790,9 +790,9 @@
               <span class="badge-count" id="staffTotalCount">0</span>
             </div>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" onclick="filterStaffRole('ALL')" id="filterRoleAll" style="padding:4px 8px; font-size:0.75rem;">All</button>
-              <button class="btn btn-secondary" onclick="filterStaffRole('WAITER')" id="filterRoleWaiter" style="padding:4px 8px; font-size:0.75rem;">Waiters</button>
-              <button class="btn btn-secondary" onclick="filterStaffRole('MANAGER')" id="filterRoleManager" style="padding:4px 8px; font-size:0.75rem;">Managers</button>
+              <button type="button" class="btn btn-secondary" onclick="filterStaffRole('ALL')" id="filterRoleAll" style="padding:4px 8px; font-size:0.75rem;">All</button>
+              <button type="button" class="btn btn-secondary" onclick="filterStaffRole('WAITER')" id="filterRoleWaiter" style="padding:4px 8px; font-size:0.75rem;">Waiters</button>
+              <button type="button" class="btn btn-secondary" onclick="filterStaffRole('MANAGER')" id="filterRoleManager" style="padding:4px 8px; font-size:0.75rem;">Managers</button>
             </div>
           </div>
 
@@ -823,15 +823,15 @@
           <label for="newTempPassword">New Temporary Password</label>
           <div style="display:flex; gap:8px;">
             <input type="text" id="newTempPassword" class="form-input" style="flex:1;" placeholder="e.g. Wait@9281">
-            <button class="btn btn-secondary" onclick="document.getElementById('newTempPassword').value = 'Wait@' + Math.floor(1000 + Math.random()*9000)">🎲</button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('newTempPassword').value = 'Wait@' + Math.floor(1000 + Math.random()*9000)">🎲</button>
           </div>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">
           The staff member will be required to change this password on their next login.
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn btn-secondary" onclick="closeResetModal()">Cancel</button>
-          <button class="btn btn-verify" onclick="confirmResetPassword()">Confirm Reset</button>
+          <button type="button" class="btn btn-secondary" onclick="closeResetModal()">Cancel</button>
+          <button type="button" class="btn btn-verify" onclick="confirmResetPassword()">Confirm Reset</button>
         </div>
         <div id="resetModalResult" style="margin-top:10px; font-size:0.85rem; font-weight:700;"></div>
       </div>
@@ -845,14 +845,14 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span style="font-size:0.75rem; color:var(--text-muted);">Click to toggle table assignments:</span>
           <div style="display:flex; gap:4px;">
-            <button class="btn btn-secondary" onclick="setEditTablesSelection('all')" style="padding:2px 6px; font-size:0.68rem;">All</button>
-            <button class="btn btn-secondary" onclick="setEditTablesSelection('clear')" style="padding:2px 6px; font-size:0.68rem;">Clear</button>
+            <button type="button" class="btn btn-secondary" onclick="setEditTablesSelection('all')" style="padding:2px 6px; font-size:0.68rem;">All</button>
+            <button type="button" class="btn btn-secondary" onclick="setEditTablesSelection('clear')" style="padding:2px 6px; font-size:0.68rem;">Clear</button>
           </div>
         </div>
         <div class="table-picker-grid" id="editTablesGrid"></div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
-          <button class="btn btn-secondary" onclick="closeEditTablesModal()">Cancel</button>
-          <button class="btn btn-verify" onclick="confirmEditTables()">Save Assignments</button>
+          <button type="button" class="btn btn-secondary" onclick="closeEditTablesModal()">Cancel</button>
+          <button type="button" class="btn btn-verify" onclick="confirmEditTables()">Save Assignments</button>
         </div>
       </div>
     </div>
@@ -914,10 +914,10 @@
                 Assigned: ${c.assignedStaffName || c.assigned_waiter_name || 'Unassigned'}
               </div>
               <div style="display:flex; gap:8px;">
-                <button class="btn btn-assign" onclick="assignWaiter('${c.id}')" aria-label="Assign Table ${c.tableNumber} to staff">
+                <button type="button" class="btn btn-assign" onclick="assignWaiter('${c.id}')" aria-label="Assign Table ${c.tableNumber} to staff">
                   👤 Assign Waiter
                 </button>
-                ${!isEscalated ? `<button class="btn btn-escalate" onclick="escalateCall('${c.id}')" aria-label="Escalate call">⚠️ Escalate</button>` : ''}
+                ${!isEscalated ? `<button type="button" class="btn btn-escalate" onclick="escalateCall('${c.id}')" aria-label="Escalate call">⚠️ Escalate</button>` : ''}
               </div>
             </div>
           `;
@@ -1278,13 +1278,13 @@
               <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:8px;">₹${v.submittedAmountINR}</div>
               ${isAwaiting ? `
                 <div style="display:flex; gap:6px; justify-content:flex-end;">
-                  <button class="btn btn-verify" onclick="managerVerifyPayment('${v.orderId}', '${v.paymentId}', '${v.utr}', '${v.submittedAmountINR}')" style="padding:6px 12px; font-size:0.8rem;">
+                  <button type="button" class="btn btn-verify" onclick="managerVerifyPayment('${v.orderId}', '${v.paymentId}', '${v.utr}', '${v.submittedAmountINR}')" style="padding:6px 12px; font-size:0.8rem;">
                     ✓ Verify
                   </button>
-                  <button class="btn btn-escalate" onclick="managerRejectPayment('${v.orderId}', '${v.paymentId}')" style="padding:6px 10px; font-size:0.8rem;">
+                  <button type="button" class="btn btn-escalate" onclick="managerRejectPayment('${v.orderId}', '${v.paymentId}')" style="padding:6px 10px; font-size:0.8rem;">
                     ✕ Reject
                   </button>
-                  <button class="btn btn-secondary" onclick="managerRequestMoreInfo('${v.orderId}')" style="padding:6px 8px; font-size:0.8rem;">
+                  <button type="button" class="btn btn-secondary" onclick="managerRequestMoreInfo('${v.orderId}')" style="padding:6px 8px; font-size:0.8rem;">
                     💬 Info
                   </button>
                 </div>
@@ -1489,7 +1489,7 @@
         const data = await res.json();
         if (res.ok && data.success) {
           resEl.style.color = 'var(--success)';
-          resEl.innerHTML = `✓ WhatsApp reminder generated! <a href="${data.whatsappLink}" target="_blank" style="color:var(--primary); font-weight:800;">Open WhatsApp Link ↗</a>`;
+          resEl.innerHTML = `✓ WhatsApp reminder generated! <a href="${data.whatsappLink}" target="_blank" style="color:var(--primary); font-weight:800;" rel="noopener noreferrer">Open WhatsApp Link ↗</a>`;
         } else {
           resEl.style.color = 'var(--danger)';
           resEl.textContent = 'Error: ' + (data.error || 'Failed to generate reminder');
@@ -1856,21 +1856,21 @@
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px; margin-top:4px; flex-wrap:wrap; gap:8px;">
               <div style="font-size:0.72rem; color:var(--text-muted);">Last login: ${lastLogin}</div>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <button class="btn btn-secondary" onclick="openResetModal('${s.id}', '${s.name}')" style="padding:4px 8px; font-size:0.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="openResetModal('${s.id}', '${s.name}')" style="padding:4px 8px; font-size:0.75rem;">
                   🔑 Reset Pwd
                 </button>
-                <button class="btn btn-secondary" onclick="openEditTablesModal('${s.id}', '${s.name}', ${JSON.stringify(s.assignedTables || []).replace(/"/g, '&quot;')})" style="padding:4px 8px; font-size:0.75rem;">
+                <button type="button" class="btn btn-secondary" onclick="openEditTablesModal('${s.id}', '${s.name}', ${JSON.stringify(s.assignedTables || []).replace(/"/g, '&quot;')})" style="padding:4px 8px; font-size:0.75rem;">
                   ✏️ Tables
                 </button>
                 ${!isDeactivated ? `
-                  <button class="btn btn-secondary" onclick="toggleStaffStatus('${s.id}', '${isSuspended ? 'ACTIVE' : 'SUSPENDED'}')" style="padding:4px 8px; font-size:0.75rem;">
+                  <button type="button" class="btn btn-secondary" onclick="toggleStaffStatus('${s.id}', '${isSuspended ? 'ACTIVE' : 'SUSPENDED'}')" style="padding:4px 8px; font-size:0.75rem;">
                     ${isSuspended ? '▶️ Activate' : '⏸️ Suspend'}
                   </button>
-                  <button class="btn btn-escalate" onclick="toggleStaffStatus('${s.id}', 'DEACTIVATED')" style="padding:4px 8px; font-size:0.75rem;">
+                  <button type="button" class="btn btn-escalate" onclick="toggleStaffStatus('${s.id}', 'DEACTIVATED')" style="padding:4px 8px; font-size:0.75rem;">
                     ✕ Deactivate
                   </button>
                 ` : `
-                  <button class="btn btn-verify" onclick="toggleStaffStatus('${s.id}', 'ACTIVE')" style="padding:4px 8px; font-size:0.75rem;">
+                  <button type="button" class="btn btn-verify" onclick="toggleStaffStatus('${s.id}', 'ACTIVE')" style="padding:4px 8px; font-size:0.75rem;">
                     ↺ Re-activate
                   </button>
                 `}

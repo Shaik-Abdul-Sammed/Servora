@@ -182,7 +182,7 @@
       <a href="/qr-manager.html" class="nav-link active" aria-label="QR Studio">QR Studio</a>
       <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
-      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank" rel="noopener noreferrer">Guest Menu ↗</a>
     </div>
   </nav>
 
@@ -194,7 +194,7 @@
           Manage dine-in tables, generate tamper-evident QR standees, download printable PDFs.
         </div>
       </div>
-      <button class="btn" onclick="openCreateModal()" aria-label="Create new table QR code">
+      <button type="button" class="btn" onclick="openCreateModal()" aria-label="Create new table QR code">
         ➕ Create New Table
       </button>
     </div>
@@ -227,8 +227,8 @@
         </select>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-edit" onclick="closeModal()" aria-label="Cancel table edit">Cancel</button>
-        <button class="btn" onclick="saveTable()" aria-label="Save table details">Save Table</button>
+        <button type="button" class="btn btn-edit" onclick="closeModal()" aria-label="Cancel table edit">Cancel</button>
+        <button type="button" class="btn" onclick="saveTable()" aria-label="Save table details">Save Table</button>
       </div>
     </div>
   </div>
@@ -257,10 +257,10 @@
               <a href="/api/v1/qr/tables/${t.id}/pdf" class="btn btn-pdf" aria-label="Download printable PDF for ${t.name}">
                 🖨️ PDF
               </a>
-              <button class="btn btn-edit" onclick="openEditModal('${t.id}', '${t.name}', '${t.zone}')" aria-label="Rename or change zone for ${t.name}">
+              <button type="button" class="btn btn-edit" onclick="openEditModal('${t.id}', '${t.name}', '${t.zone}')" aria-label="Rename or change zone for ${t.name}">
                 ✏️ Edit
               </button>
-              <button class="btn btn-delete" onclick="deleteTable('${t.id}', '${t.name}')" aria-label="Soft delete table ${t.name}">
+              <button type="button" class="btn btn-delete" onclick="deleteTable('${t.id}', '${t.name}')" aria-label="Soft delete table ${t.name}">
                 🗑️ Delete
               </button>
             </div>

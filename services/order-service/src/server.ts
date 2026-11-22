@@ -514,7 +514,66 @@ export function createOrderApp() {
           return;
         }
       }
-      if ((pathname === '/pricing' || pathname === '/pricing.html') && method === 'GET') {
+
+      // Owner Sub-Pages Routing (Fixes broken navigation across owner console)
+      const ownerSubPages: Record<string, string> = {
+        '/owner/orders': 'orders.html',
+        '/orders.html': 'orders.html',
+        '/owner/menu': 'menu.html',
+        '/menu.html': 'menu.html',
+        '/owner/inventory': 'inventory.html',
+        '/inventory.html': 'inventory.html',
+        '/owner/availability': 'availability.html',
+        '/availability.html': 'availability.html',
+        '/owner/payments': 'payments.html',
+        '/payments.html': 'payments.html',
+        '/owner/bookings': 'bookings.html',
+        '/bookings.html': 'bookings.html',
+        '/owner/settings': 'settings.html',
+        '/settings.html': 'settings.html',
+        '/owner/specials': 'specials.html',
+        '/specials.html': 'specials.html',
+        '/owner/offers': 'offers.html',
+        '/offers.html': 'offers.html',
+        '/owner/beverages': 'beverages.html',
+        '/beverages.html': 'beverages.html',
+        '/owner/staff': 'staff.html',
+      };
+      if (ownerSubPages[pathname] && method === 'GET') {
+        const p = join(repoRoot, 'apps/web-owner/public', ownerSubPages[pathname]);
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
+
+      // Staff Sub-Pages Routing
+      const staffSubPages: Record<string, string> = {
+        '/staff/confirm': 'confirm.html',
+        '/staff/requests': 'requests.html',
+        '/staff/tickets': 'tickets.html',
+        '/staff/tokens': 'tokens.html',
+      };
+      if (staffSubPages[pathname] && method === 'GET') {
+        const p = join(repoRoot, 'apps/web-staff/public', staffSubPages[pathname]);
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
+
+      // Marketing Pages Routing
+      if ((pathname === '/marketing' || pathname === '/marketing/' || pathname === '/marketing/index.html') && method === 'GET') {
+        const p = join(repoRoot, 'apps/marketing/public/index.html');
+        if (existsSync(p)) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(readFileSync(p, 'utf-8'));
+          return;
+        }
+      }
+      if ((pathname === '/pricing' || pathname === '/pricing.html' || pathname === '/marketing/pricing') && method === 'GET') {
         const p = join(repoRoot, 'apps/marketing/public/pricing.html');
         if (existsSync(p)) {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -522,8 +581,10 @@ export function createOrderApp() {
           return;
         }
       }
-      if ((pathname === '/for-restaurants' || pathname === '/for-cafes' || pathname === '/for-bars') && method === 'GET') {
-        const p = join(repoRoot, `apps/marketing/public${pathname}.html`);
+      if ((pathname === '/for-restaurants' || pathname === '/for-cafes' || pathname === '/for-bars' ||
+           pathname === '/marketing/for-restaurants' || pathname === '/marketing/for-cafes' || pathname === '/marketing/for-bars') && method === 'GET') {
+        const baseName = pathname.replace('/marketing/', '/');
+        const p = join(repoRoot, `apps/marketing/public${baseName}.html`);
         if (existsSync(p)) {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
           res.end(readFileSync(p, 'utf-8'));

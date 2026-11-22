@@ -538,9 +538,9 @@ function renderCategories() {
   const nav = document.getElementById('categoryNav');
   if (!nav || !menuData.categories) return;
   const dict = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS.en;
-  let html = `<button class="cat-btn active" onclick="filterCategory(null, this)">✨ ${dict.recommended || 'Recommended'}</button>`;
+  let html = `<button type="button" class="cat-btn active" onclick="filterCategory(null, this)">✨ ${dict.recommended || 'Recommended'}</button>`;
   for (const cat of menuData.categories) {
-    html += `<button class="cat-btn" onclick="filterCategory('${cat.id}', this)">${cat.name}</button>`;
+    html += `<button type="button" class="cat-btn" onclick="filterCategory('${cat.id}', this)">${cat.name}</button>`;
   }
   nav.innerHTML = html;
 }
@@ -775,7 +775,7 @@ function renderMenu() {
         <div style="font-size:2.5rem; margin-bottom:12px;">⏰</div>
         <div style="font-size:1.1rem; font-weight:800; color:var(--text-title); margin-bottom:6px;">No dishes available in this shift</div>
         <p style="font-size:0.85rem; margin-bottom:14px;">Try selecting <strong>✨ All Items</strong> or switching dietary preferences.</p>
-        <button onclick="filterByShift('ALL', document.getElementById('shiftChipAll'))" class="btn-primary" style="padding:8px 16px; border-radius:12px; font-weight:800; border:none; cursor:pointer;">
+        <button type="button" onclick="filterByShift('ALL', document.getElementById('shiftChipAll'))" class="btn-primary" style="padding:8px 16px; border-radius:12px; font-weight:800; border:none; cursor:pointer;" aria-label="Show full menu">
           Show Full Menu
         </button>
       </div>`;
@@ -823,7 +823,7 @@ function renderMenu() {
               <span class="grid-dish-price">${formatINR(item.basePriceCents)}</span>
               <div onclick="event.stopPropagation()">
                 ${qty === 0 ? `
-                  <button class="grid-dish-btn-add" onclick="addToCart('${item.id}')">ADD +</button>
+                  <button type="button" class="grid-dish-btn-add" aria-label="Add ${escapeHtml(item.name)} to cart" onclick="addToCart('${item.id}')">ADD +</button>
                 ` : `
                   <div class="grid-dish-stepper">
                     <span style="cursor:pointer; padding:0 4px;" onclick="removeFromCart('${item.id}')">−</span>
@@ -871,14 +871,14 @@ function renderMenu() {
 
             <div class="abiruchi-btn-wrapper">
               ${qty === 0 ? `
-                <button class="abiruchi-btn-add" onclick="addToCart('${item.id}'); event.stopPropagation();">
+                <button type="button" class="abiruchi-btn-add" aria-label="Add ${escapeHtml(item.name)} to cart" onclick="addToCart('${item.id}'); event.stopPropagation();">
                   ADD <span style="font-size:0.8rem; font-weight:900; margin-left:2px;">+</span>
                 </button>
               ` : `
                 <div class="abiruchi-qty-stepper">
-                  <button class="abiruchi-step-btn" onclick="removeFromCart('${item.id}'); event.stopPropagation();">−</button>
+                  <button type="button" class="abiruchi-step-btn" aria-label="Decrease quantity" onclick="removeFromCart('${item.id}'); event.stopPropagation();">−</button>
                   <span class="abiruchi-qty-num">${qty}</span>
-                  <button class="abiruchi-step-btn" onclick="addToCart('${item.id}'); event.stopPropagation();">+</button>
+                  <button type="button" class="abiruchi-step-btn" aria-label="Increase quantity" onclick="addToCart('${item.id}'); event.stopPropagation();">+</button>
                 </div>
               `}
             </div>
@@ -965,9 +965,9 @@ function updateCartUI() {
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="abiruchi-qty-stepper" style="position:static; transform:none;">
-              <button class="abiruchi-step-btn" onclick="removeFromCart('${item.itemId}')">−</button>
+              <button type="button" class="abiruchi-step-btn" aria-label="Decrease quantity" onclick="removeFromCart('${item.itemId}')">−</button>
               <span class="abiruchi-qty-num">${item.quantity}</span>
-              <button class="abiruchi-step-btn" onclick="addToCart('${item.itemId}')">+</button>
+              <button type="button" class="abiruchi-step-btn" aria-label="Increase quantity" onclick="addToCart('${item.itemId}')">+</button>
             </div>
             <div style="font-weight:800; min-width:60px; text-align:right; font-size:0.9rem;">${formatINR(item.unitPriceCents * item.quantity)}</div>
           </div>
@@ -2680,11 +2680,11 @@ function openHistoryModal() {
           <div style="font-size:0.82rem; color:var(--text); font-weight:600; margin-bottom:10px;">${itemsList}</div>
           <div style="display:flex; justify-content:flex-end; gap:8px;">
             ${targetOrderId ? `
-              <a href="/receipt?orderId=${targetOrderId}" target="_blank" style="text-decoration:none; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;">
+              <a href="/receipt?orderId=${targetOrderId}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;">
                 🧾 Receipt
               </a>
             ` : ''}
-            <button onclick="reorderPastOrder(${idx})" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <button type="button" onclick="reorderPastOrder(${idx})" class="btn-primary" style="background:#ea580c; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-weight:800; font-size:0.75rem; cursor:pointer; display:flex; align-items:center; gap:4px;">
               🔁 Reorder in 1-Tap
             </button>
           </div>

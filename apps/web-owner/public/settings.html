@@ -54,7 +54,7 @@
     <a href="/owner/staff" class="nav-link">👥 Staff</a>
     <a href="/owner/settings" class="nav-link active">⚙️ Settings</a>
     <div style="margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
-      <a href="/" class="nav-link" target="_blank">👁️ Guest View</a>
+      <a href="/" class="nav-link" target="_blank" rel="noopener noreferrer">👁️ Guest View</a>
     </div>
   </nav>
   <div class="main-content">
@@ -70,8 +70,8 @@
       <div class="card-title">💳 Payment Mode</div>
       <div class="card-desc">Control when guests are required to pay.</div>
       <div class="pill-group" id="payModePills">
-        <button class="opt-pill" onclick="setPayMode('PAY_FIRST', this)">💳 Pay First</button>
-        <button class="opt-pill active" onclick="setPayMode('PAY_LATER', this)">🧾 Pay Later</button>
+        <button type="button" class="opt-pill" onclick="setPayMode('PAY_FIRST', this)">💳 Pay First</button>
+        <button type="button" class="opt-pill active" onclick="setPayMode('PAY_LATER', this)">🧾 Pay Later</button>
       </div>
     </div>
 
@@ -115,10 +115,10 @@
       <div class="card-title">🎨 Venue Segment Preset</div>
       <div class="card-desc">Apply an optimized configuration for your venue type.</div>
       <div class="pill-group">
-        <button class="opt-pill" onclick="applyPreset('COFFEE_SHOP')">☕ Coffee Shop</button>
-        <button class="opt-pill" onclick="applyPreset('RESTAURANT')">🍽️ Restaurant</button>
-        <button class="opt-pill" onclick="applyPreset('BAR')">🍸 Bar</button>
-        <button class="opt-pill" onclick="applyPreset('FOOD_COURT')">🏪 Food Court</button>
+        <button type="button" class="opt-pill" onclick="applyPreset('COFFEE_SHOP')">☕ Coffee Shop</button>
+        <button type="button" class="opt-pill" onclick="applyPreset('RESTAURANT')">🍽️ Restaurant</button>
+        <button type="button" class="opt-pill" onclick="applyPreset('BAR')">🍸 Bar</button>
+        <button type="button" class="opt-pill" onclick="applyPreset('FOOD_COURT')">🏪 Food Court</button>
       </div>
     </div>
   </div>

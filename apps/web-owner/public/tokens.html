@@ -71,15 +71,15 @@
         <p style="font-size:0.85rem; color:var(--muted);">Generate, print, and track signed QR codes for tables, takeaway, bookings, and promos with replay protection.</p>
       </div>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary" onclick="openBulkQrModal()">📦 Bulk Generate</button>
-        <button class="btn btn-primary" onclick="openCreateQrModal()">➕ Generate QR</button>
+        <button type="button" class="btn btn-secondary" onclick="openBulkQrModal()">📦 Bulk Generate</button>
+        <button type="button" class="btn btn-primary" onclick="openCreateQrModal()">➕ Generate QR</button>
       </div>
     </div>
 
     <!-- Tab Bar -->
     <div class="tab-bar">
-      <button class="tab-btn active" id="tabQrs" onclick="switchTab('QRS')">📱 Active QR Codes (<span id="qrCountBadge">0</span>)</button>
-      <button class="tab-btn" id="tabTokens" onclick="switchTab('TOKENS')">⏳ Service Token Queue</button>
+      <button type="button" class="tab-btn active" id="tabQrs" onclick="switchTab('QRS')">📱 Active QR Codes (<span id="qrCountBadge">0</span>)</button>
+      <button type="button" class="tab-btn" id="tabTokens" onclick="switchTab('TOKENS')">⏳ Service Token Queue</button>
     </div>
 
     <!-- Tab 1: QR Codes Management -->
@@ -136,7 +136,7 @@
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-size:1.15rem; font-weight:800;">➕ Generate Single QR Code</h3>
-        <button onclick="closeModal('createQrModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeModal('createQrModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Name / Label *</label>
@@ -158,8 +158,8 @@
         <input type="text" id="qrTargetId" class="form-input" placeholder="e.g. 14, COUNTER-1, SUMMER20" />
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button class="btn btn-secondary" onclick="closeModal('createQrModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitCreateQr()">Generate QR Code</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('createQrModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCreateQr()">Generate QR Code</button>
       </div>
     </div>
   </div>
@@ -169,7 +169,7 @@
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-size:1.15rem; font-weight:800;">📦 Bulk Generate QR Codes</h3>
-        <button onclick="closeModal('bulkQrModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeModal('bulkQrModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Type *</label>
@@ -190,8 +190,8 @@
       </div>
       <p style="font-size:0.75rem; color:var(--muted); margin-bottom:16px;">Creates signed QR codes automatically (e.g. Table 1 through Table 10) with HMAC replay validation.</p>
       <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-secondary" onclick="closeModal('bulkQrModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitBulkQr()">Generate All</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('bulkQrModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitBulkQr()">Generate All</button>
       </div>
     </div>
   </div>
@@ -201,7 +201,7 @@
     <div class="modal-box" style="max-width:440px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-size:1.1rem; font-weight:800;">🖨️ Printable Table Standee Card</h3>
-        <button onclick="closeModal('printQrModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeModal('printQrModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
 
       <div class="printable-card-preview" id="printableCardArea">
@@ -228,8 +228,8 @@
       </div>
 
       <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
-        <button class="btn btn-secondary" onclick="closeModal('printQrModal')">Close</button>
-        <button class="btn btn-primary" onclick="printCardAction()">🖨️ Print Standee Card</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('printQrModal')">Close</button>
+        <button type="button" class="btn btn-primary" onclick="printCardAction()">🖨️ Print Standee Card</button>
       </div>
     </div>
   </div>
@@ -304,11 +304,11 @@
             </div>
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:auto;">
-              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openPrintModal('${qr.id}')">🖨️ Print Card</button>
-              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleQrStatus('${qr.id}', '${qr.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}')">
+              <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openPrintModal('${qr.id}')">🖨️ Print Card</button>
+              <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleQrStatus('${qr.id}', '${qr.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}')">
                 ${qr.status === 'ACTIVE' ? '⏸ Deactivate' : '▶ Activate'}
               </button>
-              <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="revokeQr('${qr.id}')" title="Revoke & Rotate Token">🔄 Rotate</button>
+              <button type="button" class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="revokeQr('${qr.id}')" title="Revoke & Rotate Token">🔄 Rotate</button>
             </div>
           </div>
         `).join('');

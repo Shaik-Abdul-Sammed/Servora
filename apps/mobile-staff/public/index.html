@@ -329,6 +329,13 @@
       align-items: center;
       gap: 4px;
       transition: all 0.15s;
+    
+      touch-action: manipulation;
+      min-height: 38px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .service-btn:active {
+      transform: scale(0.96);
     }
     .service-btn:active { transform: scale(0.95); }
     .btn-approve { background: var(--primary-gradient); color: #fff; }
@@ -482,10 +489,10 @@
       <a href="/manager" class="action-pill" title="Open Manager Operations" style="text-decoration:none; color:inherit;">
         📊 Manager
       </a>
-      <button id="soundToggleBtn" class="action-pill active" onclick="toggleSoundChime()">
+      <button type="button" id="soundToggleBtn" class="action-pill active" onclick="toggleSoundChime()" aria-label="Toggle waiter sound notifications">
         🔔 Chime: ON
       </button>
-      <button id="btnWaiterVoice" class="mic-btn" onclick="toggleWaiterVoice()">
+      <button type="button" id="btnWaiterVoice" class="mic-btn" onclick="toggleWaiterVoice()" aria-label="Toggle voice waiter mode">
         🎙️ Voice
       </button>
       <select id="waiterLangSelect" class="lang-pill" onchange="setWaiterVoiceLang(this.value)">
@@ -493,7 +500,7 @@
         <option value="te-IN">తెలుగు</option>
         <option value="hi-IN">हिंदी</option>
       </select>
-      <button class="action-pill" onclick="handleWaiterLogout()" title="Sign out">
+      <button type="button" class="action-pill" onclick="handleWaiterLogout()" title="Sign out" aria-label="Sign out">
         🚪 Exit
       </button>
     </div>
@@ -509,8 +516,8 @@
       <!-- Injected dynamically -->
     </div>
     <div style="display:flex; gap:6px;">
-      <button id="filterMyTablesBtn" class="action-pill active" onclick="setFloorFilter(true)" style="padding:3px 7px; font-size:0.72rem;">My Tables</button>
-      <button id="filterAllTablesBtn" class="action-pill" onclick="setFloorFilter(false)" style="padding:3px 7px; font-size:0.72rem;">All Tables</button>
+      <button type="button" id="filterMyTablesBtn" class="action-pill active" onclick="setFloorFilter(true)" style="padding:3px 7px; font-size:0.72rem;">My Tables</button>
+      <button type="button" id="filterAllTablesBtn" class="action-pill" onclick="setFloorFilter(false)" style="padding:3px 7px; font-size:0.72rem;">All Tables</button>
     </div>
   </div>
 
@@ -534,17 +541,17 @@
       </div>
       <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
         <span id="syncIndicator">● SSE Live</span>
-        <button class="action-pill" onclick="loadStaffTerminalData()" style="padding:2px 6px; font-size:0.7rem;">🔄 Sync</button>
+        <button type="button" class="action-pill" onclick="loadStaffTerminalData()" style="padding:2px 6px; font-size:0.7rem;">🔄 Sync</button>
       </div>
     </div>
 
     <!-- Kitchen Station Filter Tabs -->
     <div class="station-filter-bar" id="stationFilterBar" role="tablist" aria-label="Filter orders by kitchen station">
-      <button class="station-tab-btn active" onclick="setStationFilter('ALL', this)" role="tab">All Stations</button>
-      <button class="station-tab-btn" onclick="setStationFilter('HOT_LINE', this)" role="tab">🍳 Hot Line</button>
-      <button class="station-tab-btn" onclick="setStationFilter('BAR', this)" role="tab">🍹 Drinks / Bar</button>
-      <button class="station-tab-btn" onclick="setStationFilter('COFFEE', this)" role="tab">☕ Coffee & Chai</button>
-      <button class="station-tab-btn" onclick="setStationFilter('PARCEL', this)" role="tab">📦 Parcel</button>
+      <button type="button" class="station-tab-btn active" onclick="setStationFilter('ALL', this)" role="tab">All Stations</button>
+      <button type="button" class="station-tab-btn" onclick="setStationFilter('HOT_LINE', this)" role="tab">🍳 Hot Line</button>
+      <button type="button" class="station-tab-btn" onclick="setStationFilter('BAR', this)" role="tab">🍹 Drinks / Bar</button>
+      <button type="button" class="station-tab-btn" onclick="setStationFilter('COFFEE', this)" role="tab">☕ Coffee & Chai</button>
+      <button type="button" class="station-tab-btn" onclick="setStationFilter('PARCEL', this)" role="tab">📦 Parcel</button>
     </div>
 
     <!-- Active Orders List -->
@@ -626,13 +633,13 @@
     <div class="voice-modal-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <span style="font-weight:800; font-size:1rem; color:#fff;">🎙️ Waiter Voice Command</span>
-        <button style="background:transparent; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;" onclick="stopWaiterVoice()">✕</button>
+        <button type="button" style="background:transparent; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;" onclick="stopWaiterVoice()" aria-label="Close voice modal">✕</button>
       </div>
       <div class="voice-wave">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
       <div id="waiterVoiceTranscript" style="background:#090a0f; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:0.85rem; text-align:center; color:#fff; margin-bottom:10px;">Listening...</div>
-      <button onclick="stopWaiterVoice()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:800; width:100%;">Close</button>
+      <button type="button" onclick="stopWaiterVoice()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:800; width:100%;">Close</button>
     </div>
   </div>
 
@@ -1013,13 +1020,13 @@
         // Service progression buttons (No payment verification authority)
         let actionButtons = '';
         if (o.status === 'PENDING_STAFF_APPROVAL') {
-          actionButtons = `<button class="service-btn btn-approve" onclick="advanceOrderStatus('${o.id}', 'CONFIRMED')">Approve Order ✓</button>`;
+          actionButtons = `<button type="button" class="service-btn btn-approve" onclick="advanceOrderStatus('${o.id}', 'CONFIRMED')">Approve Order ✓</button>`;
         } else if (o.status === 'CONFIRMED' || o.status === 'PENDING') {
-          actionButtons = `<button class="service-btn btn-prep" onclick="advanceOrderStatus('${o.id}', 'PREPARING')">Start Prep 👨‍🍳</button>`;
+          actionButtons = `<button type="button" class="service-btn btn-prep" onclick="advanceOrderStatus('${o.id}', 'PREPARING')">Start Prep 👨‍🍳</button>`;
         } else if (o.status === 'PREPARING') {
-          actionButtons = `<button class="service-btn btn-ready" onclick="advanceOrderStatus('${o.id}', 'READY')">Mark Ready 🔔</button>`;
+          actionButtons = `<button type="button" class="service-btn btn-ready" onclick="advanceOrderStatus('${o.id}', 'READY')">Mark Ready 🔔</button>`;
         } else if (o.status === 'READY') {
-          actionButtons = `<button class="service-btn btn-serve" onclick="advanceOrderStatus('${o.id}', 'SERVED')">Dish Served 🍽️</button>`;
+          actionButtons = `<button type="button" class="service-btn btn-serve" onclick="advanceOrderStatus('${o.id}', 'SERVED')">Dish Served 🍽️</button>`;
         } else {
           actionButtons = `<span style="font-size:0.75rem; color:#34d399; font-weight:800;">✓ ${o.status}</span>`;
         }
@@ -1057,7 +1064,7 @@
                 Status: <strong style="color:#fff;">${o.status}</strong>
               </div>
               <div style="display:flex; gap:6px; align-items:center;">
-                <button class="service-btn" style="background:${o.isPriority ? '#991b1b' : 'rgba(239,68,68,0.18)'}; color:${o.isPriority ? '#fff' : '#f87171'}; border:1px solid #ef4444; font-size:0.72rem; padding:6px 10px;" onclick="toggleOrderPriority('${o.id}', ${!o.isPriority})">
+                <button type="button" class="service-btn" style="background:${o.isPriority ? '#991b1b' : 'rgba(239,68,68,0.18)'}; color:${o.isPriority ? '#fff' : '#f87171'}; border:1px solid #ef4444; font-size:0.72rem; padding:6px 10px;" onclick="toggleOrderPriority('${o.id}', ${!o.isPriority})">
                   ${o.isPriority ? '🔥 Rush Active' : '⚡ Rush'}
                 </button>
                 ${actionButtons}
@@ -1129,7 +1136,7 @@
             <div class="call-reason">${call.category || call.reason || 'Assistance requested'} (${call.priority || 'NORMAL'})</div>
             <div class="call-time">${new Date(call.createdAt || Date.now()).toLocaleTimeString()}</div>
           </div>
-          <button class="ack-btn" onclick="acknowledgeCall('${call.id}', ${idx})">Resolve ✓</button>
+          <button type="button" class="ack-btn" onclick="acknowledgeCall('${call.id}', ${idx})">Resolve ✓</button>
         </div>
       `).join('');
     }

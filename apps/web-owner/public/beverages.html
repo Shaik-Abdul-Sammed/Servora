@@ -35,7 +35,7 @@
         <h1 class="page-title">💧 Water & Beverage Service Setup</h1>
         <p style="font-size:0.85rem; color:var(--muted);">Manage complimentary water hospitality protocols, bottle sizes, cold drinks, and soft beverages.</p>
       </div>
-      <button class="btn btn-primary" onclick="toggleAddModal()">+ Add Beverage Product</button>
+      <button type="button" class="btn btn-primary" onclick="toggleAddModal()">+ Add Beverage Product</button>
     </div>
 
     <!-- Water Policy Panel -->
@@ -89,8 +89,8 @@
         <input type="text" id="bvImage" class="form-input" placeholder="https://images.unsplash.com/photo-..." />
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn" style="background:rgba(255,255,255,0.08);color:#fff;" onclick="toggleAddModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitBeverage()">Save Product →</button>
+        <button type="button" class="btn" style="background:rgba(255,255,255,0.08);color:#fff;" onclick="toggleAddModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitBeverage()">Save Product →</button>
       </div>
     </div>
   </main>
@@ -116,7 +116,7 @@
               <div style="font-size:0.75rem; color:var(--muted);">${b.category} • Stock: ${b.stock || 0}</div>
               <div style="font-size:0.9rem; font-weight:800; color:var(--accent); margin-top:2px;">$${((b.priceCents||0)/100).toFixed(2)}</div>
             </div>
-            <button class="btn" style="background:${b.isAvailable ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)'}; color:${b.isAvailable ? '#ef4444' : '#10b981'}; font-size:0.75rem;" onclick="toggleBevAvailability('${b.id}', ${b.isAvailable})">
+            <button type="button" class="btn" style="background:${b.isAvailable ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)'}; color:${b.isAvailable ? '#ef4444' : '#10b981'}; font-size:0.75rem;" onclick="toggleBevAvailability('${b.id}', ${b.isAvailable})">
               ${b.isAvailable ? '86 (Out)' : 'Restock'}
             </button>
           </div>

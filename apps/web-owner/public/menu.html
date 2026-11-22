@@ -75,8 +75,8 @@
           🎙️ Voice Assistant
         </button>
         <button type="button" class="btn btn-secondary" onclick="openVoiceHistoryModal()">📜 Voice Log</button>
-        <button class="btn btn-secondary" onclick="exportMenuJson()">📥 Export JSON</button>
-        <button class="btn btn-primary" onclick="openAddDishModal()">➕ Add New Dish</button>
+        <button type="button" class="btn btn-secondary" onclick="exportMenuJson()">📥 Export JSON</button>
+        <button type="button" class="btn btn-primary" onclick="openAddDishModal()">➕ Add New Dish</button>
       </div>
     </div>
 
@@ -132,7 +132,7 @@
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
         <h3 id="modalTitle" style="font-size:1.2rem; font-weight:900;">➕ Add Food Item with Photo</h3>
-        <button onclick="closeDishModal()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeDishModal()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
 
       <input type="hidden" id="editItemId" value="" />
@@ -270,7 +270,7 @@
     <div class="modal-box" style="max-width:550px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-size:1.15rem; font-weight:900;">📜 Manager Voice Command Log</h3>
-        <button onclick="closeVoiceHistoryModal()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeVoiceHistoryModal()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
       <div id="voiceHistoryList" style="max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
         <p style="color:var(--muted); font-size:0.85rem; text-align:center; padding:20px;">No voice commands executed this session.</p>
@@ -393,11 +393,11 @@
             <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
               <div style="font-size:1.15rem; font-weight:900; color:#fff;">₹${(item.basePriceCents / 100).toFixed(0)}</div>
               <div style="display:flex; gap:6px;">
-                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleItem86('${item.id}', ${!item.isAvailable})">
+                <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleItem86('${item.id}', ${!item.isAvailable})">
                   ${item.isAvailable ? '✅ Active' : '⏸ 86 (Sold Out)'}
                 </button>
-                <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openEditDishModal('${item.id}')">✏️ Edit</button>
-                <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteDish('${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑️</button>
+                <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="openEditDishModal('${item.id}')">✏️ Edit</button>
+                <button type="button" class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteDish('${item.id}', '${item.name.replace(/'/g, "\\'")}')">🗑️</button>
               </div>
             </div>
           </div>`;

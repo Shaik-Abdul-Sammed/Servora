@@ -64,8 +64,8 @@
         <p style="font-size:0.85rem; color:var(--muted);">Manage waiter accounts, table assignments, role-based permissions, shifts, and credentials.</p>
       </div>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-secondary" onclick="openTransferTablesModal()">🔄 Transfer Tables</button>
-        <button class="btn btn-primary" onclick="openCreateStaffModal()">➕ Add Staff Member</button>
+        <button type="button" class="btn btn-secondary" onclick="openTransferTablesModal()">🔄 Transfer Tables</button>
+        <button type="button" class="btn btn-primary" onclick="openCreateStaffModal()">➕ Add Staff Member</button>
       </div>
     </div>
 
@@ -86,7 +86,7 @@
           <div style="font-size:0.75rem; color:var(--muted); font-weight:700;">WAITER SLOTS USED</div>
           <div style="font-size:1.15rem; font-weight:900; color:var(--primary);" id="waiterSlotCount">0 of 3</div>
         </div>
-        <button id="upgradePlanBtn" class="btn btn-primary" style="display:none;" onclick="alert('Upgrade to Pro Growth: Unlimited Waiters, Multi-Outlet, and Advanced AI analytics')">
+        <button type="button" id="upgradePlanBtn" class="btn btn-primary" style="display:none;" onclick="alert('Upgrade to Pro Growth: Unlimited Waiters, Multi-Outlet, and Advanced AI analytics')">
           🚀 Upgrade Plan
         </button>
       </div>
@@ -109,7 +109,7 @@
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-size:1.15rem; font-weight:800;">➕ Add Staff Member</h3>
-        <button onclick="closeModal('createStaffModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeModal('createStaffModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">Full Name *</label>
@@ -155,8 +155,8 @@
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button class="btn btn-secondary" onclick="closeModal('createStaffModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitCreateStaff()">Save Staff Member</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('createStaffModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitCreateStaff()">Save Staff Member</button>
       </div>
     </div>
   </div>
@@ -166,7 +166,7 @@
     <div class="modal-box">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="font-size:1.15rem; font-weight:800;">🔄 Transfer Table Coverage</h3>
-        <button onclick="closeModal('transferTablesModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;">✕</button>
+        <button type="button" onclick="closeModal('transferTablesModal')" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer;" aria-label="Close modal">✕</button>
       </div>
       <div class="form-group">
         <label class="form-label">From Waiter *</label>
@@ -181,8 +181,8 @@
         <input type="text" id="transferTableList" class="form-input" placeholder="e.g. Table 14, Table 15" required />
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button class="btn btn-secondary" onclick="closeModal('transferTablesModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitTransferTables()">Execute Transfer</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('transferTablesModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitTransferTables()">Execute Transfer</button>
       </div>
     </div>
   </div>
@@ -254,11 +254,11 @@
             </div>
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; padding-top:10px; border-top:1px solid var(--border);">
-              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleStaffActive('${s.id}', ${!s.isActive})">
+              <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleStaffActive('${s.id}', ${!s.isActive})">
                 ${s.isActive ? 'Deactivate' : 'Activate'}
               </button>
-              <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="resetStaffPin('${s.id}')">Reset PIN</button>
-              <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteStaff('${s.id}', '${s.name.replace(/'/g, "\\'")}')">🗑️ Remove</button>
+              <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="resetStaffPin('${s.id}')">Reset PIN</button>
+              <button type="button" class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteStaff('${s.id}', '${s.name.replace(/'/g, "\\'")}')">🗑️ Remove</button>
             </div>
           </div>
         `).join('');

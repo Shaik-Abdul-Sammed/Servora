@@ -210,7 +210,7 @@
       <a href="/staff.html" class="nav-link" aria-label="Staff Terminal">Staff</a>
       <a href="/owner/bookings" class="nav-link" aria-label="Reservations">Bookings</a>
       <a href="/admin" class="nav-link" aria-label="Super-Admin Console">Admin</a>
-      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank">Guest Menu ↗</a>
+      <a href="/" class="nav-link" aria-label="Guest Ordering View" target="_blank" rel="noopener noreferrer">Guest Menu ↗</a>
     </div>
   </nav>
 
@@ -218,23 +218,23 @@
     <div class="filter-bar" role="toolbar" aria-label="Revenue Filters">
       <div class="filter-group">
         <span style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">DATE:</span>
-        <button class="chip active" onclick="setDateFilter('today', this)" aria-label="Filter today">Today</button>
-        <button class="chip" onclick="setDateFilter('7d', this)" aria-label="Filter last 7 days">7 Days</button>
-        <button class="chip" onclick="setDateFilter('30d', this)" aria-label="Filter last 30 days">30 Days</button>
-        <button class="chip" onclick="setDateFilter('all', this)" aria-label="Filter all time">All Time</button>
+        <button type="button" class="chip active" onclick="setDateFilter('today', this)" aria-label="Filter today">Today</button>
+        <button type="button" class="chip" onclick="setDateFilter('7d', this)" aria-label="Filter last 7 days">7 Days</button>
+        <button type="button" class="chip" onclick="setDateFilter('30d', this)" aria-label="Filter last 30 days">30 Days</button>
+        <button type="button" class="chip" onclick="setDateFilter('all', this)" aria-label="Filter all time">All Time</button>
       </div>
 
       <div class="filter-group">
         <span style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">PAYMENT:</span>
-        <button class="chip active" onclick="setPaymentFilter('ALL', this)" aria-label="All payment methods">All</button>
-        <button class="chip" onclick="setPaymentFilter('UPI', this)" aria-label="UPI payments">UPI</button>
-        <button class="chip" onclick="setPaymentFilter('CASH', this)" aria-label="Cash payments">Cash</button>
-        <button class="chip" onclick="setPaymentFilter('CARD', this)" aria-label="Card payments">Card</button>
+        <button type="button" class="chip active" onclick="setPaymentFilter('ALL', this)" aria-label="All payment methods">All</button>
+        <button type="button" class="chip" onclick="setPaymentFilter('UPI', this)" aria-label="UPI payments">UPI</button>
+        <button type="button" class="chip" onclick="setPaymentFilter('CASH', this)" aria-label="Cash payments">Cash</button>
+        <button type="button" class="chip" onclick="setPaymentFilter('CARD', this)" aria-label="Card payments">Card</button>
       </div>
 
       <div class="filter-group">
         <a id="btnExportCsv" href="/api/v1/analytics/export/orders.csv" class="btn btn-secondary" aria-label="Export Orders to CSV">📥 Export CSV</a>
-        <a id="btnDailyPdf" href="/api/v1/analytics/export/daily.html" target="_blank" class="btn" aria-label="Print Daily Revenue Report">🖨️ Daily Report</a>
+        <a id="btnDailyPdf" href="/api/v1/analytics/export/daily.html" target="_blank" class="btn" aria-label="Print Daily Revenue Report" rel="noopener noreferrer">🖨️ Daily Report</a>
       </div>
     </div>
 

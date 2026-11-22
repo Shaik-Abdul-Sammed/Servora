@@ -206,10 +206,10 @@
     </div>
 
     <div class="btn-group">
-      <button class="btn btn-print" onclick="window.print()" aria-label="Print receipt or save to PDF">
+      <button type="button" class="btn btn-print" onclick="window.print()" aria-label="Print receipt or save to PDF">
         🖨️ Print / Save as PDF
       </button>
-      <button class="btn btn-wa" onclick="shareWhatsApp()" aria-label="Share receipt via WhatsApp">
+      <button type="button" class="btn btn-wa" onclick="shareWhatsApp()" aria-label="Share receipt via WhatsApp">
         💬 WhatsApp Receipt
       </button>
     </div>
@@ -229,7 +229,7 @@
       <div style="font-size:0.8rem; font-weight:700; color:#475569; margin-bottom:6px;">✉️ Email Receipt to Customer:</div>
       <div style="display:flex; gap:8px;">
         <input type="email" id="customerEmailInput" placeholder="Enter customer email address" style="flex:1; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.85rem;" aria-label="Customer Email for Receipt">
-        <button class="btn" style="background:#2563eb; color:#fff; flex:none; padding:8px 14px;" onclick="sendEmailReceipt()">Send Email</button>
+        <button type="button" class="btn" style="background:#2563eb; color:#fff; flex:none; padding:8px 14px;" onclick="sendEmailReceipt()">Send Email</button>
       </div>
       <div id="emailStatusMsg" style="font-size:0.78rem; margin-top:6px; display:none;"></div>
     </div>

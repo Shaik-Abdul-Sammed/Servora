@@ -296,14 +296,14 @@
         <span class="outlet-badge">📍 Downtown Flagship</span>
       </div>
       <div class="header-right">
-        <button id="pauseRushBtn" onclick="toggleRushPause()" style="background:#27272a; border:1px solid #f59e0b; color:#fbbf24; font-size:0.8rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
+        <button type="button" id="pauseRushBtn" onclick="toggleRushPause()" style="background:#27272a; border:1px solid #f59e0b; color:#fbbf24; font-size:0.8rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
           ⏸ Pause Orders: Off
         </button>
-        <button id="payModeBtn" onclick="toggleShiftPayMode()" style="background:#27272a; border:1px solid #38bdf8; color:#38bdf8; font-size:0.8rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
+        <button type="button" id="payModeBtn" onclick="toggleShiftPayMode()" style="background:#27272a; border:1px solid #38bdf8; color:#38bdf8; font-size:0.8rem; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
           💳 Shift: Pay Later
         </button>
         <div class="clock" id="liveClock">--:--:--</div>
-        <a href="/kds" target="_blank" style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border: 1px solid #0284c7; border-radius: 6px;">
+        <a href="/kds" target="_blank" style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border: 1px solid #0284c7; border-radius: 6px;" rel="noopener noreferrer">
           Open KDS &rarr;
         </a>
       </div>
@@ -426,8 +426,8 @@
         🔒 Cryptographically signed HMAC-SHA256 session active.
       </div>
       <div class="print-actions">
-        <button class="btn-action btn-close" onclick="closeQrModal()">Close</button>
-        <button class="btn-action btn-print" onclick="window.print()">Print Card</button>
+        <button type="button" class="btn-action btn-close" onclick="closeQrModal()">Close</button>
+        <button type="button" class="btn-action btn-print" onclick="window.print()">Print Card</button>
       </div>
     </div>
   </div>
@@ -615,7 +615,7 @@
             </div>
             <div class="table-details">Capacity: ${t.cap} guests</div>
             ${isOccupied ? `<div style="font-size: 0.85rem; color: #4ade80; font-weight: 700;">Tab: ${formatCents(order.totalCents)}</div>` : ''}
-            <button class="qr-btn" onclick="openQrModal('${t.num}', '${t.id}')">🖨️ Table QR Code</button>
+            <button type="button" class="qr-btn" onclick="openQrModal('${t.num}', '${t.id}')">🖨️ Table QR Code</button>
           </div>
         `;
       }
@@ -641,7 +641,7 @@
             <td style="color: #fbbf24;">${item.allergens && item.allergens.length ? item.allergens.join(', ') : 'None'}</td>
             <td><span style="font-weight: 600; color: ${isAvail ? '#4ade80' : '#f87171'}">${isAvail ? 'Serving' : 'Disabled'}</span></td>
             <td>
-              <button class="${btnClass}" onclick="toggleAvailability('${item.id}', ${!isAvail})">
+              <button type="button" class="${btnClass}" onclick="toggleAvailability('${item.id}', ${!isAvail})">
                 ${btnText}
               </button>
             </td>

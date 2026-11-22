@@ -72,7 +72,7 @@
                   Requested at ${new Date(c.createdAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}
                 </div>
               </div>
-              <button class="btn btn-resolve" onclick="resolveCall('${c.id}')">✓ Mark Handled</button>
+              <button type="button" class="btn btn-resolve" onclick="resolveCall('${c.id}')">✓ Mark Handled</button>
             </div>
           `;
         }).join('');

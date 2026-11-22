@@ -164,7 +164,7 @@
         <h1 class="page-title">🎟️ Queue & Token Engine (C1 & C2)</h1>
       </div>
       <div class="voice-group">
-        <button id="btnWaiterVoice" class="voice-btn" onclick="toggleWaiterVoice()" title="Waiter Voice Assistant">
+        <button type="button" id="btnWaiterVoice" class="voice-btn" onclick="toggleWaiterVoice()" title="Waiter Voice Assistant" aria-label="Waiter Voice Assistant">
           🎙️ Waiter Voice
         </button>
         <select id="waiterLangSelect" class="lang-select" onchange="setWaiterVoiceLang(this.value)">
@@ -172,8 +172,8 @@
           <option value="te-IN">🇮🇳 తెలుగు</option>
           <option value="hi-IN">🇮🇳 हिंदी</option>
         </select>
-        <button class="voice-log-btn" onclick="openWaiterVoiceLogModal()">📜 Logs</button>
-        <button class="btn btn-served" style="width:auto;padding:7px 14px;margin-top:0;" onclick="spawnToken()">+ New Token</button>
+        <button type="button" class="voice-log-btn" onclick="openWaiterVoiceLogModal()">📜 Logs</button>
+        <button type="button" class="btn btn-served" style="width:auto;padding:7px 14px;margin-top:0;" onclick="spawnToken()">+ New Token</button>
       </div>
     </div>
 
@@ -219,13 +219,13 @@
     <div class="voice-modal-content">
       <div class="voice-modal-header">
         <span style="font-weight:800; font-size:1.05rem; color:#fff;">🎙️ Waiter Voice Assistant</span>
-        <button style="background:transparent; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;" onclick="stopWaiterVoice()">✕</button>
+        <button type="button" style="background:transparent; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;" onclick="stopWaiterVoice()">✕</button>
       </div>
       <div class="voice-wave">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
       <div id="waiterVoiceTranscript" class="voice-transcript">Listening for waiter voice command...</div>
-      <button class="btn btn-ready" style="margin-top:10px; width:auto; padding:6px 20px; margin-inline:auto; display:block;" onclick="stopWaiterVoice()">Close</button>
+      <button type="button" class="btn btn-ready" style="margin-top:10px; width:auto; padding:6px 20px; margin-inline:auto; display:block;" onclick="stopWaiterVoice()">Close</button>
     </div>
   </div>
 
@@ -234,7 +234,7 @@
     <div class="voice-modal-content" style="max-width:520px;">
       <div class="voice-modal-header">
         <span style="font-weight:800; font-size:1.05rem; color:#fff;">📜 Waiter Voice Command History</span>
-        <button style="background:transparent; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;" onclick="document.getElementById('waiterVoiceLogModal').style.display='none'">✕</button>
+        <button type="button" style="background:transparent; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;" onclick="document.getElementById('waiterVoiceLogModal').style.display='none'">✕</button>
       </div>
       <div id="waiterVoiceLogList" style="max-height:340px; overflow-y:auto; margin-top:10px;"></div>
     </div>
@@ -318,15 +318,15 @@
       }
 
       document.getElementById('listQueued').innerHTML = queued.map(t =>
-        card(t, `<button class="btn btn-ready" onclick="advanceToken('${t.id}', 'PREPARING')">Start Prep →</button>`)
+        card(t, `<button type="button" class="btn btn-ready" onclick="advanceToken('${t.id}', 'PREPARING')">Start Prep →</button>`)
       ).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
 
       document.getElementById('listPrep').innerHTML = prep.map(t =>
-        card(t, `<button class="btn btn-ready" onclick="advanceToken('${t.id}', 'READY')">Mark Ready 🔔</button>`)
+        card(t, `<button type="button" class="btn btn-ready" onclick="advanceToken('${t.id}', 'READY')">Mark Ready 🔔</button>`)
       ).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
 
       document.getElementById('listReady').innerHTML = ready.map(t =>
-        card(t, `<button class="btn btn-served" onclick="advanceToken('${t.id}', 'SERVED')">🍽️ Token Given (Hand to Guest)</button>`)
+        card(t, `<button type="button" class="btn btn-served" onclick="advanceToken('${t.id}', 'SERVED')">🍽️ Token Given (Hand to Guest)</button>`)
       ).join('') || '<div style="color:var(--muted);font-size:0.8rem;text-align:center;padding:12px;">Empty</div>';
     }
 
