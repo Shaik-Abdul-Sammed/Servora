@@ -2079,7 +2079,7 @@ export function createOrderApp() {
           return;
         }
 
-        sendJson(res, 400, { error: 'itemId or multiplier is required' });
+        sendJson(res, 400, { error: 'itemId, multiplier, or items array is required' });
         return;
       }
 

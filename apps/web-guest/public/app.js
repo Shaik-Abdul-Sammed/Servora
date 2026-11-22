@@ -57,7 +57,7 @@ const UI_TRANSLATIONS = {
     sendOrder: 'Send Order to Kitchen →',
     allTogether: 'All Together',
     appetizers: 'Starters First',
-    mains: 'Mains Course',
+    mains: 'Main Course',
     desserts: 'Desserts & Beverages',
     callStaffTitle: 'How can we assist you?',
     callStaffSubtitle: 'Select a request type below. Our floor waitstaff will be alerted immediately.',
@@ -675,7 +675,7 @@ function applyDietaryFilter(diet, btnEl) {
   }
 
   document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => {
-    b.classList.remove('active', 'active-veg', 'active-nonveg');
+    b.classList.remove('active', 'active-veg', 'active-nonveg', 'active-glutenfree');
   });
 
   if (currentDietaryFilter === 'ALL') {
@@ -687,7 +687,7 @@ function applyDietaryFilter(diet, btnEl) {
   } else if (currentDietaryFilter === 'BESTSELLER') {
     document.getElementById('filterBestsellerBtn')?.classList.add('active');
   } else if (currentDietaryFilter === 'GLUTEN_FREE') {
-    document.getElementById('filterGlutenFreeBtn')?.classList.add('active');
+    document.getElementById('filterGlutenFreeBtn')?.classList.add('active', 'active-glutenfree');
   }
 
   renderMenu();
@@ -715,6 +715,9 @@ function clearSearch() {
   currentSearchQuery = '';
   const clearBtn = document.getElementById('searchClear');
   if (clearBtn) clearBtn.style.display = 'none';
+  if (typeof guestSpeechRecognition !== 'undefined' && guestSpeechRecognition) {
+    try { stopVoiceOrder(); } catch (e) {}
+  }
   renderMenu();
 }
 window.clearSearch = clearSearch;
@@ -730,6 +733,9 @@ function clearAllFilters() {
   if (input) input.value = '';
   const clearBtn = document.getElementById('searchClear');
   if (clearBtn) clearBtn.style.display = 'none';
+  if (typeof guestSpeechRecognition !== 'undefined' && guestSpeechRecognition) {
+    try { stopVoiceOrder(); } catch (e) {}
+  }
 
   document.querySelectorAll('.cat-btn').forEach(b => {
     b.classList.toggle('active', !b.getAttribute('data-cat-id'));
@@ -737,7 +743,7 @@ function clearAllFilters() {
 
   const dietSelect = document.getElementById('dietaryFilterSelect');
   if (dietSelect) dietSelect.value = 'ALL';
-  document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => b.classList.remove('active', 'active-veg', 'active-nonveg'));
+  document.querySelectorAll('.abiruchi-pill-toggle').forEach(b => b.classList.remove('active', 'active-veg', 'active-nonveg', 'active-glutenfree'));
   document.getElementById('filterAllBtn')?.classList.add('active');
 
   const shiftSelect = document.getElementById('shiftFilterSelect');
@@ -2581,6 +2587,11 @@ function openDishDetailsModal(itemId) {
     allergenEl.textContent = `Verified restaurant data: Contains ${list}. Prepared in a shared kitchen facility; cross-contact advisory applies.`;
   }
 
+  const prepTimeEl = document.getElementById('dishModalPrepTime');
+  if (prepTimeEl) {
+    prepTimeEl.textContent = `⏱ ~${item.prepTimeMinutes || 15} mins`;
+  }
+
   updateModalDishQtyDisplay();
   document.getElementById('dishDetailModal')?.classList.add('active');
   lockBodyScroll();
@@ -2593,6 +2604,9 @@ function closeDishDetailModal() {
   popModalState('dishDetailModal');
   currentModalDishId = null;
 }
+const closeDishDetailsModal = closeDishDetailModal;
+window.closeDishDetailModal = closeDishDetailModal;
+window.closeDishDetailsModal = closeDishDetailsModal;
 
 function addCurrentModalDishToCart() {
   if (currentModalDishId) {

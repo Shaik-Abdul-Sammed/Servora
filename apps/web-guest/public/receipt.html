@@ -195,7 +195,8 @@
     <div class="totals-box">
       <div class="total-row"><span>Subtotal:</span><span id="subtotalVal">₹0.00</span></div>
       <div class="total-row" id="serviceChargeRow" style="display:none;"><span>Service Charge:</span><span id="serviceChargeVal">₹0.00</span></div>
-      <div class="total-row"><span>GST 5% (CGST 2.5% + SGST 2.5%):</span><span id="taxVal">₹0.00</span></div>
+      <div class="total-row" id="packagingRow" style="display:none;"><span>Takeaway Packaging:</span><span id="packagingVal">₹0.00</span></div>
+      <div class="total-row"><span id="taxLabel">GST 5% (CGST 2.5% + SGST 2.5%):</span><span id="taxVal">₹0.00</span></div>
       <div class="total-row" id="tipRow" style="display:none;"><span>Staff Tip:</span><span id="tipVal">₹0.00</span></div>
       <div class="total-row grand-total"><span>Total Paid:</span><span id="totalVal">₹0.00</span></div>
       <div class="total-row" id="loyaltyRow" style="display:none; color:#ff6600; font-weight:700; margin-top:8px; border-top:1px dotted #cbd5e1; padding-top:6px;">
@@ -288,6 +289,16 @@
         if (data.serviceChargeINR && parseFloat(data.serviceChargeINR) > 0) {
           document.getElementById('serviceChargeVal').textContent = '₹' + data.serviceChargeINR;
           document.getElementById('serviceChargeRow').style.display = 'flex';
+        }
+        if (data.packagingChargeINR && parseFloat(data.packagingChargeINR) > 0) {
+          document.getElementById('packagingVal').textContent = '₹' + data.packagingChargeINR;
+          document.getElementById('packagingRow').style.display = 'flex';
+        }
+        if (data.gstRate !== undefined) {
+          const r = parseFloat(data.gstRate);
+          const half = (r / 2).toFixed(1).replace(/\.0$/, '');
+          const labelEl = document.getElementById('taxLabel');
+          if (labelEl) labelEl.textContent = r > 0 ? `GST ${r}% (CGST ${half}% + SGST ${half}%):` : 'GST (0%):';
         }
         if (data.tipINR && parseFloat(data.tipINR) > 0) {
           document.getElementById('tipVal').textContent = '₹' + data.tipINR;
